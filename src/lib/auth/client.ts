@@ -9,13 +9,13 @@ function generateToken(): string {
   return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
 }
 
-const user = {
+const user: User = {
   id: 'USR-000',
   avatar: '/assets/avatar.png',
   firstName: 'Sofia',
   lastName: 'Rivers',
   email: 'sofia@devias.io',
-} satisfies User;
+};
 
 export interface SignUpParams {
   userName: string;
@@ -37,14 +37,16 @@ export interface ResetPasswordParams {
   email: string;
 }
 
+// Define el tipo para la respuesta del login
+interface LoginResponse {
+  access_token?: string; // Cambia a opcional ya que puede no estar presente en caso de error
+  error?: string; // Define si el error puede estar en la respuesta
+}
+
 class AuthClient {
   async signUp(_: SignUpParams): Promise<{ error?: string }> {
-    // Make API request
-
-    // We do not handle the API, so we'll just generate a token and store it in localStorage.
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
-
     return {};
   }
 
@@ -55,13 +57,6 @@ class AuthClient {
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
     const { email, password } = params;
 
-    // Make API request
-
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    /* if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-      return { error: 'Invalid credentials' };
-    } */
-
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -71,23 +66,24 @@ class AuthClient {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      // Asegúrate de que el tipo de 'data' sea del tipo esperado
+      const data: LoginResponse = await response.json();
   
       if (!response.ok) {
-        const { error } = await response.json();
-        return { error: error || 'Invalid credentials' };
+        return { error: data.error || 'Credenciales Invalidas' }; // Manejo seguro del error
       }
   
-      const token = data.access_token; // Aseguramos de traer el token
-      localStorage.setItem('custom-auth-token', token); // Guarda el token en localStorage
-  
+      const token = (data as LoginResponse).access_token; // Aserción de tipo
+      if (token) {
+        return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
+        
+      }
+
       return {};
     } catch (error) {
+      console.error(error); // Manejo del error de red
       return { error: 'Network error' };
     }
-
-    /* const token = generateToken();
-    localStorage.setItem('custom-auth-token', token); */
   }
 
   async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
@@ -99,21 +95,15 @@ class AuthClient {
   }
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {
-    // Make API request
-
-    // We do not handle the API, so just check if we have a token in localStorage.
     const token = localStorage.getItem('custom-auth-token');
-
     if (!token) {
       return { data: null };
     }
-
     return { data: user };
   }
 
   async signOut(): Promise<{ error?: string }> {
     localStorage.removeItem('custom-auth-token');
-
     return {};
   }
 }

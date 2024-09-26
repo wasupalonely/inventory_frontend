@@ -27,7 +27,7 @@ export interface Customer {
   avatar: string;
   name: string;
   email: string;
-  role: String;
+  role: string;
   phone: string;
   createdAt: Date;
 }
