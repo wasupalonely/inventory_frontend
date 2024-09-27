@@ -18,8 +18,12 @@ const user: User = {
 };
 
 export interface SignUpParams {
-  userName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  secondlastName: string;
   email: string;
+  phone: string;
   password: string;
   userType: string;
 }
@@ -51,7 +55,7 @@ class AuthClient {
   }
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
-    return { error: 'Social authentication not implemented' };
+    return { error: 'Autenticación social no implementada' };
   }
 
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
@@ -82,16 +86,16 @@ class AuthClient {
       return {};
     } catch (error) {
       console.error(error); // Manejo del error de red
-      return { error: 'Network error' };
+      return { error: 'Error de red' };
     }
   }
 
   async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Password reset not implemented' };
+    return { error: 'La recuperación de contraseña no está implementado' };
   }
 
   async updatePassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Update reset not implemented' };
+    return { error: 'La actualización de contraseña no está implementado' };
   }
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {

@@ -28,8 +28,8 @@ export function ResetPasswordForm(): React.JSX.Element {
     control,
     handleSubmit,
     setError,
-    formState: { errors },
-  } = useForm<Values>({ defaultValues, resolver: zodResolver(schema) });
+    formState: { errors, isValid},
+  } = useForm<Values>({ defaultValues, resolver: zodResolver(schema),mode: 'onChange'});
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
@@ -67,7 +67,7 @@ export function ResetPasswordForm(): React.JSX.Element {
             )}
           />
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          <Button disabled={isPending} type="submit" variant="contained">
+          <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Enviar enlace de recuperación
           </Button>
         </Stack>
