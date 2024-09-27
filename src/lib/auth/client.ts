@@ -28,6 +28,14 @@ export interface SignUpParams {
   userType: string;
 }
 
+export interface SupermarketSignUpParams {
+  supermarketName: string;
+  location: string;
+  addressNumber: string;
+  addressDetail: string;
+  addressType: string;
+}
+
 export interface SignInWithOAuthParams {
   provider: 'google' | 'discord';
 }
@@ -51,6 +59,13 @@ class AuthClient {
   async signUp(_: SignUpParams): Promise<{ error?: string }> {
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
+    return {};
+  }
+
+  async supermarketsignUp(_: SupermarketSignUpParams): Promise<{ error?: string }> {
+    const token = generateToken();
+    localStorage.setItem('custom-auth-token', token);
+
     return {};
   }
 
