@@ -19,10 +19,10 @@ import { z as zod } from 'zod';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
-import { MenuItem, Select } from '@mui/material';
+import { Checkbox, FormControlLabel, MenuItem, Select } from '@mui/material';
 
 const schema = zod.object({
-  userType: zod.string().min(1, { message: 'El tipo de usuario es requerido' }),
+  role: zod.string().min(1, { message: 'El tipo de usuario es requerido' }),
   firstName: zod.string()
   .min(1, { message: 'El primer nombre es requerido' })
   .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
@@ -63,7 +63,7 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { userType: '', firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: '',  terms: false,} satisfies Values;
+const defaultValues = { role: '', firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: '',  terms: false,} satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -120,7 +120,7 @@ export function SignUpForm(): React.JSX.Element {
               <FormControl error={Boolean(errors.role)}>
                 <InputLabel>Tipo de usuario</InputLabel>
                 <Select {...field} label="Tipo de usuario">
-                  <MenuItem value="administrador">Administrador</MenuItem>
+                  <MenuItem value="admin">Administrador</MenuItem>
                 </Select>
                 {errors.role ? <FormHelperText>{errors.role.message}</FormHelperText> : null}
               </FormControl>

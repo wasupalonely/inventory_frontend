@@ -19,9 +19,9 @@ const user: User = {
 
 export interface SignUpParams {
   firstName: string;
-  middleName: string;
+  middleName?: string;
   lastName: string;
-  secondlastName: string;
+  secondLastName?: string;
   email: string;
   phone: string;
   password: string;
@@ -60,6 +60,11 @@ export interface ResetPasswordParams {
   email: string;
 }
 
+export interface UpdatePasswordParams {
+  password: string;
+  token: string;
+}
+
 // Define el tipo para la respuesta del login
 interface LoginResponse {
   access_token?: string; // Cambia a opcional ya que puede no estar presente en caso de error
@@ -68,8 +73,8 @@ interface LoginResponse {
 }
 
 class AuthClient {
-  async signUp(params: SignUpParams): Promise<{ error?: string, message?: string | null }> {
-    const { email, password, role, name, phoneNumber } = params;
+  async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
+    const { email, password, role, firstName, middleName, lastName, secondLastName, phoneNumber } = params;
 
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -77,12 +82,12 @@ class AuthClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password, role, phoneNumber }),
+        body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, role, phoneNumber }),
       });
 
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
-        console.log("🚀 ~ AuthClient ~ signUp ~ errorResponse:", errorResponse)
+        console.log('🚀 ~ AuthClient ~ signUp ~ errorResponse:', errorResponse);
 
         const errorMessage = errorResponse.message || 'Error signing up';
         return { error: errorMessage };
@@ -139,12 +144,50 @@ class AuthClient {
     }
   }
 
-  async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'La recuperación de contraseña no está implementado' };
+  async resetPassword(params: ResetPasswordParams): Promise<{ error?: string | null }> {
+    try {
+      const { email } = params;
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { error: data.message || 'Error confirming account' };
+      }
+
+      return { error: null };
+    } catch (err) {
+      return { error: 'Failed to reset account password' };
+    }
   }
 
-  async updatePassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'La actualización de contraseña no está implementado' };
+  async updatePassword(params: UpdatePasswordParams): Promise<{ error?: string | null }> {
+    const { password } = params;
+    try {
+      const response = await fetch(`${API_URL}/auth/reset-password?token=${params.token}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { error: data.message || 'Error updating password' };
+      }
+
+      return { error: null };
+    } catch (err) {
+      return { error: 'Failed to update password' };
+    }
   }
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {

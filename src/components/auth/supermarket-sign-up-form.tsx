@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Grid, InputAdornment, MenuItem, Select, TextField } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -13,14 +14,16 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
+
 import { authClient } from '@/lib/auth/client';
-import { Grid, InputAdornment, MenuItem, Select, TextField } from '@mui/material';
 
 const schema = zod.object({
-  supermarketName: zod.string()
+  supermarketName: zod
+    .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  location: zod.string()
+  location: zod
+    .string()
     .min(1, { message: 'El barrio es requerido' })
     .max(255, { message: 'El barrio no debe tener más de 255 caracteres' }),
   addressType: zod.string().min(1, { message: 'El tipo de calle es requerida' }),
@@ -30,7 +33,13 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { supermarketName: '', location: '', addressType: '', addressNumber: '', addressDetail: ''} satisfies Values;
+const defaultValues = {
+  supermarketName: '',
+  location: '',
+  addressType: '',
+  addressNumber: '',
+  addressDetail: '',
+} satisfies Values;
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -41,28 +50,28 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     handleSubmit,
     setError,
     formState: { errors, isValid },
-  } = useForm<Values>({ 
-    defaultValues, 
+  } = useForm<Values>({
+    defaultValues,
     resolver: zodResolver(schema),
-    mode: 'onChange', 
+    mode: 'onChange',
   });
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-        setIsPending(true);
-  
-        const { error } = await authClient.supermarketsignUp(values);
-  
-        if (error) {
-          setError('root', { type: 'server', message: error });
-          setIsPending(false);
-          return;
-        }
-  
-        await checkSession?.();
-        router.refresh();
-      },
-      [checkSession, router, setError]
+      setIsPending(true);
+
+      const { error } = await authClient.supermarketsignUp(values);
+
+      if (error) {
+        setError('root', { type: 'server', message: error });
+        setIsPending(false);
+        return;
+      }
+
+      await checkSession?.();
+      router.refresh();
+    },
+    [checkSession, router, setError]
   );
 
   return (
@@ -94,71 +103,71 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
-<Grid container spacing={2}>
-    <Grid item xs={4}>
-        <Controller
-            control={control}
-            name="addressType"
-            render={({ field }) => (
-                <FormControl error={Boolean(errors.addressType)} fullWidth>
-                <InputLabel>Tipo de calle</InputLabel>
-                <Select {...field} label="Tipo de Vía">
-                    <MenuItem value="avenida">Avenida</MenuItem>
-                    <MenuItem value="avenida calle">Avenida Calle</MenuItem>
-                    <MenuItem value="avenida carrera">Avenida Carrera</MenuItem>
-                    <MenuItem value="calle">Calle</MenuItem>
-                    <MenuItem value="carrera">Carrera</MenuItem>
-                    <MenuItem value="circular">Circular</MenuItem>
-                    <MenuItem value="circunvalar">Circunvalar</MenuItem>
-                    <MenuItem value="diagonal">Diagonal</MenuItem>
-                    <MenuItem value="manzana">Manzana</MenuItem>
-                    <MenuItem value="transversal">Transversal</MenuItem>
-                    <MenuItem value="via">Vía</MenuItem>
-                </Select>
-                {errors.addressType ? <FormHelperText>{errors.addressType.message}</FormHelperText> : null}
-                </FormControl>
-             )}  
-        />
-    </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <Controller
+                control={control}
+                name="addressType"
+                render={({ field }) => (
+                  <FormControl error={Boolean(errors.addressType)} fullWidth>
+                    <InputLabel>Tipo de calle</InputLabel>
+                    <Select {...field} label="Tipo de Vía">
+                      <MenuItem value="avenida">Avenida</MenuItem>
+                      <MenuItem value="avenida calle">Avenida Calle</MenuItem>
+                      <MenuItem value="avenida carrera">Avenida Carrera</MenuItem>
+                      <MenuItem value="calle">Calle</MenuItem>
+                      <MenuItem value="carrera">Carrera</MenuItem>
+                      <MenuItem value="circular">Circular</MenuItem>
+                      <MenuItem value="circunvalar">Circunvalar</MenuItem>
+                      <MenuItem value="diagonal">Diagonal</MenuItem>
+                      <MenuItem value="manzana">Manzana</MenuItem>
+                      <MenuItem value="transversal">Transversal</MenuItem>
+                      <MenuItem value="via">Vía</MenuItem>
+                    </Select>
+                    {errors.addressType ? <FormHelperText>{errors.addressType.message}</FormHelperText> : null}
+                  </FormControl>
+                )}
+              />
+            </Grid>
 
-    <Grid item xs={4}>
-        <Controller
-            control={control}
-            name="addressNumber"
-            render={({ field }) => (
-                <TextField
+            <Grid item xs={4}>
+              <Controller
+                control={control}
+                name="addressNumber"
+                render={({ field }) => (
+                  <TextField
                     {...field}
                     label="Calle"
                     InputProps={{
                       startAdornment: <InputAdornment position="start">#</InputAdornment>,
-                    }}          
+                    }}
                     error={Boolean(errors.addressNumber)}
                     helperText={errors.addressNumber?.message}
                     fullWidth
-                />
-            )}
-        />
-    </Grid>
+                  />
+                )}
+              />
+            </Grid>
 
-    <Grid item xs={4}>
-        <Controller
-        control={control}
-        name="addressDetail"
-        render={({ field }) => (
-            <TextField
-            {...field}
-            label="Número"
-            InputProps={{
-              startAdornment: <InputAdornment position="start">-</InputAdornment>,
-            }}
-            error={Boolean(errors.addressDetail)}
-            helperText={errors.addressDetail?.message}
-            fullWidth
-            />
-        )}
-        />
-    </Grid>
-    </Grid>
+            <Grid item xs={4}>
+              <Controller
+                control={control}
+                name="addressDetail"
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Número"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">-</InputAdornment>,
+                    }}
+                    error={Boolean(errors.addressDetail)}
+                    helperText={errors.addressDetail?.message}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
 
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
@@ -178,5 +187,5 @@ export function SupermarketSignUpForm(): React.JSX.Element {
 //   });
 // }
 function checkSession() {
-    throw new Error('Function not implemented.');
+  throw new Error('Function not implemented.');
 }
