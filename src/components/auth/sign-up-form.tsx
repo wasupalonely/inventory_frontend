@@ -6,9 +6,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
 import Link from '@mui/material/Link';
@@ -21,10 +19,10 @@ import { z as zod } from 'zod';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
-import { MenuItem, Select } from '@mui/material';
+import { Checkbox, FormControlLabel, MenuItem, Select } from '@mui/material';
 
 const schema = zod.object({
-  userType: zod.string().min(1, { message: 'El tipo de usuario es requerido' }),
+  role: zod.string().min(1, { message: 'El tipo de usuario es requerido' }),
   firstName: zod.string()
   .min(1, { message: 'El primer nombre es requerido' })
   .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
@@ -65,13 +63,11 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { userType: '', firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: '',  terms: false,} satisfies Values;
+const defaultValues = { role: '', firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: '',  terms: false,} satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
   const router = useRouter();
-
   const { checkSession } = useUser();
-
   const [isPending, setIsPending] = React.useState<boolean>(false);
 
   const {
@@ -89,18 +85,19 @@ export function SignUpForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
-      const { error } = await authClient.signUp(values);
+      const { error, message } = await authClient.signUp({...values, phoneNumber: '123456789'});
 
       if (error) {
+        // Establecer el error del servidor
         setError('root', { type: 'server', message: error });
-        setIsPending(false);
-        return;
+      } else if (message) {
+        // Establecer el mensaje de éxito como si fuera un "error" en un campo ficticio
+        setError('root.success', { type: 'success', message });
       }
 
-      await checkSession?.();
-      router.refresh();
+      setIsPending(false);
     },
-    [checkSession, router, setError]
+    [setError]
   );
 
   return (
@@ -118,14 +115,14 @@ export function SignUpForm(): React.JSX.Element {
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="userType"
+            name="role"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.userType)}>
+              <FormControl error={Boolean(errors.role)}>
                 <InputLabel>Tipo de usuario</InputLabel>
                 <Select {...field} label="Tipo de usuario">
-                  <MenuItem value="administrador">Administrador</MenuItem>
+                  <MenuItem value="admin">Administrador</MenuItem>
                 </Select>
-                {errors.userType ? <FormHelperText>{errors.userType.message}</FormHelperText> : null}
+                {errors.role ? <FormHelperText>{errors.role.message}</FormHelperText> : null}
               </FormControl>
             )}
           />

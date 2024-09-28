@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 
 import { config } from '@/config';
 import { Notifications } from '@/components/dashboard/settings/notifications';
-import { UpdatePasswordForm } from '@/components/dashboard/settings/update-password-form';
+import { UpdatePasswordForm } from '@/components/auth/update-password-form';
 
 export const metadata = { title: `Configuración | Dashboard | ${config.site.name}` } satisfies Metadata;
 
