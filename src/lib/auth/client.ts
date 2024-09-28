@@ -18,10 +18,21 @@ const user: User = {
 };
 
 export interface SignUpParams {
-  userName: string;
+  name: string;
   email: string;
   password: string;
-  userType: string;
+  phoneNumber?: string;
+  role: string;
+}
+
+export interface DefaultErrorResponse {
+  error: string;
+  message?: string;
+  statusCode?: number;
+}
+
+export interface RegisterResponse {
+  message: string;
 }
 
 export interface SignInWithOAuthParams {
@@ -41,20 +52,44 @@ export interface ResetPasswordParams {
 interface LoginResponse {
   access_token?: string; // Cambia a opcional ya que puede no estar presente en caso de error
   error?: string; // Define si el error puede estar en la respuesta
+  message?: string;
 }
 
 class AuthClient {
-  async signUp(_: SignUpParams): Promise<{ error?: string }> {
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-    return {};
+  async signUp(params: SignUpParams): Promise<{ error?: string, message?: string | null }> {
+    const { email, password, role, name, phoneNumber } = params;
+
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password, role, phoneNumber }),
+      });
+
+      if (!response.ok) {
+        const errorResponse: DefaultErrorResponse = await response.json();
+        console.log("🚀 ~ AuthClient ~ signUp ~ errorResponse:", errorResponse)
+
+        const errorMessage = errorResponse.message || 'Error signing up';
+        return { error: errorMessage };
+      }
+
+      const data: RegisterResponse = await response.json();
+
+      return { message: data.message };
+    } catch (error) {
+      console.error(error);
+      return { error: 'Network error' };
+    }
   }
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
     return { error: 'Social authentication not implemented' };
   }
 
-  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
+  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string; message?: string }> {
     const { email, password } = params;
 
     try {
@@ -68,15 +103,14 @@ class AuthClient {
 
       // Asegúrate de que el tipo de 'data' sea del tipo esperado
       const data: LoginResponse = await response.json();
-  
+
       if (!response.ok) {
-        return { error: data.error || 'Credenciales Invalidas' }; // Manejo seguro del error
+        return { error: 'Usuario y/o contraseña incorrectos' }; // Manejo seguro del error
       }
-  
+
       const token = (data as LoginResponse).access_token; // Aserción de tipo
       if (token) {
         return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
-        
       }
 
       return {};
@@ -105,6 +139,27 @@ class AuthClient {
   async signOut(): Promise<{ error?: string }> {
     localStorage.removeItem('custom-auth-token');
     return {};
+  }
+
+  async confirmAccount({ token }: { token: string }): Promise<{ error?: string | null }> {
+    try {
+      const response = await fetch(`${API_URL}/auth/confirm?token=${token}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { error: data.message || 'Error confirming account' };
+      }
+
+      return { error: null };
+    } catch (err) {
+      return { error: 'Failed to confirm account' };
+    }
   }
 }
 
