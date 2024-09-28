@@ -58,25 +58,25 @@ export default function Page(): React.JSX.Element {
     <Stack spacing={3}>
       <Stack direction="row" spacing={3}>
         <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
-          <Typography variant="h4">Customers</Typography>
+          <Typography variant="h4">Usuarios</Typography>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <Button color="inherit" startIcon={<UploadIcon fontSize="var(--icon-fontSize-md)" />}>
-              Import
+              Importar
             </Button>
             <Button color="inherit" startIcon={<DownloadIcon fontSize="var(--icon-fontSize-md)" />}>
-              Export
+              Exportar
             </Button>
           </Stack>
         </Stack>
         <div>
           <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained">
-            Add
+            Añadir
           </Button> 
         </div>
       </Stack>
       <CustomersFilters />
       {loading ? (
-        <Typography>Loading...</Typography>
+        <Typography>Cargando...</Typography>
       ) : (
         <CustomersTable
           count={paginatedCustomers.length}
