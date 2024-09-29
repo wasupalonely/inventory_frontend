@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,9 +8,9 @@ import { authClient } from '@/lib/auth/client';
 import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 
-export default function Page(): React.JSX.Element {
-  const router = useRouter();
+const ConfirmContent = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get('token');
 
   const [globalError, setError] = React.useState<string | null>(null);
@@ -42,20 +42,26 @@ export default function Page(): React.JSX.Element {
   }, [token, router]);
 
   return (
+    <Stack spacing={4}>
+      <Typography variant="h5">Confirmando cuenta...</Typography>
+
+      {isPending ? (
+        <CircularProgress />
+      ) : globalError ? (
+        <Alert severity="error">{globalError}</Alert>
+      ) : (
+        <Typography>Redirigiendo al login...</Typography>
+      )}
+    </Stack>
+  );
+};
+
+export default function Page(): React.JSX.Element {
+  return (
     <Layout>
       <GuestGuard>
         <React.Suspense fallback={<CircularProgress />}>
-          <Stack spacing={4}>
-            <Typography variant="h5">Confirmando cuenta...</Typography>
-
-            {isPending ? (
-              <CircularProgress />
-            ) : globalError ? (
-              <Alert severity="error">{globalError}</Alert>
-            ) : (
-              <Typography>Redirigiendo al login...</Typography>
-            )}
-          </Stack>
+          <ConfirmContent />
         </React.Suspense>
       </GuestGuard>
     </Layout>
