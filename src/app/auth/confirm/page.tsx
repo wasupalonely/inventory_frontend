@@ -8,7 +8,6 @@ import { authClient } from '@/lib/auth/client';
 import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 
-
 export default function Page(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,17 +44,19 @@ export default function Page(): React.JSX.Element {
   return (
     <Layout>
       <GuestGuard>
-        <Stack spacing={4}>
-          <Typography variant="h5">Confirmando cuenta...</Typography>
+        <React.Suspense fallback={<CircularProgress />}>
+          <Stack spacing={4}>
+            <Typography variant="h5">Confirmando cuenta...</Typography>
 
-          {isPending ? (
-            <CircularProgress />
-          ) : error ? (
-            <Alert severity="error">{error}</Alert>
-          ) : (
-            <Typography>Redirigiendo al login...</Typography>
-          )}
-        </Stack>
+            {isPending ? (
+              <CircularProgress />
+            ) : error ? (
+              <Alert severity="error">{error}</Alert>
+            ) : (
+              <Typography>Redirigiendo al login...</Typography>
+            )}
+          </Stack>
+        </React.Suspense>
       </GuestGuard>
     </Layout>
   );
