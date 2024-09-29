@@ -13,7 +13,7 @@ export default function Page(): React.JSX.Element {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [error, setError] = React.useState<string | null>(null);
+  const [globalError, setError] = React.useState<string | null>(null);
   const [isPending, setIsPending] = React.useState<boolean>(true);
 
   React.useEffect(() => {
@@ -50,8 +50,8 @@ export default function Page(): React.JSX.Element {
 
             {isPending ? (
               <CircularProgress />
-            ) : error ? (
-              <Alert severity="error">{error}</Alert>
+            ) : globalError ? (
+              <Alert severity="error">{globalError}</Alert>
             ) : (
               <Typography>Redirigiendo al login...</Typography>
             )}

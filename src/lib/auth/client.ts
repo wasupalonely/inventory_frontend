@@ -29,6 +29,10 @@ export interface SignUpParams {
   role: string;
 }
 
+export interface SimpleMessageResponse {
+  message: string;
+}
+
 export interface DefaultErrorResponse {
   error: string;
   message?: string;
@@ -87,7 +91,6 @@ class AuthClient {
 
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
-        console.log('🚀 ~ AuthClient ~ signUp ~ errorResponse:', errorResponse);
 
         const errorMessage = errorResponse.message || 'Error signing up';
         return { error: errorMessage };
@@ -97,7 +100,6 @@ class AuthClient {
 
       return { message: data.message };
     } catch (error) {
-      console.error(error);
       return { error: 'Network error' };
     }
   }
@@ -132,14 +134,13 @@ class AuthClient {
         return { error: 'Usuario y/o contraseña incorrectos' }; // Manejo seguro del error
       }
 
-      const token = (data as LoginResponse).access_token; // Aserción de tipo
+      const token = data.access_token; // Aserción de tipo
       if (token) {
         return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
       }
 
       return {};
     } catch (error) {
-      console.error(error); // Manejo del error de red
       return { error: 'Error de red' };
     }
   }
@@ -155,7 +156,7 @@ class AuthClient {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
+      const data = await response.json() as SimpleMessageResponse;
 
       if (!response.ok) {
         return { error: data.message || 'Error confirming account' };
@@ -178,7 +179,7 @@ class AuthClient {
         body: JSON.stringify({ password }),
       });
 
-      const data = await response.json();
+      const data = await response.json() as SimpleMessageResponse;
 
       if (!response.ok) {
         return { error: data.message || 'Error updating password' };
@@ -212,7 +213,7 @@ class AuthClient {
         },
       });
 
-      const data = await response.json();
+      const data = await response.json() as SimpleMessageResponse;
 
       if (!response.ok) {
         return { error: data.message || 'Error confirming account' };
