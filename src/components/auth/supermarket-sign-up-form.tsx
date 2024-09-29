@@ -68,10 +68,10 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         return;
       }
 
-      await checkSession?.();
+      checkSession?.();
       router.refresh();
     },
-    [checkSession, router, setError]
+    [router, setError]
   );
 
   return (
@@ -186,6 +186,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
 //     }, 2000);
 //   });
 // }
-function checkSession() {
+function checkSession(): void {
   throw new Error('Function not implemented.');
 }

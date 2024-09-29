@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import RouterLink from 'next/link';
-import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -18,7 +17,6 @@ import { z as zod } from 'zod';
 
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
-import { useUser } from '@/hooks/use-user';
 import { Checkbox, FormControlLabel, MenuItem, Select } from '@mui/material';
 
 const schema = zod.object({
@@ -66,8 +64,8 @@ type Values = zod.infer<typeof schema>;
 const defaultValues = { role: '', firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: '',  terms: false,} satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
-  const router = useRouter();
-  const { checkSession } = useUser();
+  // const router = useRouter();
+  // const { checkSession } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
 
   const {
