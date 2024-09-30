@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import InputMask from 'react-input-mask';
 import RouterLink from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
@@ -14,25 +15,20 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-
+import { Eye as EyeIcon } from '@phosphor-icons/react/dist/ssr/Eye';
+import { EyeSlash as EyeSlashIcon } from '@phosphor-icons/react/dist/ssr/EyeSlash';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
-import { Checkbox, FormControlLabel, MenuItem, Select } from '@mui/material';
 
 const schema = zod.object({
-  role: zod.string().min(1, { message: 'El tipo de usuario es requerido' }),
   firstName: zod.string()
   .min(1, { message: 'El primer nombre es requerido' })
   .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
-  middleName: zod.string()
-  .min(1, { message: 'El segundo nombre es requerido' })
-  .max(50, { message: 'El segundo nombre no debe tener más de 50 caracteres' }),
+  middleName: zod.string().optional(),
   lastName: zod.string()
   .min(1, { message: 'El primer apellido requerido' })
   .max(50, { message: 'El primer apellido no debe tener más de 50 caracteres' }),
-  secondlastName: zod.string()
-  .min(1, { message: 'El segundo apellido requerido' })
-  .max(50, { message: 'El segundo apellido no debe tener más de 50 caracteres' }),
+  secondlastName: zod.string().optional(),
   email: zod.string()
   .min(1, { message: 'El correo electrónico es requerido' }).email()
   .max(255, { message: 'El correo electrónico no debe tener más de 255 caracteres' }),
@@ -52,8 +48,7 @@ const schema = zod.object({
     .regex(/[A-Z]/, { message: 'La confirmación de contraseña debe contener al menos una letra mayúscula' })
     .regex(/[a-z]/, { message: 'La confirmación de contraseña debe contener al menos una letra minúscula' })
     .regex(/\d/, { message: 'La confirmación de contraseña debe contener al menos un número' })
-    .regex(/[\W_]/, { message: 'La confirmación de contraseña debe contener al menos un carácter especial' }),
-  terms: zod.boolean().refine((value) => value, 'Tienes que aceptar los términos y condiciones')
+    .regex(/[\W_]/, { message: 'La confirmación de contraseña debe contener al menos un carácter especial' })
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Las contraseñas deben coincidir',
   path: ['confirmPassword'],
@@ -61,12 +56,14 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { role: '', firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: '',  terms: false,} satisfies Values;
+const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: ''} satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
   // const router = useRouter();
   // const { checkSession } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
+
+  const [showPassword, setShowPassword] = React.useState<boolean>();
 
   const {
     control,
@@ -111,126 +108,133 @@ export function SignUpForm(): React.JSX.Element {
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
-          <Controller
-            control={control}
-            name="role"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.role)}>
-                <InputLabel>Tipo de usuario</InputLabel>
-                <Select {...field} label="Tipo de usuario">
-                  <MenuItem value="admin">Administrador</MenuItem>
-                </Select>
-                {errors.role ? <FormHelperText>{errors.role.message}</FormHelperText> : null}
-              </FormControl>
-            )}
+        <Controller
+  control={control}
+  name="firstName"
+  render={({ field }) => (
+    <FormControl error={Boolean(errors.firstName)} required>
+      <InputLabel required>Primer nombre</InputLabel>
+      <OutlinedInput {...field} label="First name" />
+      {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="middleName"
+  render={({ field }) => (
+    <FormControl>
+      <InputLabel>Segundo nombre</InputLabel>
+      <OutlinedInput {...field} label="Middle name" />
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="lastName"
+  render={({ field }) => (
+    <FormControl error={Boolean(errors.lastName)} required>
+      <InputLabel required>Primer apellido</InputLabel>
+      <OutlinedInput {...field} label="Last name" />
+      {errors.lastName ? <FormHelperText>{errors.lastName.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="secondlastName"
+  render={({ field }) => (
+    <FormControl>
+      <InputLabel>Segundo apellido</InputLabel>
+      <OutlinedInput {...field} label="Second last name" />
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="email"
+  render={({ field }) => (
+    <FormControl error={Boolean(errors.email)} required>
+      <InputLabel required>Correo electrónico</InputLabel>
+      <OutlinedInput {...field} label="Email address" type="email" />
+      {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="phone"
+  render={({ field }) => (
+    <FormControl error={Boolean(errors.phone)} required>
+      <InputLabel required>Número de celular</InputLabel>
+      <InputMask
+        {...field}
+        mask="999-999-9999" 
+        maskChar={null}
+      >
+        {(inputProps) => <OutlinedInput {...inputProps} label="Phone" />}
+      </InputMask>
+      {errors.phone ? <FormHelperText>{errors.phone.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="password"
+  render={({ field }) => (
+    <FormControl error={Boolean(errors.password)} required>
+      <InputLabel required>Contraseña</InputLabel>
+      <OutlinedInput
+        {...field}
+        endAdornment={showPassword ? (
+          <EyeIcon
+            cursor="pointer"
+            fontSize="var(--icon-fontSize-md)"
+            onClick={(): void => { setShowPassword(false); }}
           />
-          <Controller
-            control={control}
-            name="firstName"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.firstName)}>
-                <InputLabel>Primer nombre</InputLabel>
-                <OutlinedInput {...field} label="First name" />
-                {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
-              </FormControl>
-            )}
+        ) : (
+          <EyeSlashIcon
+            cursor="pointer"
+            fontSize="var(--icon-fontSize-md)"
+            onClick={(): void => { setShowPassword(true); }}
           />
-          <Controller
-            control={control}
-            name="middleName"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.middleName)}>
-              <InputLabel>Segundo nombre</InputLabel>
-                <OutlinedInput {...field} label="Middle name" />
-                {errors.middleName ? <FormHelperText>{errors.middleName.message}</FormHelperText> : null}
-              </FormControl>
-            )}
+        )}
+        label="Password"
+        type={showPassword ? 'text' : 'password'}
+      />
+      {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+<Controller
+  control={control}
+  name="confirmPassword"
+  render={({ field }) => (
+    <FormControl error={Boolean(errors.confirmPassword)} required>
+      <InputLabel required>Confirmar contraseña</InputLabel>
+      <OutlinedInput
+        {...field}
+        endAdornment={showPassword ? (
+          <EyeIcon
+            cursor="pointer"
+            fontSize="var(--icon-fontSize-md)"
+            onClick={(): void => { setShowPassword(false); }}
           />
-          <Controller
-            control={control}
-            name="lastName"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.lastName)}>
-                <InputLabel>Primer apellido </InputLabel>
-                <OutlinedInput {...field} label="Last name" />
-                {errors.lastName ? <FormHelperText>{errors.lastName.message}</FormHelperText> : null}
-              </FormControl>
-            )}
+        ) : (
+          <EyeSlashIcon
+            cursor="pointer"
+            fontSize="var(--icon-fontSize-md)"
+            onClick={(): void => { setShowPassword(true); }}
           />
-          <Controller
-            control={control}
-            name="secondlastName"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.secondlastName)}>
-                <InputLabel>Segundo apellido</InputLabel>
-                <OutlinedInput {...field} label="Second last name" />
-                {errors.secondlastName ? <FormHelperText>{errors.secondlastName.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="email"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.email)}>
-                <InputLabel>Correo electrónico</InputLabel>
-                <OutlinedInput {...field} label="Email address" type="email" />
-                {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="phone"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.phone)}>
-              <InputLabel>Número de celular</InputLabel>
-                <OutlinedInput {...field} label="Phone" />
-                {errors.phone ? <FormHelperText>{errors.phone.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="password"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.password)}>
-                <InputLabel>Contraseña</InputLabel>
-                <OutlinedInput {...field} label="Password" type="password" />
-                {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.confirmPassword)}>
-                <InputLabel>Confirmar contraseña</InputLabel>
-                <OutlinedInput {...field} label="Confirm Password" type="password" />
-                {errors.confirmPassword ? (
-                  <FormHelperText>{errors.confirmPassword.message}</FormHelperText>
-                ) : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="terms"
-            render={({ field }) => (
-              <div>
-                <FormControlLabel
-                  control={<Checkbox {...field} />}
-                  label={
-                    <React.Fragment>
-                      He leído los <Link>términos y condiciones</Link>
-                    </React.Fragment>
-                  }
-                />
-                {errors.terms ? <FormHelperText error>{errors.terms.message}</FormHelperText> : null}
-              </div>
-            )}
-          />
+        )}
+        label="Confirm Password"
+        type={showPassword ? 'text' : 'password'}
+      />
+      {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Regístrate
