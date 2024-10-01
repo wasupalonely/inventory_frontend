@@ -88,6 +88,7 @@ class AuthClient {
         body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, phoneNumber }),
       });
 
+
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
 
@@ -99,6 +100,7 @@ class AuthClient {
 
       return { message: data.message };
     } catch (error) {
+
       return { error: 'Network error' };
     }
   }
@@ -137,6 +139,7 @@ class AuthClient {
       if (!token) {
         return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
       }
+      localStorage.setItem('custom-auth-token', token);
 
       return {};
     } catch (error) {

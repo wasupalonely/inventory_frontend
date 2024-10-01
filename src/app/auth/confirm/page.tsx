@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
 
 import { authClient } from '@/lib/auth/client';
-import { GuestGuard } from '@/components/auth/guest-guard';
+import { AuthGuard } from '@/components/auth/auth-guard';
 import { Layout } from '@/components/auth/layout';
 
 const ConfirmContent = () => {
@@ -68,11 +68,11 @@ const ConfirmContent = () => {
 export default function Page(): React.JSX.Element {
   return (
     <Layout>
-      <GuestGuard>
+      <AuthGuard>
         <React.Suspense fallback={<CircularProgress />}>
           <ConfirmContent />
         </React.Suspense>
-      </GuestGuard>
+      </AuthGuard>
     </Layout>
   );
 }
