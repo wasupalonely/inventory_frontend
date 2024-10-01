@@ -14,6 +14,9 @@ import { CustomersFilters } from '@/components/dashboard/customer/customers-filt
 import { CustomersTable } from '@/components/dashboard/customer/customers-table';
 import type { Customer } from '@/components/dashboard/customer/customers-table';
 
+
+
+
 export default function Page(): React.JSX.Element {
   const [user, setUser] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);

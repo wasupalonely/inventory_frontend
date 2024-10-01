@@ -97,12 +97,14 @@ export function SignUpForm(): React.JSX.Element {
       if (error) {
         setError('root', { type: 'server', message: error });
       } else if (message) {
+        localStorage.setItem('canAccessConfirmation', 'true');
         setError('root.success', { type: 'success', message });
       }
 
       setIsPending(false);
     },
     [setError]
+    
   );
 
   return (
