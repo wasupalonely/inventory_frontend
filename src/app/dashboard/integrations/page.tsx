@@ -16,7 +16,7 @@ import { config } from '@/config';
 // import type { Integration } from '@/components/dashboard/integrations/integrations-card';
 import { CompaniesFilters } from '@/components/dashboard/integrations/integrations-filters';
 
-export const metadata = { title: `${config.site.name}`} satisfies Metadata;
+export const metadata: Metadata = { title: config.site.name }; 
 
 
 export default function Page(): React.JSX.Element {
