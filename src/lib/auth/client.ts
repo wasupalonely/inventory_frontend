@@ -134,7 +134,7 @@ class AuthClient {
       }
 
       const token = data.access_token; // Aserción de tipo
-      if (token) {
+      if (!token) {
         return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
       }
 

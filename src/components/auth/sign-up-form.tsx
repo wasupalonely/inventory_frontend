@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import InputMask from 'react-input-mask';
 import RouterLink from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
@@ -61,6 +60,19 @@ const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastN
 export function SignUpForm(): React.JSX.Element {
   // const router = useRouter();
   // const { checkSession } = useUser();
+
+  function formatPhoneNumber(value: string) {
+    if (!value) return value;
+    const phoneNumber = value.replace(/[^\d]/g, '');
+    const phoneNumberLength = phoneNumber.length;
+  
+    if (phoneNumberLength < 4) return phoneNumber;
+    if (phoneNumberLength < 7) {
+      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+    }
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+  }
+
   const [isPending, setIsPending] = React.useState<boolean>(false);
 
   const [showPassword, setShowPassword] = React.useState<boolean>();
@@ -83,10 +95,8 @@ export function SignUpForm(): React.JSX.Element {
       const { error, message } = await authClient.signUp({...values, phoneNumber: '123456789'});
 
       if (error) {
-        // Establecer el error del servidor
         setError('root', { type: 'server', message: error });
       } else if (message) {
-        // Establecer el mensaje de éxito como si fuera un "error" en un campo ficticio
         setError('root.success', { type: 'success', message });
       }
 
@@ -165,15 +175,17 @@ export function SignUpForm(): React.JSX.Element {
   control={control}
   name="phone"
   render={({ field }) => (
-    <FormControl error={Boolean(errors.phone)} required>
-      <InputLabel required>Número de celular</InputLabel>
-      <InputMask
+    <FormControl error={Boolean(errors.phone)}>
+      <InputLabel>Número de celular</InputLabel>
+      <OutlinedInput
         {...field}
-        mask="999-999-9999" 
-        maskChar={null}
-      >
-        {(inputProps) => <OutlinedInput {...inputProps} label="Phone" />}
-      </InputMask>
+        label="Phone"
+        value={formatPhoneNumber(field.value)}
+        onChange={(e) => {
+          const formattedValue = formatPhoneNumber(e.target.value);
+          field.onChange(formattedValue);
+        }}
+      />
       {errors.phone ? <FormHelperText>{errors.phone.message}</FormHelperText> : null}
     </FormControl>
   )}
