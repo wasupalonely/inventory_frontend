@@ -112,15 +112,15 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                   <FormControl error={Boolean(errors.addressType)} fullWidth>
                     <InputLabel>Tipo de calle</InputLabel>
                     <Select {...field} label="Tipo de Vía">
-                      <MenuItem value="avenida">Avenida</MenuItem>
-                      <MenuItem value="avenida calle">Avenida Calle</MenuItem>
-                      <MenuItem value="avenida carrera">Avenida Carrera</MenuItem>
-                      <MenuItem value="calle">Calle</MenuItem>
-                      <MenuItem value="carrera">Carrera</MenuItem>
+                      <MenuItem value="avenue">Avenida</MenuItem>
+                      <MenuItem value="avenueStreet ">Avenida Calle</MenuItem>
+                      <MenuItem value="avenueCareer">Avenida Carrera</MenuItem>
+                      <MenuItem value="street">Calle</MenuItem>
+                      <MenuItem value="career">Carrera</MenuItem>
                       <MenuItem value="circular">Circular</MenuItem>
-                      <MenuItem value="circunvalar">Circunvalar</MenuItem>
+                      <MenuItem value="encircle">Circunvalar</MenuItem>
                       <MenuItem value="diagonal">Diagonal</MenuItem>
-                      <MenuItem value="manzana">Manzana</MenuItem>
+                      <MenuItem value="apple">Manzana</MenuItem>
                       <MenuItem value="transversal">Transversal</MenuItem>
                       <MenuItem value="via">Vía</MenuItem>
                     </Select>

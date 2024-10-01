@@ -26,7 +26,6 @@ export interface SignUpParams {
   phone: string;
   password: string;
   phoneNumber?: string;
-  role: string;
 }
 
 export interface SimpleMessageResponse {
@@ -78,7 +77,7 @@ interface LoginResponse {
 
 class AuthClient {
   async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
-    const { email, password, role, firstName, middleName, lastName, secondLastName, phoneNumber } = params;
+    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber } = params;
 
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -86,7 +85,7 @@ class AuthClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, role, phoneNumber }),
+        body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, phoneNumber }),
       });
 
       if (!response.ok) {
@@ -135,7 +134,7 @@ class AuthClient {
       }
 
       const token = data.access_token; // Aserción de tipo
-      if (token) {
+      if (!token) {
         return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
       }
 
