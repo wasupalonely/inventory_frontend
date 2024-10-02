@@ -7,7 +7,7 @@ import { config } from '@/config';
 import { Notifications } from '@/components/dashboard/settings/notifications';
 import { UpdatePasswordForm } from '@/components/auth/update-password-form';
 
-export const metadata = { title: `Configuración | Dashboard | ${config.site.name}` } satisfies Metadata;
+export const metadata: Metadata = { title: config.site.name }; 
 
 export default function Page(): React.JSX.Element {
   return (

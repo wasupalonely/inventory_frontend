@@ -18,19 +18,20 @@ import { Eye as EyeIcon } from '@phosphor-icons/react/dist/ssr/Eye';
 import { EyeSlash as EyeSlashIcon } from '@phosphor-icons/react/dist/ssr/EyeSlash';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
+import { useRouter } from 'next/navigation'; // Importa useRouter
 
 const schema = zod.object({
   firstName: zod.string()
-  .min(1, { message: 'El primer nombre es requerido' })
-  .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
+    .min(1, { message: 'El primer nombre es requerido' })
+    .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
   middleName: zod.string().optional(),
   lastName: zod.string()
-  .min(1, { message: 'El primer apellido requerido' })
-  .max(50, { message: 'El primer apellido no debe tener más de 50 caracteres' }),
+    .min(1, { message: 'El primer apellido requerido' })
+    .max(50, { message: 'El primer apellido no debe tener más de 50 caracteres' }),
   secondlastName: zod.string().optional(),
   email: zod.string()
-  .min(1, { message: 'El correo electrónico es requerido' }).email()
-  .max(255, { message: 'El correo electrónico no debe tener más de 255 caracteres' }),
+    .min(1, { message: 'El correo electrónico es requerido' }).email()
+    .max(255, { message: 'El correo electrónico no debe tener más de 255 caracteres' }),
   phone: zod.string()
     .min(9, { message: 'El número de celular debe tener al menos 9 caracteres' })
     .max(255, { message: 'El número de celular no debe tener más de 255 caracteres' }),
@@ -47,7 +48,7 @@ const schema = zod.object({
     .regex(/[A-Z]/, { message: 'La confirmación de contraseña debe contener al menos una letra mayúscula' })
     .regex(/[a-z]/, { message: 'La confirmación de contraseña debe contener al menos una letra minúscula' })
     .regex(/\d/, { message: 'La confirmación de contraseña debe contener al menos un número' })
-    .regex(/[\W_]/, { message: 'La confirmación de contraseña debe contener al menos un carácter especial' })
+    .regex(/[\W_]/, { message: 'La confirmación de contraseña debe contener al menos un carácter especial' }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Las contraseñas deben coincidir',
   path: ['confirmPassword'],
@@ -55,54 +56,55 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone:'', email: '', password: '',  confirmPassword: ''} satisfies Values;
+const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '' } satisfies Values;
+
+function formatPhoneNumber(value: string) {
+  if (!value) return value;
+  const phoneNumber = value.replace(/[^\d]/g, '');
+  const phoneNumberLength = phoneNumber.length;
+
+  if (phoneNumberLength < 4) return phoneNumber;
+  if (phoneNumberLength < 7) {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+  }
+  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+}
 
 export function SignUpForm(): React.JSX.Element {
-  // const router = useRouter();
-  // const { checkSession } = useUser();
-
-  function formatPhoneNumber(value: string) {
-    if (!value) return value;
-    const phoneNumber = value.replace(/[^\d]/g, '');
-    const phoneNumberLength = phoneNumber.length;
-  
-    if (phoneNumberLength < 4) return phoneNumber;
-    if (phoneNumberLength < 7) {
-      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
-    }
-    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-  }
 
   const [isPending, setIsPending] = React.useState<boolean>(false);
-
   const [showPassword, setShowPassword] = React.useState<boolean>();
-
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de éxito
+  const router = useRouter(); // Inicializa useRouter
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isValid },
-  } = useForm<Values>({ 
-    defaultValues, 
+  } = useForm<Values>({
+    defaultValues,
     resolver: zodResolver(schema),
-    mode: 'onChange', 
+    mode: 'onChange',
   });
-
+ 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
-      const { error, message } = await authClient.signUp({...values, phoneNumber: '123456789'});
+      setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
+      const { error, message } = await authClient.signUp({ ...values, phoneNumber: values.phone });
 
       if (error) {
         setError('root', { type: 'server', message: error });
+        setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
       } else if (message) {
-        setError('root.success', { type: 'success', message });
+        localStorage.setItem('canAccessConfirmation', 'true');
+        setSuccessMessage('Registro Exitoso, Confirma tu Correo Electronico'); // Establece el mensaje de éxito
+        //router.push('/auth/confirm'); // Redirecciona aquí
       }
 
       setIsPending(false);
     },
-    [setError]
+    [setError, router]
   );
 
   return (
@@ -116,6 +118,9 @@ export function SignUpForm(): React.JSX.Element {
           </Link>
         </Typography>
       </Stack>
+      {successMessage && ( // Asegúrate de que esto se renderiza
+        <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
+      )}
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
         <Controller

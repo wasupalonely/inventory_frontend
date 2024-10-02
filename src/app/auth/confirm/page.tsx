@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
 
 import { authClient } from '@/lib/auth/client';
-import { GuestGuard } from '@/components/auth/guest-guard';
+import { AuthGuard } from '@/components/auth/auth-guard';
 import { Layout } from '@/components/auth/layout';
 
 const ConfirmContent = () => {
@@ -17,6 +17,13 @@ const ConfirmContent = () => {
   const [isPending, setIsPending] = React.useState<boolean>(true);
 
   React.useEffect(() => {
+// Verificar si el usuario tiene permiso para acceder
+  const canAccess = localStorage.getItem('canAccessConfirmation');
+  if (!canAccess) {
+    router.replace('/auth/sign-in');
+    return;
+}
+
     const confirmAccount = async (): Promise<void> => {
       const tokenStr = Array.isArray(token) ? token[0] : token;
 
@@ -31,9 +38,11 @@ const ConfirmContent = () => {
           return;
         }
 
-        router.push('/auth/sign-in');
+// Limpiar el indicador después de confirmar la cuenta
+  localStorage.removeItem('canAccessConfirmation');
+  router.push('/auth/sign-in');
       } catch (err) {
-        setError('Error confirming account. Please try again.');
+        setError('Error confirmacion de cuenta. Intentalo de nuevo.');
         setIsPending(false);
       }
     };
@@ -59,11 +68,11 @@ const ConfirmContent = () => {
 export default function Page(): React.JSX.Element {
   return (
     <Layout>
-      <GuestGuard>
+      <AuthGuard>
         <React.Suspense fallback={<CircularProgress />}>
           <ConfirmContent />
         </React.Suspense>
-      </GuestGuard>
+      </AuthGuard>
     </Layout>
   );
 }

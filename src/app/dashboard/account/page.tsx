@@ -8,7 +8,7 @@ import { config } from '@/config';
 import { AccountDetailsForm } from '@/components/dashboard/account/account-details-form';
 import { AccountInfo } from '@/components/dashboard/account/account-info';
 
-export const metadata = { title: `Cuenta | Dashboard | ${config.site.name}` } satisfies Metadata;
+export const metadata: Metadata = { title: config.site.name }; 
 
 export default function Page(): React.JSX.Element {
   return (
