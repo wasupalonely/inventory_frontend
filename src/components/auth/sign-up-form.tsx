@@ -42,6 +42,8 @@ const schema = zod.object({
     .regex(/[a-z]/, { message: 'La contraseña debe contener al menos una letra minúscula' })
     .regex(/\d/, { message: 'La contraseña debe contener al menos un número' })
     .regex(/[\W_]/, { message: 'La contraseña debe contener al menos un carácter especial' }),
+    // aca debe vaidar el rol para que solo sea los especificados
+  role: zod.string(),
   confirmPassword: zod.string()
     .min(9, { message: 'La confirmación de contraseña debe tener al menos 9 caracteres' })
     .max(20, { message: 'La confirmación de contraseña no debe tener más de 20 caracteres' })
@@ -56,7 +58,7 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '' } satisfies Values;
+const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '', role: 'admin' } satisfies Values;
 
 
 export function SignUpForm(): React.JSX.Element {

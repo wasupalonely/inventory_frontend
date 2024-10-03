@@ -22,6 +22,7 @@ export interface SignUpParams {
   middleName?: string;
   lastName: string;
   secondLastName?: string;
+  role: string;
   email: string;
   phone: string;
   password: string;
@@ -43,11 +44,15 @@ export interface RegisterResponse {
 }
 
 export interface SupermarketSignUpParams {
-  supermarketName: string;
-  location: string;
-  addressNumber: string;
-  addressDetail: string;
-  addressType: string;
+  name: string;
+  ownerId: string;
+  address: string; 
+  neighborhood: string;
+  locationType: string;
+  streetNumber: string;
+  intersectionNumber: string;
+  buildingNumber: string;
+  additionalInfo: string; 
 }
 
 export interface SignInWithOAuthParams {
@@ -70,6 +75,7 @@ export interface UpdatePasswordParams {
 
 // Define el tipo para la respuesta del login
 interface LoginResponse {
+  user: User;
   access_token?: string; // Cambia a opcional ya que puede no estar presente en caso de error
   error?: string; // Define si el error puede estar en la respuesta
   message?: string;
@@ -77,7 +83,7 @@ interface LoginResponse {
 
 class AuthClient {
   async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
-    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber } = params;
+    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role  } = params;
 
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -85,7 +91,7 @@ class AuthClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, phoneNumber }),
+        body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, phoneNumber, role }),
       });
 
 
@@ -105,12 +111,34 @@ class AuthClient {
     }
   }
 
-  async supermarketsignUp(_: SupermarketSignUpParams): Promise<{ error?: string }> {
+  async supermarketsignUp(params: SupermarketSignUpParams, ownerId: string): Promise<{ error?: string }> {
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
-
-    return {};
+  
+    try {
+      // Realiza una petición para registrar el supermercado aquí
+      const response = await fetch(`${API_URL}/supermarket`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Añadir el token en el header
+        },
+        body: JSON.stringify(params), // Envía los parámetros como el cuerpo de la petición
+      });
+  
+      if (!response.ok) {
+        const errorResponse: DefaultErrorResponse = await response.json();
+        return { error: errorResponse.message || 'Error al registrar el supermercado' };
+      }
+  
+      // Si el registro es exitoso, puedes manejar la respuesta aquí
+      return {};
+    } catch (error) {
+      return { error: 'Error de red al registrar el supermercado' };
+    }
   }
+  
+  
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
     return { error: 'Autenticación social no implementada' };
@@ -140,6 +168,9 @@ class AuthClient {
         return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
       }
       localStorage.setItem('custom-auth-token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      
 
       return {};
     } catch (error) {
