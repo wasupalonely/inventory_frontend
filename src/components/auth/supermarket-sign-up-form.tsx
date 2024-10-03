@@ -87,7 +87,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.supermarketName)}>
                 <InputLabel>Nombre del supermercado</InputLabel>
-                <OutlinedInput {...field} label="Supermarket name" />
+                <OutlinedInput {...field} label="Nombre del supermercado" />
                 {errors.supermarketName ? <FormHelperText>{errors.supermarketName.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -98,7 +98,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.location)}>
                 <InputLabel>Barrio</InputLabel>
-                <OutlinedInput {...field} label="Location" />
+                <OutlinedInput {...field} label="Barrio" />
                 {errors.location ? <FormHelperText>{errors.location.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -111,7 +111,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                 render={({ field }) => (
                   <FormControl error={Boolean(errors.addressType)} fullWidth>
                     <InputLabel>Tipo de calle</InputLabel>
-                    <Select {...field} label="Tipo de Vía">
+                    <Select {...field} label="Tipo de calle">
                       <MenuItem value="avenue">Avenida</MenuItem>
                       <MenuItem value="avenueStreet ">Avenida Calle</MenuItem>
                       <MenuItem value="avenueCareer">Avenida Carrera</MenuItem>

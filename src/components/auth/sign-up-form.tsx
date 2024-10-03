@@ -58,17 +58,6 @@ type Values = zod.infer<typeof schema>;
 
 const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '' } satisfies Values;
 
-function formatPhoneNumber(value: string) {
-  if (!value) return value;
-  const phoneNumber = value.replace(/[^\d]/g, '');
-  const phoneNumberLength = phoneNumber.length;
-
-  if (phoneNumberLength < 4) return phoneNumber;
-  if (phoneNumberLength < 7) {
-    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
-  }
-  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-}
 
 export function SignUpForm(): React.JSX.Element {
 
@@ -81,13 +70,15 @@ export function SignUpForm(): React.JSX.Element {
     handleSubmit,
     setError,
     formState: { errors, isValid },
+    reset,
   } = useForm<Values>({
     defaultValues,
     resolver: zodResolver(schema),
     mode: 'onChange',
   });
- 
+
   const onSubmit = React.useCallback(
+    
     async (values: Values): Promise<void> => {
       setIsPending(true);
       setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
@@ -98,13 +89,19 @@ export function SignUpForm(): React.JSX.Element {
         setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
       } else if (message) {
         localStorage.setItem('canAccessConfirmation', 'true');
-        setSuccessMessage('Registro Exitoso, Confirma tu Correo Electronico'); // Establece el mensaje de éxito
-        //router.push('/auth/confirm'); // Redirecciona aquí
-      }
+        setSuccessMessage('Registro exitoso, confirma tu correo electrónico'); // Establece el mensaje de éxito
+        // Limpia el formulario
+      reset();
+        // Espera 3 segundos (3000 milisegundos) antes de redirigir
+  // setTimeout(() => {
+  //   router.push('/auth/confirm'); // Redirecciona después de 3 segundos
+  // }, 3000);
+}
+      
 
       setIsPending(false);
     },
-    [setError, router]
+    [setError, router, reset]
   );
 
   return (
@@ -118,9 +115,7 @@ export function SignUpForm(): React.JSX.Element {
           </Link>
         </Typography>
       </Stack>
-      {successMessage && ( // Asegúrate de que esto se renderiza
-        <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
-      )}
+      
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
         <Controller
@@ -129,7 +124,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.firstName)} required>
       <InputLabel required>Primer nombre</InputLabel>
-      <OutlinedInput {...field} label="First name" />
+      <OutlinedInput {...field} label="Primer Nombre" />
       {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -140,7 +135,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl>
       <InputLabel>Segundo nombre</InputLabel>
-      <OutlinedInput {...field} label="Middle name" />
+      <OutlinedInput {...field} label="Segundo Nombre" />
     </FormControl>
   )}
 />
@@ -150,7 +145,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.lastName)} required>
       <InputLabel required>Primer apellido</InputLabel>
-      <OutlinedInput {...field} label="Last name" />
+      <OutlinedInput {...field} label="Primer Apellido" />
       {errors.lastName ? <FormHelperText>{errors.lastName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -161,7 +156,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl>
       <InputLabel>Segundo apellido</InputLabel>
-      <OutlinedInput {...field} label="Second last name" />
+      <OutlinedInput {...field} label="Segundo Apellido" />
     </FormControl>
   )}
 />
@@ -171,7 +166,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.email)} required>
       <InputLabel required>Correo electrónico</InputLabel>
-      <OutlinedInput {...field} label="Email address" type="email" />
+      <OutlinedInput {...field} label="Correo Electronico" type="email" />
       {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -184,11 +179,12 @@ export function SignUpForm(): React.JSX.Element {
       <InputLabel>Número de celular</InputLabel>
       <OutlinedInput
         {...field}
-        label="Phone"
-        value={formatPhoneNumber(field.value)}
-        onChange={(e) => {
-          const formattedValue = formatPhoneNumber(e.target.value);
-          field.onChange(formattedValue);
+        label="Numero de Celular"
+        inputProps={{ maxLength: 10 }}
+        onKeyPress={(event) => {
+          if (!/[0-9]/.test(event.key)) {
+            event.preventDefault();
+          }
         }}
       />
       {errors.phone ? <FormHelperText>{errors.phone.message}</FormHelperText> : null}
@@ -200,7 +196,7 @@ export function SignUpForm(): React.JSX.Element {
   name="password"
   render={({ field }) => (
     <FormControl error={Boolean(errors.password)} required>
-      <InputLabel required>Contraseña</InputLabel>
+      <InputLabel required>Contraseña </InputLabel>
       <OutlinedInput
         {...field}
         endAdornment={showPassword ? (
@@ -216,7 +212,7 @@ export function SignUpForm(): React.JSX.Element {
             onClick={(): void => { setShowPassword(true); }}
           />
         )}
-        label="Password"
+        label="Contraseña"
         type={showPassword ? 'text' : 'password'}
       />
       {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
@@ -244,13 +240,18 @@ export function SignUpForm(): React.JSX.Element {
             onClick={(): void => { setShowPassword(true); }}
           />
         )}
-        label="Confirm Password"
+        label="Confirmar contraseña"
         type={showPassword ? 'text' : 'password'}
       />
       {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
     </FormControl>
+    
   )}
+  
 />
+{successMessage && ( // Asegúrate de que esto se renderiza
+        <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
+      )}
 
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
