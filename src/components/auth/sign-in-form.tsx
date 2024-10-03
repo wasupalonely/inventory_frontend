@@ -50,20 +50,26 @@ export function SignInForm(): React.JSX.Element {
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
+  
       const { error } = await authClient.signInWithPassword(values);
-
+  
       if (error) {
         setError('root', { type: 'server', message: error });
         setIsPending(false);
         return;
       }
-
+  
+      // Aquí, el token debería estar guardado en localStorage
+      const { data } = await authClient.getUser(); // Obtén los datos del usuario aquí
+  
+      // Verifica si el usuario tiene un supermercado
+      if (data?.ownedSupermarket === null) {
+        router.push('/auth/supermarket-sign-up');
+        return;
+      }
+  
       // Refresh the auth state
       await checkSession?.();
-
-      // UserProvider, for this case, will not refresh the router
-      // After refresh, GuestGuard will handle the redirect
       router.refresh();
     },
     [checkSession, router, setError]

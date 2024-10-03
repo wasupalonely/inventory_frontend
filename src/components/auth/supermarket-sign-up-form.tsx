@@ -17,28 +17,32 @@ import { z as zod } from 'zod';
 
 import { authClient } from '@/lib/auth/client';
 
+// Esquema de validación actualizado
 const schema = zod.object({
-  supermarketName: zod
-    .string()
-    .min(1, { message: 'El nombre del supermercado es requerido' })
-    .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  location: zod
-    .string()
-    .min(1, { message: 'El barrio es requerido' })
-    .max(255, { message: 'El barrio no debe tener más de 255 caracteres' }),
-  addressType: zod.string().min(1, { message: 'El tipo de calle es requerida' }),
-  addressNumber: zod.string().min(1, { message: 'La calle es requerida' }),
-  addressDetail: zod.string().min(1, { message: 'El número es requerido' }),
+  name: zod.string().min(1, { message: 'El nombre del supermercado es requerido' }).max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
+  ownerId: zod.string().min(1, { message: 'El ID del propietario es requerido' }),
+  address: zod.string().min(1, { message: 'La dirección es requerida' }),
+  neighborhood: zod.string().min(1, { message: 'El barrio es requerido' }),
+  locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
+  streetNumber: zod.string().min(1, { message: 'El número de la calle es requerido' }),
+  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }), // Requerido
+  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }), // Requerido
+  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }), // Requerido
 });
 
 type Values = zod.infer<typeof schema>;
 
+// Valores por defecto
 const defaultValues = {
-  supermarketName: '',
-  location: '',
-  addressType: '',
-  addressNumber: '',
-  addressDetail: '',
+  name: '',
+  ownerId: '',
+  address: '',
+  neighborhood: '',
+  locationType: '',
+  streetNumber: '',
+  intersectionNumber: '', // Opcional
+  buildingNumber: '', // Opcional
+  additionalInfo: '', // Opcional
 } satisfies Values;
 
 export function SupermarketSignUpForm(): React.JSX.Element {
@@ -60,7 +64,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
-      const { error } = await authClient.supermarketsignUp(values);
+      const { error } = await authClient.supermarketsignUp(values, values.ownerId);
 
       if (error) {
         setError('root', { type: 'server', message: error });
@@ -68,7 +72,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         return;
       }
 
-      checkSession?.();
       router.refresh();
     },
     [router, setError]
@@ -83,23 +86,56 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="supermarketName"
+            name="name"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.supermarketName)}>
+              <FormControl error={Boolean(errors.name)}>
                 <InputLabel>Nombre del supermercado</InputLabel>
                 <OutlinedInput {...field} label="Nombre del supermercado" />
-                {errors.supermarketName ? <FormHelperText>{errors.supermarketName.message}</FormHelperText> : null}
+                {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
           <Controller
             control={control}
-            name="location"
+            name="ownerId"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.location)}>
+              <FormControl error={Boolean(errors.ownerId)}>
+                <InputLabel>ID del propietario</InputLabel>
+                <OutlinedInput {...field} label="ID del propietario" />
+                {errors.ownerId ? <FormHelperText>{errors.ownerId.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+          <Controller
+            control={control}
+            name="address"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.address)}>
+                <InputLabel>Dirección</InputLabel>
+                <OutlinedInput {...field} label="Dirección" />
+                {errors.address ? <FormHelperText>{errors.address.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+          <Controller
+            control={control}
+            name="neighborhood"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.neighborhood)}>
                 <InputLabel>Barrio</InputLabel>
                 <OutlinedInput {...field} label="Barrio" />
-                {errors.location ? <FormHelperText>{errors.location.message}</FormHelperText> : null}
+                {errors.neighborhood ? <FormHelperText>{errors.neighborhood.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+          <Controller
+            control={control}
+            name="locationType"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.locationType)}>
+                <InputLabel>Tipo de ubicación</InputLabel>
+                <OutlinedInput {...field} label="Tipo de ubicación" />
+                {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -107,68 +143,62 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="addressType"
-                render={({ field }) => (
-                  <FormControl error={Boolean(errors.addressType)} fullWidth>
-                    <InputLabel>Tipo de calle</InputLabel>
-                    <Select {...field} label="Tipo de calle">
-                      <MenuItem value="avenue">Avenida</MenuItem>
-                      <MenuItem value="avenueStreet ">Avenida Calle</MenuItem>
-                      <MenuItem value="avenueCareer">Avenida Carrera</MenuItem>
-                      <MenuItem value="street">Calle</MenuItem>
-                      <MenuItem value="career">Carrera</MenuItem>
-                      <MenuItem value="circular">Circular</MenuItem>
-                      <MenuItem value="encircle">Circunvalar</MenuItem>
-                      <MenuItem value="diagonal">Diagonal</MenuItem>
-                      <MenuItem value="apple">Manzana</MenuItem>
-                      <MenuItem value="transversal">Transversal</MenuItem>
-                      <MenuItem value="via">Vía</MenuItem>
-                    </Select>
-                    {errors.addressType ? <FormHelperText>{errors.addressType.message}</FormHelperText> : null}
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={4}>
-              <Controller
-                control={control}
-                name="addressNumber"
+                name="streetNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Calle"
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">#</InputAdornment>,
-                    }}
-                    error={Boolean(errors.addressNumber)}
-                    helperText={errors.addressNumber?.message}
+                    label="Número de la calle"
+                    error={Boolean(errors.streetNumber)}
+                    helperText={errors.streetNumber?.message}
                     fullWidth
                   />
                 )}
               />
             </Grid>
-
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="addressDetail"
+                name="intersectionNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Número"
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">-</InputAdornment>,
-                    }}
-                    error={Boolean(errors.addressDetail)}
-                    helperText={errors.addressDetail?.message}
+                    label="Número de intersección"
+                    error={Boolean(errors.intersectionNumber)}
+                    helperText={errors.intersectionNumber?.message}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <Controller
+                control={control}
+                name="buildingNumber"
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Número de edificio"
+                    error={Boolean(errors.buildingNumber)}
+                    helperText={errors.buildingNumber?.message}
                     fullWidth
                   />
                 )}
               />
             </Grid>
           </Grid>
-
+          <Controller
+            control={control}
+            name="additionalInfo"
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Información adicional"
+                error={Boolean(errors.additionalInfo)}
+                helperText={errors.additionalInfo?.message}
+                fullWidth
+              />
+            )}
+          />
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Registrar supermercado
@@ -178,14 +208,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     </Stack>
   );
 }
-// Example of fake API signup function (replace with actual API)
-// async function fakeSignUp(values: Values): Promise<{ error?: string }> {
-//   return new Promise((resolve) => {
-//     setTimeout(() => {
-//       resolve({ error: '' });
-//     }, 2000);
-//   });
-// }
+
 function checkSession(): void {
   throw new Error('Function not implemented.');
 }

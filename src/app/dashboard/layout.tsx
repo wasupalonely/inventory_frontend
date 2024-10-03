@@ -4,7 +4,7 @@ import Container from '@mui/material/Container';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { Metadata } from 'next';
 import { config } from '@/config';
-import { AuthGuard } from '@/components/auth/auth-guard';
+import { AuthGuard}  from '@/components/auth/auth-guard';
 import { MainNav } from '@/components/dashboard/layout/main-nav';
 import { SideNav } from '@/components/dashboard/layout/side-nav';
 
@@ -17,6 +17,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps): React.JSX.Element {
   return (
     <AuthGuard>
+    
       <GlobalStyles
         styles={{
           body: {
@@ -49,5 +50,6 @@ export default function Layout({ children }: LayoutProps): React.JSX.Element {
         </Box>
       </Box>
     </AuthGuard>
+    
   );
 }
