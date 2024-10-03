@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
 
 import { authClient } from '@/lib/auth/client';
-import { AuthGuard } from '@/components/auth/auth-guard';
+import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 
 const ConfirmContent = () => {
@@ -17,32 +17,36 @@ const ConfirmContent = () => {
   const [isPending, setIsPending] = React.useState<boolean>(true);
 
   React.useEffect(() => {
-// Verificar si el usuario tiene permiso para acceder
-  const canAccess = localStorage.getItem('canAccessConfirmation');
-  if (!canAccess) {
-    router.replace('/auth/sign-in');
-    return;
-}
+    // Verificar si el usuario tiene permiso para acceder
+    const canAccess = localStorage.getItem('canAccessConfirmation');
+    if (!canAccess) {
+      router.replace('/auth/sign-in');
+      return;
+    }
 
     const confirmAccount = async (): Promise<void> => {
       const tokenStr = Array.isArray(token) ? token[0] : token;
 
-      if (!tokenStr) return;
+      if (!tokenStr) {
+        setError('El token de confirmación no es válido.');
+        setIsPending(false);
+        return;
+      }
 
       try {
         const { error } = await authClient.confirmAccount({ token: tokenStr });
 
         if (error) {
           setError(error);
-          setIsPending(false);
-          return;
+        } else {
+          // Limpiar el indicador después de confirmar la cuenta
+          localStorage.removeItem('canAccessConfirmation');
+          // Redirigir al login después de confirmar exitosamente
+          router.push('/auth/sign-in');
         }
-
-// Limpiar el indicador después de confirmar la cuenta
-  localStorage.removeItem('canAccessConfirmation');
-  router.push('/auth/sign-in');
       } catch (err) {
-        setError('Error confirmacion de cuenta. Intentalo de nuevo.');
+        setError('Error en la confirmación de cuenta. Inténtalo de nuevo.');
+      } finally {
         setIsPending(false);
       }
     };
@@ -54,13 +58,9 @@ const ConfirmContent = () => {
     <Stack spacing={4}>
       <Typography variant="h5">Confirmando cuenta...</Typography>
 
-      {isPending ? (
-        <CircularProgress />
-      ) : globalError ? (
-        <Alert severity="error">{globalError}</Alert>
-      ) : (
-        <Typography>Redirigiendo al login...</Typography>
-      )}
+      {isPending && <CircularProgress />}
+      {globalError && <Alert severity="error">{globalError}</Alert>}
+      {!isPending && !globalError && <Typography>Redirigiendo al login...</Typography>}
     </Stack>
   );
 };
@@ -68,11 +68,11 @@ const ConfirmContent = () => {
 export default function Page(): React.JSX.Element {
   return (
     <Layout>
-      <AuthGuard>
+      <GuestGuard>
         <React.Suspense fallback={<CircularProgress />}>
           <ConfirmContent />
         </React.Suspense>
-      </AuthGuard>
+      </GuestGuard>
     </Layout>
   );
 }

@@ -11,5 +11,5 @@ export const config: Config = {
   logLevel: (process.env.NEXT_PUBLIC_LOG_LEVEL as keyof typeof LogLevel) ?? LogLevel.ALL,
 };
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://inventorysystem-production-bb1a.up.railway.app/api/v1';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
