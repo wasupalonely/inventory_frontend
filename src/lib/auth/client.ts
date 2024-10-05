@@ -82,6 +82,9 @@ interface LoginResponse {
 }
 
 class AuthClient {
+  getPasswordHash(): { passwordHash: any; } | PromiseLike<{ passwordHash: any; }> {
+    throw new Error('Method not implemented.');
+  }
   async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
     const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role  } = params;
 

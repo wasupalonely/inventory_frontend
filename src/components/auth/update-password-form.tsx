@@ -13,17 +13,28 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-
+import bcrypt from 'bcryptjs'; // Librería para comparar contraseñas hash
 import { authClient } from '@/lib/auth/client';
 
-// Validación de esquema con Zod
 const schema = zod
   .object({
-    password: zod.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres' }),
-    confirmPassword: zod.string().min(6, { message: 'Confirma tu contraseña' }),
+    newPassword: zod.string()
+      .min(9, { message: 'La nueva contraseña debe tener al menos 9 caracteres' })
+      .max(20, { message: 'La nueva contraseña no debe tener más de 20 caracteres' })
+      .regex(/[A-Z]/, { message: 'La nueva contraseña debe contener al menos una letra mayúscula' })
+      .regex(/[a-z]/, { message: 'La nueva contraseña debe contener al menos una letra minúscula' })
+      .regex(/\d/, { message: 'La nueva contraseña debe contener al menos un número' })
+      .regex(/[\W_]/, { message: 'La nueva contraseña debe contener al menos un carácter especial' }),
+    confirmPassword: zod.string()
+      .min(9, { message: 'La confirmación de la nueva contraseña debe tener al menos 9 caracteres' })
+      .max(20, { message: 'La confirmación de la nueva contraseña no debe tener más de 20 caracteres' })
+      .regex(/[A-Z]/, { message: 'La confirmación de la nueva contraseña debe contener al menos una letra mayúscula' })
+      .regex(/[a-z]/, { message: 'La confirmación de la nueva contraseña debe contener al menos una letra minúscula' })
+      .regex(/\d/, { message: 'La confirmación de la nueva contraseña debe contener al menos un número' })
+      .regex(/[\W_]/, { message: 'La confirmación de la nueva contraseña debe contener al menos un carácter especial' }),
   })
   .superRefine((data, ctx) => {
-    if (data.password !== data.confirmPassword) {
+    if (data.newPassword !== data.confirmPassword) {
       ctx.addIssue({
         code: zod.ZodIssueCode.custom,
         message: 'Las contraseñas no coinciden',
@@ -34,13 +45,14 @@ const schema = zod
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { password: '', confirmPassword: '' } satisfies Values;
+const defaultValues = { newPassword: '', confirmPassword: '' } satisfies Values;
 
 export function UpdatePasswordForm(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [previousPasswordHash, setPreviousPasswordHash] = React.useState<string | null>(null);
 
   const {
     control,
@@ -53,12 +65,33 @@ export function UpdatePasswordForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
+  // Obtener hash de contraseña actual desde el backend
+  React.useEffect(() => {
+    const fetchPreviousPassword = async () => {
+      try {
+        const { passwordHash } = await authClient.getPasswordHash();
+        setPreviousPasswordHash(passwordHash);
+      } catch (error) {
+        console.error('Error fetching password hash:', error);
+      }
+    };
+
+    fetchPreviousPassword();
+  }, []);
+
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
+      // Validar si la nueva contraseña es igual a la anterior
+      if (previousPasswordHash && bcrypt.compareSync(values.newPassword, previousPasswordHash)) {
+        setError('newPassword', { type: 'manual', message: 'La nueva contraseña no puede ser igual a la anterior.' });
+        setIsPending(false);
+        return;
+      }
+
       const { error } = await authClient.updatePassword({
-        password: values.password,
+        password: values.newPassword,
         token: token as string,
       });
 
@@ -69,10 +102,9 @@ export function UpdatePasswordForm(): React.JSX.Element {
       }
 
       setIsPending(false);
-
       router.push('/auth/sign-in');
     },
-    [setError]
+    [setError, previousPasswordHash]
   );
 
   return (
@@ -82,12 +114,12 @@ export function UpdatePasswordForm(): React.JSX.Element {
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="password"
+            name="newPassword"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.password)}>
+              <FormControl error={Boolean(errors.newPassword)}>
                 <InputLabel>Nueva contraseña</InputLabel>
                 <OutlinedInput {...field} label="Nueva contraseña" type="password" />
-                {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
+                {errors.newPassword ? <FormHelperText>{errors.newPassword.message}</FormHelperText> : null}
               </FormControl>
             )}
           />

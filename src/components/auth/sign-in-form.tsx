@@ -23,7 +23,9 @@ import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
 
 const schema = zod.object({
-  email: zod.string().min(1, { message: 'El correo electrónico es requerido' }).email(),
+  email: zod.string()
+  .email({ message: 'El correo electrónico es inválido' })
+  .min(1, { message: 'El correo electrónico es requerido' }),
   password: zod.string().min(1, { message: 'La contraseña es requerida' }),
 });
 

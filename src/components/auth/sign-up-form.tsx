@@ -24,17 +24,22 @@ const schema = zod.object({
   firstName: zod.string()
     .min(1, { message: 'El primer nombre es requerido' })
     .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
-  middleName: zod.string().optional(),
+  middleName: zod.string()
+    .max(50,{ message: 'El segundo nombre no debe tener más de 50 caracteres' })
+    .optional(),
   lastName: zod.string()
     .min(1, { message: 'El primer apellido requerido' })
     .max(50, { message: 'El primer apellido no debe tener más de 50 caracteres' }),
-  secondlastName: zod.string().optional(),
+  secondlastName: zod.string()
+    .max(50,{ message: 'El segundo apellido no debe tener más de 50 caracteres' })
+    .optional(),
   email: zod.string()
-    .min(1, { message: 'El correo electrónico es requerido' }).email()
+    .email({ message: 'El correo electrónico es inválido' })
+    .min(1, { message: 'El correo electrónico es requerido' })
     .max(255, { message: 'El correo electrónico no debe tener más de 255 caracteres' }),
   phone: zod.string()
-    .min(9, { message: 'El número de celular debe tener al menos 9 caracteres' })
-    .max(255, { message: 'El número de celular no debe tener más de 255 caracteres' }),
+    .min(10, { message: 'El número de celular debe tener al menos 10 caracteres' })
+    .max(20, { message: 'El número de celular no debe tener más de 20 caracteres' }),
   password: zod.string()
     .min(9, { message: 'La contraseña debe tener al menos 9 caracteres' })
     .max(20, { message: 'La contraseña no debe tener más de 20 caracteres' })
@@ -177,8 +182,8 @@ export function SignUpForm(): React.JSX.Element {
   control={control}
   name="phone"
   render={({ field }) => (
-    <FormControl error={Boolean(errors.phone)}>
-      <InputLabel>Número de celular</InputLabel>
+    <FormControl error={Boolean(errors.phone)} required>
+      <InputLabel required>Número de celular</InputLabel>
       <OutlinedInput
         {...field}
         label="Numero de Celular"
