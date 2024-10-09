@@ -15,6 +15,8 @@ import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 import { authClient } from '@/lib/auth/client';
 
 // Esquema de validación actualizado
@@ -25,9 +27,9 @@ const schema = zod.object({
   neighborhood: zod.string().min(1, { message: 'El barrio es requerido' }),
   locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
   streetNumber: zod.string().min(1, { message: 'El número de la calle es requerido' }),
-  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }), // Requerido
-  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }), // Requerido
-  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }), // Requerido
+  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }),
+  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }),
+  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }),
 });
 
 type Values = zod.infer<typeof schema>;
@@ -40,9 +42,9 @@ const defaultValues = {
   neighborhood: '',
   locationType: '',
   streetNumber: '',
-  intersectionNumber: '', // Opcional
-  buildingNumber: '', // Opcional
-  additionalInfo: '', // Opcional
+  intersectionNumber: '',
+  buildingNumber: '',
+  additionalInfo: '',
 } satisfies Values;
 
 export function SupermarketSignUpForm(): React.JSX.Element {
@@ -60,22 +62,39 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
+  //Endpoint
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
-      const { error } = await authClient.supermarketsignUp(values, values.ownerId);
-
-      if (error) {
-        setError('root', { type: 'server', message: error });
+      try {
+        const response = await fetch(`${API_URL}/supermarket`, { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values), 
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          setError('root', { type: 'server', message: errorData.message });
+          setIsPending(false);
+          return;
+        }
+  
+        const result = await response.json();
+        console.log('Supermercado creado:', result);
+        router.refresh();
+      } catch (error) {
+        console.error('Error al crear el supermercado:', error);
+        setError('root', { type: 'server', message: 'Error al crear el supermercado' });
+      } finally {
         setIsPending(false);
-        return;
       }
-
-      router.refresh();
     },
     [router, setError]
   );
+  
 
   return (
     <Stack spacing={3}>
@@ -212,3 +231,4 @@ export function SupermarketSignUpForm(): React.JSX.Element {
 function checkSession(): void {
   throw new Error('Function not implemented.');
 }
+
