@@ -82,8 +82,8 @@ interface LoginResponse {
 }
 
 class AuthClient {
-  getPasswordHash(): { passwordHash: any; } | PromiseLike<{ passwordHash: any; }> {
-    throw new Error('Method not implemented.');
+  getPasswordHash(): { passwordHash: string; } | PromiseLike<{ passwordHash: string; }> {
+    throw new Error('Método no implementado.');
   }
   async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
     const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role  } = params;
@@ -101,7 +101,7 @@ class AuthClient {
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
 
-        const errorMessage = errorResponse.message || 'Error signing up';
+        const errorMessage = errorResponse.message || 'Error al registrarse';
         return { error: errorMessage };
       }
 
@@ -110,11 +110,11 @@ class AuthClient {
       return { message: data.message };
     } catch (error) {
 
-      return { error: 'Network error' };
+      return { error: 'Error de red' };
     }
   }
 
-  async supermarketsignUp(params: SupermarketSignUpParams, ownerId: string): Promise<{ error?: string }> {
+  async supermarketsignUp(params: SupermarketSignUpParams, _ownerId: string): Promise<{ error?: string }> {
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
   
@@ -168,7 +168,7 @@ class AuthClient {
 
       const token = data.access_token; // Aserción de tipo
       if (!token) {
-        return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
+        return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
       }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -195,12 +195,12 @@ class AuthClient {
       const data = await response.json() as SimpleMessageResponse;
 
       if (!response.ok) {
-        return { error: data.message || 'Error confirming account' };
+        return { error: data.message || 'Error de confirmación de la cuenta' };
       }
 
       return { error: null };
     } catch (err) {
-      return { error: 'Failed to reset account password' };
+      return { error: 'Fallo al reiniciar la contraseña de la cuenta' };
     }
   }
 
@@ -218,12 +218,12 @@ class AuthClient {
       const data = await response.json() as SimpleMessageResponse;
 
       if (!response.ok) {
-        return { error: data.message || 'Error updating password' };
+        return { error: data.message || 'Error actualizando contraseña' };
       }
 
       return { error: null };
     } catch (err) {
-      return { error: 'Failed to update password' };
+      return { error: 'Fallo al actualizar la contraseña' };
     }
   }
 
@@ -252,12 +252,12 @@ class AuthClient {
       const data = await response.json() as SimpleMessageResponse;
 
       if (!response.ok) {
-        return { error: data.message || 'Error confirming account' };
+        return { error: data.message || 'Error de confirmación de la cuenta' };
       }
 
       return { error: null };
     } catch (err) {
-      return { error: 'Failed to confirm account' };
+      return { error: 'Fallo al confirmar la cuenta' };
     }
   }
 }

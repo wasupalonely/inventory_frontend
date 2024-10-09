@@ -48,9 +48,8 @@ export function ResetPasswordForm(): React.JSX.Element {
         setIsPending(false);
         return;
       }
-      // Muestra el mensaje de éxito
       setSuccessMessage('Enlace de confirmación enviado exitosamente, por favor revisa tu correo electrónico');
-      // Limpia el campo de correo
+      
       reset();
 
       setIsPending(false);
@@ -60,7 +59,7 @@ export function ResetPasswordForm(): React.JSX.Element {
 
   return (
     <Stack spacing={4}>
-      <Typography variant="h5">Reestablecer contraseña</Typography>
+      <Typography variant="h4">Reestablecer contraseña</Typography>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -69,7 +68,7 @@ export function ResetPasswordForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Correo electrónico</InputLabel>
-                <OutlinedInput {...field} label="Correo electrónico" type="email" />
+                <OutlinedInput {...field} label="Correo electrónico" type="email" inputProps={{ maxLength: 255 }} />
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}

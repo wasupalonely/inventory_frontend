@@ -8,7 +8,7 @@ import { authClient } from '@/lib/auth/client';
 import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 
-const ConfirmContent = () => {
+function ConfirmContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -58,8 +58,8 @@ const ConfirmContent = () => {
     <Stack spacing={4}>
       <Typography variant="h5">Confirmando cuenta...</Typography>
 
-      {isPending && <CircularProgress />}
-      {globalError && <Alert severity="error">{globalError}</Alert>}
+      {isPending ?? <CircularProgress />}
+      {globalError ?? <Alert severity="error">{globalError}</Alert>}
       {!isPending && !globalError && <Typography>Redirigiendo al login...</Typography>}
     </Stack>
   );

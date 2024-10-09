@@ -53,11 +53,13 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const token = searchParams.get('token');
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [previousPasswordHash, setPreviousPasswordHash] = React.useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     setError,
+    reset,
     formState: { errors, isValid },
   } = useForm<Values>({
     defaultValues,
@@ -72,7 +74,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
         const { passwordHash } = await authClient.getPasswordHash();
         setPreviousPasswordHash(passwordHash);
       } catch (error) {
-        console.error('Error fetching password hash:', error);
+        // alert('Error fetching password hash');
       }
     };
 
@@ -101,10 +103,14 @@ export function UpdatePasswordForm(): React.JSX.Element {
         return;
       }
 
+      setSuccessMessage('Enlace de confirmación enviado exitosamente, por favor revisa tu correo electrónico');
+
+      reset();
+
       setIsPending(false);
       router.push('/auth/sign-in');
     },
-    [setError, previousPasswordHash]
+    [setError, reset, router, token, previousPasswordHash]
   );
 
   return (
@@ -135,6 +141,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
             )}
           />
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+          {successMessage ? <Alert color="success">{successMessage}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Actualizar
           </Button>
