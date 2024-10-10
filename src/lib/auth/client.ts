@@ -265,10 +265,10 @@ class AuthClient {
         },
       });
 
-      const data = await response.json();
+      const data: boolean = await response.json();
 
       if (!response.ok) {
-        return { error: data.message || 'Error validating token' };
+        return { error: 'Error validating token' };
       }
 
       return { error: null, message: data };
@@ -293,10 +293,10 @@ class AuthClient {
         body: JSON.stringify({ password }),
       });
 
-      const data = await response.json();
+      const data: boolean = await response.json();
 
       if (!response.ok) {
-        return { error: data.message || 'Error comparing passwords' };
+        return { error: 'Error comparing passwords' };
       }
 
       return { error: null, message: data };
@@ -304,6 +304,7 @@ class AuthClient {
       return { error: 'Failed to confirm account' };
     }
   }
+
 }
 
 export const authClient = new AuthClient();

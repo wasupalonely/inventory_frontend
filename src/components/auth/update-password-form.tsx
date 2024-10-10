@@ -53,7 +53,6 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const userId = searchParams.get('id');
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [usedToken, setUsedToken] = React.useState<boolean>(false);
-  const [previousPasswordHash, setPreviousPasswordHash] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const {
@@ -69,7 +68,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
   });
 
   React.useEffect(() => {
-    const isUsedToken = async () => {
+    const isUsedToken = async (): Promise<void> => {
       const used = await authClient.validateToken({ token: token as string });
       setUsedToken(used.message!);
     };
@@ -88,7 +87,6 @@ export function UpdatePasswordForm(): React.JSX.Element {
       });
 
       if (compareError) {
-        console.log('error', compareError);
         setError('root', { type: 'server', message: compareError });
         setIsPending(false);
         return;
@@ -118,7 +116,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
       setIsPending(false);
       router.push('/auth/sign-in');
     },
-    [setError, reset, router, token, previousPasswordHash]
+    [setError, reset, router, token]
   );
 
   return (
