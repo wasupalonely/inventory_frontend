@@ -34,11 +34,7 @@ type Values = zod.infer<typeof schema>;
 export function SignInForm(): React.JSX.Element {
   const router = useRouter();
   const { checkSession } = useUser();
-<<<<<<< Updated upstream
-  const [showPassword, setShowPassword] = React.useState<boolean>(false);
-=======
   const [showPassword, setShowPassword] = React.useState<boolean>();
->>>>>>> Stashed changes
   const [isPending, setIsPending] = React.useState<boolean>(false);
   
   // Estado para controlar intentos fallidos y bloqueo del botón
@@ -62,16 +58,12 @@ export function SignInForm(): React.JSX.Element {
       if (currentTime < unblockTime) {
         setIsBlocked(true);
         const remainingTime = unblockTime - currentTime;
-        setTimeout(() => setIsBlocked(false), remainingTime);
+        setTimeout(() => {setIsBlocked(false);}, remainingTime);
       } else {
         localStorage.removeItem('blockedUntil');
       }
     }
   }, []);
-
-  const [failedAttempts, setFailedAttempts] = React.useState<number>(0);
-  const [isBlocked, setIsBlocked] = React.useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     // Recuperar intentos fallidos y bloqueo desde localStorage
@@ -180,11 +172,7 @@ export function SignInForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Correo electrónico</InputLabel>
-<<<<<<< Updated upstream
-                <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255 }} />
-=======
                 <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255 }}/>
->>>>>>> Stashed changes
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -202,13 +190,13 @@ export function SignInForm(): React.JSX.Element {
                       <EyeIcon
                         cursor="pointer"
                         fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => setShowPassword(false)}
+                        onClick={(): void => {setShowPassword(false);}}
                       />
                     ) : (
                       <EyeSlashIcon
                         cursor="pointer"
                         fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => setShowPassword(true)}
+                        onClick={(): void => {setShowPassword(true);}}
                       />
                     )
                   }
@@ -227,11 +215,7 @@ export function SignInForm(): React.JSX.Element {
           </div>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           {errorMessage && <Alert color="error">{errorMessage}</Alert>}
-<<<<<<< Updated upstream
-          <Button disabled={!isValid || isPending || isBlocked} type="submit" variant="contained">
-=======
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
->>>>>>> Stashed changes
             Iniciar sesión
           </Button>
         </Stack>

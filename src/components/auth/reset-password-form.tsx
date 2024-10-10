@@ -34,13 +34,8 @@ export function ResetPasswordForm(): React.JSX.Element {
     handleSubmit,
     setError,
     reset,
-<<<<<<< Updated upstream
-    formState: { errors, isValid },
-  } = useForm<Values>({ defaultValues, resolver: zodResolver(schema), mode: 'onChange' });
-=======
     formState: { errors, isValid},
   } = useForm<Values>({ defaultValues, resolver: zodResolver(schema),mode: 'onChange'});
->>>>>>> Stashed changes
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
@@ -62,10 +57,6 @@ export function ResetPasswordForm(): React.JSX.Element {
       reset();
 
       setIsPending(false);
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
     },
     [setError, reset]
   );
@@ -81,11 +72,7 @@ export function ResetPasswordForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Correo electrónico</InputLabel>
-<<<<<<< Updated upstream
-                <OutlinedInput {...field} label="Correo electrónico" type="email" inputProps={{ maxLength: 255 }} />
-=======
                 <OutlinedInput {...field} label="Correo electronico" type="email" inputProps={{ maxLength: 255 }} />
->>>>>>> Stashed changes
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}

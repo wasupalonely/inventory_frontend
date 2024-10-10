@@ -20,10 +20,6 @@ import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-<<<<<<< Updated upstream
-// import { useRouter } from 'next/navigation'; // Importa useRouter
-=======
->>>>>>> Stashed changes
 
 const schema = zod.object({
   firstName: zod.string()
@@ -52,7 +48,6 @@ const schema = zod.object({
     .regex(/\d/, { message: 'La contraseña debe contener al menos un número' })
     .regex(/[\W_]/, { message: 'La contraseña debe contener al menos un carácter especial' }),
   role: zod.string(),
-  terms: zod.boolean().refine((value) => value, 'Tienes que aceptar los términos y condiciones'),
   confirmPassword: zod.string()
     .min(9, { message: 'La confirmación de contraseña debe tener al menos 9 caracteres' })
     .max(20, { message: 'La confirmación de contraseña no debe tener más de 20 caracteres' })
@@ -76,10 +71,6 @@ export function SignUpForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de éxito
-<<<<<<< Updated upstream
-  // const router = useRouter(); // Inicializa useRouter
-=======
->>>>>>> Stashed changes
   const {
     control,
     handleSubmit,
@@ -101,17 +92,10 @@ export function SignUpForm(): React.JSX.Element {
 
       if (error) {
         setError('root', { type: 'server', message: error });
-<<<<<<< Updated upstream
-        // setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
-      } else if (message) {
-        localStorage.setItem('canAccessConfirmation', 'true');
-        setSuccessMessage('Registro exitoso, confirma tu correo electrónico'); // Establece el mensaje de éxito
-=======
         setSuccessMessage(null);
       } else if (message) {
         localStorage.setItem('canAccessConfirmation', 'true');
         setSuccessMessage('Registro exitoso, confirma tu correo electrónico');
->>>>>>> Stashed changes
         reset();
 }
       setIsPending(false);
@@ -139,11 +123,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.firstName)} required>
       <InputLabel required>Primer nombre</InputLabel>
-<<<<<<< Updated upstream
-      <OutlinedInput {...field} label="Primer Nombre" inputProps={{ maxLength: 50 }} />
-=======
       <OutlinedInput {...field} label="Primer Nombre" inputProps={{ maxLength: 50 }}/>
->>>>>>> Stashed changes
       {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -267,10 +247,10 @@ export function SignUpForm(): React.JSX.Element {
       <Controller
             control={control}
             name="terms"
-            render={({ field }) => (
+            render={({ field: inputfield }) => (
               <div>
                 <FormControlLabel
-                  control={<Checkbox {...field} />}
+                  control={<Checkbox {...inputfield} />}
                   label={
                     <React.Fragment>
                       He leído los <Link>términos y condiciones</Link>
@@ -283,41 +263,10 @@ export function SignUpForm(): React.JSX.Element {
           />
       {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
     </FormControl>
-<<<<<<< Updated upstream
   )}
   
 />
         {successMessage && ( // Asegúrate de que esto se renderiza
-=======
-  )} 
-/>
-<FormControl component="fieldset">
-  <Controller
-    control={control}
-    name="terms"
-    render={({ field }) => (
-      <div>
-        <FormControlLabel
-          control={<Checkbox {...field} />}
-          label={
-            <React.Fragment>
-              He leído los <Link>términos y condiciones</Link>
-            </React.Fragment>
-          }
-        />
-        {errors.terms ? (
-          <FormHelperText error>{errors.terms.message}</FormHelperText>
-        ) : null}
-      </div>
-    )}
-  />
-  {errors.confirmPassword ? (
-    <FormHelperText error>{errors.confirmPassword.message}</FormHelperText>
-  ) : null}
-</FormControl>
-
-{successMessage && ( // Asegúrate de que esto se renderiza
->>>>>>> Stashed changes
         <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
       )}
 

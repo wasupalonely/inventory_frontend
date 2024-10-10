@@ -13,21 +13,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-<<<<<<< Updated upstream
-import bcrypt from 'bcryptjs'; // Librería para comparar contraseñas hash
-=======
->>>>>>> Stashed changes
 import { authClient } from '@/lib/auth/client';
-import { Eye as EyeIcon } from '@phosphor-icons/react/dist/ssr/Eye';
-import { EyeSlash as EyeSlashIcon } from '@phosphor-icons/react/dist/ssr/EyeSlash';
 
 const schema = zod
   .object({
-<<<<<<< Updated upstream
     newPassword: zod.string()
-=======
-    password: zod.string()
->>>>>>> Stashed changes
       .min(9, { message: 'La nueva contraseña debe tener al menos 9 caracteres' })
       .max(20, { message: 'La nueva contraseña no debe tener más de 20 caracteres' })
       .regex(/[A-Z]/, { message: 'La nueva contraseña debe contener al menos una letra mayúscula' })
@@ -61,13 +51,8 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const [isPending, setIsPending] = React.useState<boolean>(false);
-<<<<<<< Updated upstream
   const [previousPasswordHash, setPreviousPasswordHash] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
-=======
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
-  const [showPassword, setShowPassword] = React.useState<boolean>();
->>>>>>> Stashed changes
 
   const {
     control,
@@ -81,30 +66,9 @@ export function UpdatePasswordForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
-  // Obtener hash de contraseña actual desde el backend
-  React.useEffect(() => {
-    const fetchPreviousPassword = async () => {
-      try {
-        const { passwordHash } = await authClient.getPasswordHash();
-        setPreviousPasswordHash(passwordHash);
-      } catch (error) {
-        // alert('Error fetching password hash');
-      }
-    };
-
-    fetchPreviousPassword();
-  }, []);
-
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
-      // Validar si la nueva contraseña es igual a la anterior
-      if (previousPasswordHash && bcrypt.compareSync(values.newPassword, previousPasswordHash)) {
-        setError('newPassword', { type: 'manual', message: 'La nueva contraseña no puede ser igual a la anterior.' });
-        setIsPending(false);
-        return;
-      }
 
       const { error } = await authClient.updatePassword({
         password: values.newPassword,
@@ -119,20 +83,12 @@ export function UpdatePasswordForm(): React.JSX.Element {
 
       setSuccessMessage('Enlace de confirmación enviado exitosamente, por favor revisa tu correo electrónico');
 
-<<<<<<< Updated upstream
       reset();
 
       setIsPending(false);
       router.push('/auth/sign-in');
     },
     [setError, reset, router, token, previousPasswordHash]
-=======
-      setSuccessMessage('Enlace de confirmación enviado exitosamente, por favor revisa tu correo electrónico');
-
-      reset();
-    },
-    [setError, reset]
->>>>>>> Stashed changes
   );
 
   return (
@@ -146,27 +102,8 @@ export function UpdatePasswordForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.newPassword)}>
                 <InputLabel>Nueva contraseña</InputLabel>
-<<<<<<< Updated upstream
                 <OutlinedInput {...field} label="Nueva contraseña" type="password" />
                 {errors.newPassword ? <FormHelperText>{errors.newPassword.message}</FormHelperText> : null}
-=======
-                <OutlinedInput {...field}
-                endAdornment={showPassword ? (
-                  <EyeIcon
-                    cursor="pointer"
-                    fontSize="var(--icon-fontSize-md)"
-                    onClick={(): void => { setShowPassword(false); }}
-                  />
-                ) : (
-                  <EyeSlashIcon
-                    cursor="pointer"
-                    fontSize="var(--icon-fontSize-md)"
-                    onClick={(): void => { setShowPassword(true); }}
-                  />
-                )}
-                label="Nueva contraseña" type="password" inputProps={{ maxLength: 20 }} />
-                {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
->>>>>>> Stashed changes
               </FormControl>
             )}
           />
@@ -176,21 +113,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.confirmPassword)}>
                 <InputLabel>Confirmar contraseña</InputLabel>
-                <OutlinedInput {...field}
-                endAdornment={showPassword ? (
-                  <EyeIcon
-                    cursor="pointer"
-                    fontSize="var(--icon-fontSize-md)"
-                    onClick={(): void => { setShowPassword(false); }}
-                  />
-                ) : (
-                  <EyeSlashIcon
-                    cursor="pointer"
-                    fontSize="var(--icon-fontSize-md)"
-                    onClick={(): void => { setShowPassword(true); }}
-                  />
-                )}
-                label="Confirmar contraseña" type="password" inputProps={{ maxLength: 20 }} />
+                <OutlinedInput {...field} label="Confirmar contraseña" type="password" />
                 {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
               </FormControl>
             )}

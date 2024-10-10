@@ -73,14 +73,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         setIsPending(false);
         return;
       }
-<<<<<<< Updated upstream
-
-      setSuccessMessage('Su supermercado se ha registrado exitosamente');
-
-=======
       setSuccessMessage('Su supermercado se ha registrado exitosamente');
       
->>>>>>> Stashed changes
       router.refresh();
     },
     [router, setError]
@@ -144,19 +138,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               <FormControl error={Boolean(errors.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
                 <Select {...field} label="Tipo de Vía">
-<<<<<<< Updated upstream
-                    <MenuItem value="avenida">Avenida</MenuItem>
-                    <MenuItem value="avenida calle">Avenida Calle</MenuItem>
-                    <MenuItem value="avenida carrera">Avenida Carrera</MenuItem>
-                    <MenuItem value="calle">Calle</MenuItem>
-                    <MenuItem value="carrera">Carrera</MenuItem>
-                    <MenuItem value="circular">Circular</MenuItem>
-                    <MenuItem value="circunvalar">Circunvalar</MenuItem>
-                    <MenuItem value="diagonal">Diagonal</MenuItem>
-                    <MenuItem value="manzana">Manzana</MenuItem>
-                    <MenuItem value="transversal">Transversal</MenuItem>
-                    <MenuItem value="via">Vía</MenuItem>
-=======
                     <MenuItem value="avenue">Avenida</MenuItem>
                     <MenuItem value="avenue_street">Avenida Calle</MenuItem>
                     <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
@@ -168,7 +149,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     <MenuItem value="block">Manzana</MenuItem>
                     <MenuItem value="transversal">Transversal</MenuItem>
                     <MenuItem value="way">Vía</MenuItem>
->>>>>>> Stashed changes
                 </Select>
                 {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
               </FormControl>
@@ -201,12 +181,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     label="Número de intersección"
                     InputProps={{
                       startAdornment: <InputAdornment position="start">#</InputAdornment>,
-<<<<<<< Updated upstream
-                    }}  
-=======
                     }}
                     inputProps={{ maxLength: 20 }}
->>>>>>> Stashed changes
                     error={Boolean(errors.intersectionNumber)}
                     helperText={errors.intersectionNumber?.message}
                     fullWidth
@@ -225,10 +201,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     InputProps={{
                       startAdornment: <InputAdornment position="start">-</InputAdornment>,
                     }}
-<<<<<<< Updated upstream
-=======
                     inputProps={{ maxLength: 20 }}
->>>>>>> Stashed changes
                     error={Boolean(errors.buildingNumber)}
                     helperText={errors.buildingNumber?.message}
                     fullWidth
