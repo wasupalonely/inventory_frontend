@@ -56,6 +56,9 @@ importers:
       axios:
         specifier: ^1.7.7
         version: 1.7.7
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
       dayjs:
         specifier: 1.11.11
         version: 1.11.11
@@ -93,6 +96,9 @@ importers:
       '@testing-library/react':
         specifier: 16.0.0
         version: 16.0.0(@testing-library/dom@9.3.4)(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/jest':
         specifier: 29.5.12
         version: 29.5.12
@@ -896,6 +902,9 @@ packages:
   '@types/babel__traverse@7.20.5':
     resolution: {integrity: sha512-WXCyOcRtH37HAUkpXhUduaxdm82b4GSlyTqajXviN4EfiuPgNYR109xMCKvpl6zPIpua0DGlMEDCq+g8EdoheQ==}
 
+  '@types/bcryptjs@2.4.6':
+    resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
+
   '@types/geojson@7946.0.14':
     resolution: {integrity: sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg==}
 
@@ -1275,6 +1284,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  bcryptjs@2.4.3:
+    resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
 
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
@@ -4334,6 +4346,8 @@ snapshots:
     dependencies:
       '@babel/types': 7.24.0
 
+  '@types/bcryptjs@2.4.6': {}
+
   '@types/geojson@7946.0.14': {}
 
   '@types/graceful-fs@4.1.9':
@@ -4859,6 +4873,8 @@ snapshots:
       babel-preset-current-node-syntax: 1.0.1(@babel/core@7.24.0)
 
   balanced-match@1.0.2: {}
+
+  bcryptjs@2.4.3: {}
 
   brace-expansion@1.1.11:
     dependencies:
@@ -6553,6 +6569,7 @@ snapshots:
       '@phosphor-icons/react': 2.1.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       apexcharts: 3.49.2
       axios: 1.7.7
+      bcryptjs: 2.4.3
       dayjs: 1.11.11
       next: 14.2.13(@babel/core@7.24.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1

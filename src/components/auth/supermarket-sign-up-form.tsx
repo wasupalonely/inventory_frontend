@@ -14,20 +14,21 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-
 import { authClient } from '@/lib/auth/client';
 
 // Esquema de validación actualizado
 const schema = zod.object({
-  name: zod.string().min(1, { message: 'El nombre del supermercado es requerido' }).max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
+  name: zod.string()
+    .min(1, { message: 'El nombre del supermercado es requerido' })
+    .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
   ownerId: zod.string().min(1, { message: 'El ID del propietario es requerido' }),
   address: zod.string().min(1, { message: 'La dirección es requerida' }),
-  neighborhood: zod.string().min(1, { message: 'El barrio es requerido' }),
+  neighborhood: zod.string().max(255, { message: 'El barrio es requerido' }),
   locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
-  streetNumber: zod.string().min(1, { message: 'El número de la calle es requerido' }),
-  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }), // Requerido
-  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }), // Requerido
-  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }), // Requerido
+  streetNumber: zod.string().max(20, { message: 'El número de la calle es requerido' }),
+  intersectionNumber: zod.string().max(20, { message: 'El número de intersección es requerido' }), // Requerido
+  buildingNumber: zod.string().max(20, { message: 'El número de edificio es requerido' }), // Requerido
+  additionalInfo: zod.string().max(255, { message: 'La información adicional es requerida' }), // Requerido
 });
 
 type Values = zod.infer<typeof schema>;
@@ -48,6 +49,7 @@ const defaultValues = {
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const {
     control,
@@ -71,7 +73,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         setIsPending(false);
         return;
       }
-
+      setSuccessMessage('Su supermercado se ha registrado exitosamente');
+      
       router.refresh();
     },
     [router, setError]
@@ -90,7 +93,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.name)}>
                 <InputLabel>Nombre del supermercado</InputLabel>
-                <OutlinedInput {...field} label="Nombre del supermercado" />
+                <OutlinedInput {...field} label="Nombre del supermercado" inputProps={{ maxLength: 255 }} />
                 {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -123,7 +126,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.neighborhood)}>
                 <InputLabel>Barrio</InputLabel>
-                <OutlinedInput {...field} label="Barrio" />
+                <OutlinedInput {...field} label="Barrio" inputProps={{ maxLength: 255 }} />
                 {errors.neighborhood ? <FormHelperText>{errors.neighborhood.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -134,7 +137,19 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
-                <OutlinedInput {...field} label="Tipo de ubicación" />
+                <Select {...field} label="Tipo de Vía">
+                    <MenuItem value="avenue">Avenida</MenuItem>
+                    <MenuItem value="avenue_street">Avenida Calle</MenuItem>
+                    <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
+                    <MenuItem value="street">Calle</MenuItem>
+                    <MenuItem value="road">Carrera</MenuItem>
+                    <MenuItem value="circular">Circular</MenuItem>
+                    <MenuItem value="circunvalar">Circunvalar</MenuItem>
+                    <MenuItem value="diagonal">Diagonal</MenuItem>
+                    <MenuItem value="block">Manzana</MenuItem>
+                    <MenuItem value="transversal">Transversal</MenuItem>
+                    <MenuItem value="way">Vía</MenuItem>
+                </Select>
                 {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -148,6 +163,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                   <TextField
                     {...field}
                     label="Número de la calle"
+                    inputProps={{ maxLength: 20 }}
                     error={Boolean(errors.streetNumber)}
                     helperText={errors.streetNumber?.message}
                     fullWidth
@@ -163,6 +179,10 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                   <TextField
                     {...field}
                     label="Número de intersección"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">#</InputAdornment>,
+                    }}
+                    inputProps={{ maxLength: 20 }}
                     error={Boolean(errors.intersectionNumber)}
                     helperText={errors.intersectionNumber?.message}
                     fullWidth
@@ -178,6 +198,10 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                   <TextField
                     {...field}
                     label="Número de edificio"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">-</InputAdornment>,
+                    }}
+                    inputProps={{ maxLength: 20 }}
                     error={Boolean(errors.buildingNumber)}
                     helperText={errors.buildingNumber?.message}
                     fullWidth
@@ -193,6 +217,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               <TextField
                 {...field}
                 label="Información adicional"
+                inputProps={{ maxLength: 255 }}
                 error={Boolean(errors.additionalInfo)}
                 helperText={errors.additionalInfo?.message}
                 fullWidth
@@ -200,6 +225,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             )}
           />
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+          {successMessage ? <Alert color="success">{successMessage}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Registrar supermercado
           </Button>
@@ -209,6 +235,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   );
 }
 
-function checkSession(): void {
-  throw new Error('Function not implemented.');
-}
+// function checkSession(): void {
+//   throw new Error('Function not implemented.');
+// }
