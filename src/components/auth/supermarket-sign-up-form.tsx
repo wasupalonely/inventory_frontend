@@ -15,19 +15,23 @@ import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
-import { authClient } from '@/lib/auth/client';
+import { authClient, DefaultErrorResponse } from '@/lib/auth/client';
+import { API_URL } from '@/config';
 
 // Esquema de validación actualizado
 const schema = zod.object({
-  name: zod.string().min(1, { message: 'El nombre del supermercado es requerido' }).max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
+  name: zod
+    .string()
+    .min(1, { message: 'El nombre del supermercado es requerido' })
+    .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
   ownerId: zod.string().min(1, { message: 'El ID del propietario es requerido' }),
   address: zod.string().min(1, { message: 'La dirección es requerida' }),
   neighborhood: zod.string().min(1, { message: 'El barrio es requerido' }),
   locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
   streetNumber: zod.string().min(1, { message: 'El número de la calle es requerido' }),
-  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }), // Requerido
-  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }), // Requerido
-  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }), // Requerido
+  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }),
+  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }),
+  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }),
 });
 
 type Values = zod.infer<typeof schema>;
@@ -40,9 +44,9 @@ const defaultValues = {
   neighborhood: '',
   locationType: '',
   streetNumber: '',
-  intersectionNumber: '', // Opcional
-  buildingNumber: '', // Opcional
-  additionalInfo: '', // Opcional
+  intersectionNumber: '',
+  buildingNumber: '',
+  additionalInfo: '',
 } satisfies Values;
 
 export function SupermarketSignUpForm(): React.JSX.Element {
@@ -60,19 +64,33 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
+  //Endpoint
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
+      try {
+        const response = await fetch(`${API_URL}/supermarket`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        });
 
-      const { error } = await authClient.supermarketsignUp(values, values.ownerId);
+        if (!response.ok) {
+          const errorData = await response.json() as DefaultErrorResponse;
+          setError('root', { type: 'server', message: errorData.message });
+          setIsPending(false);
+          return;
+        }
 
-      if (error) {
-        setError('root', { type: 'server', message: error });
+        const result = await response.json();
+        router.refresh();
+      } catch (error) {
+        setError('root', { type: 'server', message: 'Error al crear el supermercado' });
+      } finally {
         setIsPending(false);
-        return;
       }
-
-      router.refresh();
     },
     [router, setError]
   );

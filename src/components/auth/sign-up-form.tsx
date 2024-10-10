@@ -18,23 +18,28 @@ import { Eye as EyeIcon } from '@phosphor-icons/react/dist/ssr/Eye';
 import { EyeSlash as EyeSlashIcon } from '@phosphor-icons/react/dist/ssr/EyeSlash';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
-import { useRouter } from 'next/navigation'; // Importa useRouter
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
 const schema = zod.object({
   firstName: zod.string()
     .min(1, { message: 'El primer nombre es requerido' })
     .max(50, { message: 'El primer nombre no debe tener más de 50 caracteres' }),
-  middleName: zod.string().optional(),
+  middleName: zod.string()
+    .max(50,{ message: 'El segundo nombre no debe tener más de 50 caracteres' })
+    .optional(),
   lastName: zod.string()
     .min(1, { message: 'El primer apellido requerido' })
     .max(50, { message: 'El primer apellido no debe tener más de 50 caracteres' }),
-  secondlastName: zod.string().optional(),
+  secondlastName: zod.string()
+    .max(50,{ message: 'El segundo apellido no debe tener más de 50 caracteres' })
+    .optional(),
   email: zod.string()
-    .min(1, { message: 'El correo electrónico es requerido' }).email()
+    .email({ message: 'El correo electrónico es inválido' })
+    .min(1, { message: 'El correo electrónico es requerido' })
     .max(255, { message: 'El correo electrónico no debe tener más de 255 caracteres' }),
   phone: zod.string()
-    .min(9, { message: 'El número de celular debe tener al menos 9 caracteres' })
-    .max(255, { message: 'El número de celular no debe tener más de 255 caracteres' }),
+    .min(10, { message: 'El número de celular debe tener al menos 10 caracteres' }),
   password: zod.string()
     .min(9, { message: 'La contraseña debe tener al menos 9 caracteres' })
     .max(20, { message: 'La contraseña no debe tener más de 20 caracteres' })
@@ -42,7 +47,6 @@ const schema = zod.object({
     .regex(/[a-z]/, { message: 'La contraseña debe contener al menos una letra minúscula' })
     .regex(/\d/, { message: 'La contraseña debe contener al menos un número' })
     .regex(/[\W_]/, { message: 'La contraseña debe contener al menos un carácter especial' }),
-    // aca debe vaidar el rol para que solo sea los especificados
   role: zod.string(),
   confirmPassword: zod.string()
     .min(9, { message: 'La confirmación de contraseña debe tener al menos 9 caracteres' })
@@ -51,6 +55,7 @@ const schema = zod.object({
     .regex(/[a-z]/, { message: 'La confirmación de contraseña debe contener al menos una letra minúscula' })
     .regex(/\d/, { message: 'La confirmación de contraseña debe contener al menos un número' })
     .regex(/[\W_]/, { message: 'La confirmación de contraseña debe contener al menos un carácter especial' }),
+  terms: zod.boolean().refine((value) => value, 'Tienes que aceptar los términos y condiciones'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Las contraseñas deben coincidir',
   path: ['confirmPassword'],
@@ -58,7 +63,7 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '', role: 'admin' } satisfies Values;
+const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '', role: 'owner', terms: false } satisfies Values;
 
 
 export function SignUpForm(): React.JSX.Element {
@@ -66,7 +71,6 @@ export function SignUpForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de éxito
-  const router = useRouter(); // Inicializa useRouter
   const {
     control,
     handleSubmit,
@@ -83,27 +87,20 @@ export function SignUpForm(): React.JSX.Element {
     
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
+      setSuccessMessage(null);
       const { error, message } = await authClient.signUp({ ...values, phoneNumber: values.phone });
 
       if (error) {
         setError('root', { type: 'server', message: error });
-        setSuccessMessage(null); // Reinicia el mensaje de éxito al enviar el formulario
+        setSuccessMessage(null);
       } else if (message) {
         localStorage.setItem('canAccessConfirmation', 'true');
-        setSuccessMessage('Registro exitoso, confirma tu correo electrónico'); // Establece el mensaje de éxito
-        // Limpia el formulario
-      reset();
-        // Espera 3 segundos (3000 milisegundos) antes de redirigir
-  // setTimeout(() => {
-  //   router.push('/auth/confirm'); // Redirecciona después de 3 segundos
-  // }, 3000);
+        setSuccessMessage('Registro exitoso, confirma tu correo electrónico');
+        reset();
 }
-      
-
       setIsPending(false);
     },
-    [setError, router, reset]
+    [setError, reset]
   );
 
   return (
@@ -126,7 +123,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.firstName)} required>
       <InputLabel required>Primer nombre</InputLabel>
-      <OutlinedInput {...field} label="Primer Nombre" />
+      <OutlinedInput {...field} label="Primer Nombre" inputProps={{ maxLength: 50 }}/>
       {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -137,7 +134,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl>
       <InputLabel>Segundo nombre</InputLabel>
-      <OutlinedInput {...field} label="Segundo Nombre" />
+      <OutlinedInput {...field} label="Segundo Nombre" inputProps={{ maxLength: 50 }} />
     </FormControl>
   )}
 />
@@ -147,7 +144,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.lastName)} required>
       <InputLabel required>Primer apellido</InputLabel>
-      <OutlinedInput {...field} label="Primer Apellido" />
+      <OutlinedInput {...field} label="Primer Apellido" inputProps={{ maxLength: 50 }} />
       {errors.lastName ? <FormHelperText>{errors.lastName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -158,7 +155,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl>
       <InputLabel>Segundo apellido</InputLabel>
-      <OutlinedInput {...field} label="Segundo Apellido" />
+      <OutlinedInput {...field} label="Segundo Apellido" inputProps={{ maxLength: 50 }} />
     </FormControl>
   )}
 />
@@ -168,7 +165,7 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.email)} required>
       <InputLabel required>Correo electrónico</InputLabel>
-      <OutlinedInput {...field} label="Correo Electronico" type="email" />
+      <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255 }} />
       {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -177,8 +174,8 @@ export function SignUpForm(): React.JSX.Element {
   control={control}
   name="phone"
   render={({ field }) => (
-    <FormControl error={Boolean(errors.phone)}>
-      <InputLabel>Número de celular</InputLabel>
+    <FormControl error={Boolean(errors.phone)} required>
+      <InputLabel required>Número de celular</InputLabel>
       <OutlinedInput
         {...field}
         label="Numero de Celular"
@@ -216,6 +213,7 @@ export function SignUpForm(): React.JSX.Element {
         )}
         label="Contraseña"
         type={showPassword ? 'text' : 'password'}
+        inputProps={{ maxLength: 20 }}
       />
       {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
     </FormControl>
@@ -244,14 +242,31 @@ export function SignUpForm(): React.JSX.Element {
         )}
         label="Confirmar contraseña"
         type={showPassword ? 'text' : 'password'}
+        inputProps={{ maxLength: 20 }}
       />
+      <Controller
+            control={control}
+            name="terms"
+            render={({ field: inputfield }) => (
+              <div>
+                <FormControlLabel
+                  control={<Checkbox {...inputfield} />}
+                  label={
+                    <React.Fragment>
+                      He leído los <Link>términos y condiciones</Link>
+                    </React.Fragment>
+                  }
+                />
+                {errors.terms ? <FormHelperText error>{errors.terms.message}</FormHelperText> : null}
+              </div>
+            )}
+          />
       {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
     </FormControl>
-    
   )}
   
 />
-{successMessage && ( // Asegúrate de que esto se renderiza
+        {successMessage && ( // Asegúrate de que esto se renderiza
         <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
       )}
 
