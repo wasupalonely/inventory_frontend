@@ -40,7 +40,9 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const userId = searchParams.get('id');
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [usedToken, setUsedToken] = React.useState<boolean>(false);
 
   const {
     control,
@@ -53,9 +55,37 @@ export function UpdatePasswordForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
+  React.useEffect(() => {
+    const isUsedToken = async () => {
+      const used = await authClient.validateToken({ token: token as string });
+      setUsedToken(used.message!);
+    };
+
+    isUsedToken();
+
+  }, [token, router]);
+
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
+
+      const { error: compareError, message } = await authClient.comparePasswordByUserId({
+        userId: userId as string,
+        password: values.password,
+      });
+
+      if (compareError) {
+        console.log('error', compareError);
+        setError('root', { type: 'server', message: compareError });
+        setIsPending(false);
+        return;
+      }
+
+      if (message) {
+        setError('root', { type: 'server', message: 'La contraseña no puede ser la misma que la anterior' });
+        setIsPending(false);
+        return;
+      }
 
       const { error } = await authClient.updatePassword({
         password: values.password,
@@ -77,37 +107,43 @@ export function UpdatePasswordForm(): React.JSX.Element {
 
   return (
     <Stack spacing={4}>
-      <Typography variant="h5">Actualizar contraseña</Typography>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Stack spacing={2}>
-          <Controller
-            control={control}
-            name="password"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.password)}>
-                <InputLabel>Nueva contraseña</InputLabel>
-                <OutlinedInput {...field} label="Nueva contraseña" type="password" />
-                {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.confirmPassword)}>
-                <InputLabel>Confirmar contraseña</InputLabel>
-                <OutlinedInput {...field} label="Confirmar contraseña" type="password" />
-                {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          <Button disabled={!isValid || isPending} type="submit" variant="contained">
-            Actualizar
-          </Button>
-        </Stack>
-      </form>
+      {usedToken ? (
+        <Alert color="error">Enlace no válido</Alert>
+      ) : (
+        <>
+          <Typography variant="h5">Actualizar contraseña</Typography>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Stack spacing={2}>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field }) => (
+                  <FormControl error={Boolean(errors.password)}>
+                    <InputLabel>Nueva contraseña</InputLabel>
+                    <OutlinedInput {...field} label="Nueva contraseña" type="password" />
+                    {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
+                  </FormControl>
+                )}
+              />
+              <Controller
+                control={control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormControl error={Boolean(errors.confirmPassword)}>
+                    <InputLabel>Confirmar contraseña</InputLabel>
+                    <OutlinedInput {...field} label="Confirmar contraseña" type="password" />
+                    {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
+                  </FormControl>
+                )}
+              />
+              {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+              <Button disabled={!isValid || isPending} type="submit" variant="contained">
+                Actualizar
+              </Button>
+            </Stack>
+          </form>
+        </>
+      )}
     </Stack>
   );
 }
