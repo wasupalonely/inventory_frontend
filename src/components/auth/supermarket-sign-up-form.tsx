@@ -14,7 +14,10 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
+
+import { authClient, DefaultErrorResponse } from '@/lib/auth/client';
 import { API_URL } from '@/config';
+import { useUser } from '@/hooks/use-user';
 
 // Esquema de validación actualizado
 const schema = zod.object({
@@ -44,8 +47,29 @@ const defaultValues = {
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null); // Estado para el mensaje de error
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de exito
+  const { checkSession } = useUser(); // Usar el hook de autenticación
   const [isPending, setIsPending] = React.useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+   // Función para cerrar sesión
+   const handleSignOut = React.useCallback(async (): Promise<void> => {
+    try {
+      const { error } = await authClient.signOut();
+
+      if (error) {
+
+        return;
+      }
+
+      // Actualiza el estado de autenticación
+      await checkSession?.();
+
+      // Refresca el router manualmente si es necesario
+      router.refresh();
+    } catch (error) {
+      setErrorMessage('Ocurrió un error al cerrar sesión');
+    }
+  }, [router]);
 
   const {
     control,
@@ -64,22 +88,22 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
       try {
-        const response = await fetch(`${API_URL}/supermarket`, { 
+        const response = await fetch(`${API_URL}/supermarket`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(values), 
+          body: JSON.stringify(values),
         });
-        
-  
+
+
         if (!response.ok) {
           const errorData = await response.json() as { message: string };
           setError('root', { type: 'server', message: errorData.message });
           setIsPending(false);
           return;
-        }        
-  
+        }
+
         await response.json();
         router.refresh();
       } catch (error) {
@@ -92,10 +116,11 @@ export function SupermarketSignUpForm(): React.JSX.Element {
 
         setIsPending(false);
       }
-      
+
     },
     [router, reset, setError]
   );
+
 
   return (
     <Stack spacing={3}>
