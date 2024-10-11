@@ -36,7 +36,6 @@ function ConfirmContent(): JSX.Element {
 
       try {
         const { error } = await authClient.confirmAccount({ token: tokenStr });
-
         if (error) {
           setError(error);
         } else {
