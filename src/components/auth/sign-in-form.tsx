@@ -214,7 +214,7 @@ export function SignInForm(): React.JSX.Element {
             </Link>
           </div>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          {errorMessage && <Alert color="error">{errorMessage}</Alert>}
+          {Boolean(errorMessage?.trim()) && <Alert color="error">{errorMessage}</Alert>}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Iniciar sesión
           </Button>

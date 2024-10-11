@@ -45,8 +45,6 @@ export interface RegisterResponse {
 
 export interface SupermarketSignUpParams {
   name: string;
-  ownerId: string;
-  address: string;
   neighborhood: string;
   locationType: string;
   streetNumber: string;

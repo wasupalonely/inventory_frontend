@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Grid, TextField } from '@mui/material';
+import { Grid, MenuItem, Select, TextField } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -25,9 +25,7 @@ const schema = zod.object({
     .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  ownerId: zod.string().min(1, { message: 'El ID del propietario es requerido' }),
-  address: zod.string().min(1, { message: 'La dirección es requerida' }),
-  neighborhood: zod.string().min(1, { message: 'El barrio es requerido' }),
+  neighborhood: zod.string().max(255, { message: 'El barrio es requerido' }),
   locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
   streetNumber: zod.string().min(1, { message: 'El número de la calle es requerido' }),
   intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }),
@@ -40,8 +38,6 @@ type Values = zod.infer<typeof schema>;
 // Valores por defecto
 const defaultValues = {
   name: '',
-  ownerId: '',
-  address: '',
   neighborhood: '',
   locationType: '',
   streetNumber: '',
@@ -54,6 +50,7 @@ const defaultValues = {
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null); // Estado para el mensaje de error
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de exito
   const { checkSession } = useUser(); // Usar el hook de autenticación
   const [isPending, setIsPending] = React.useState<boolean>(false);
    // Función para cerrar sesión
@@ -62,7 +59,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
       const { error } = await authClient.signOut();
 
       if (error) {
-        
+
         return;
       }
 
@@ -80,6 +77,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     control,
     handleSubmit,
     setError,
+    reset,
     formState: { errors, isValid },
   } = useForm<Values>({
     defaultValues,
@@ -100,24 +98,31 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           body: JSON.stringify(values),
         });
 
+
         if (!response.ok) {
-          const errorData = await response.json() as DefaultErrorResponse;
+          const errorData = await response.json() as { message: string };
           setError('root', { type: 'server', message: errorData.message });
           setIsPending(false);
           return;
         }
 
-        const result = await response.json();
+        await response.json();
         router.refresh();
       } catch (error) {
         setError('root', { type: 'server', message: 'Error al crear el supermercado' });
       } finally {
+
+        setSuccessMessage('Supermercado creado exitosamente');
+
+        reset();
+
         setIsPending(false);
       }
+
     },
-    [router, setError]
+    [router, reset, setError]
   );
- 
+
 
   return (
     <Stack spacing={3}>
@@ -137,28 +142,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
-          <Controller
-            control={control}
-            name="ownerId"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.ownerId)}>
-                <InputLabel>ID del propietario</InputLabel>
-                <OutlinedInput {...field} label="ID del propietario" />
-                {errors.ownerId ? <FormHelperText>{errors.ownerId.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="address"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.address)}>
-                <InputLabel>Dirección</InputLabel>
-                <OutlinedInput {...field} label="Dirección" />
-                {errors.address ? <FormHelperText>{errors.address.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
+          <Typography variant="h6">Dirección</Typography>
           <Controller
             control={control}
             name="neighborhood"
@@ -176,7 +160,19 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
-                <OutlinedInput {...field} label="Tipo de ubicación" />
+                <Select {...field} label="Tipo de ubicación">
+                    <MenuItem value="avenue">Avenida</MenuItem>
+                    <MenuItem value="avenue_street">Avenida Calle</MenuItem>
+                    <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
+                    <MenuItem value="street">Calle</MenuItem>
+                    <MenuItem value="road">Carrera</MenuItem>
+                    <MenuItem value="circular">Circular</MenuItem>
+                    <MenuItem value="circunvalar">Circunvalar</MenuItem>
+                    <MenuItem value="diagonal">Diagonal</MenuItem>
+                    <MenuItem value="block">Manzana</MenuItem>
+                    <MenuItem value="transversal">Transversal</MenuItem>
+                    <MenuItem value="way">Vía</MenuItem>
+                </Select>
                 {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
               </FormControl>
             )}

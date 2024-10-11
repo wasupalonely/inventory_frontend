@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import type { JSX } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
 
@@ -8,7 +9,7 @@ import { authClient } from '@/lib/auth/client';
 import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 
-function ConfirmContent() {
+function ConfirmContent(): JSX.Element {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
