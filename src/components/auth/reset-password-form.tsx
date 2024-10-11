@@ -52,10 +52,6 @@ export function ResetPasswordForm(): React.JSX.Element {
       
       reset();
 
-      setSuccessMessage('Enlace de confirmación enviado exitosamente, por favor revisa tu correo electrónico');
-      
-      reset();
-
       setIsPending(false);
     },
     [setError, reset]

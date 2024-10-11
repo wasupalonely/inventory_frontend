@@ -14,15 +14,13 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-import { authClient } from '@/lib/auth/client';
+import { API_URL } from '@/config';
 
 // Esquema de validación actualizado
 const schema = zod.object({
   name: zod.string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  ownerId: zod.string().min(1, { message: 'El ID del propietario es requerido' }),
-  address: zod.string().min(1, { message: 'La dirección es requerida' }),
   neighborhood: zod.string().max(255, { message: 'El barrio es requerido' }),
   locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
   streetNumber: zod.string().max(20, { message: 'El número de la calle es requerido' }),
@@ -36,8 +34,6 @@ type Values = zod.infer<typeof schema>;
 // Valores por defecto
 const defaultValues = {
   name: '',
-  ownerId: '',
-  address: '',
   neighborhood: '',
   locationType: '',
   streetNumber: '',
@@ -55,6 +51,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     control,
     handleSubmit,
     setError,
+    reset,
     formState: { errors, isValid },
   } = useForm<Values>({
     defaultValues,
@@ -62,22 +59,42 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
+  //Endpoint
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
+      try {
+        const response = await fetch(`${API_URL}/supermarket`, { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values), 
+        });
+        
+  
+        if (!response.ok) {
+          const errorData = await response.json() as { message: string };
+          setError('root', { type: 'server', message: errorData.message });
+          setIsPending(false);
+          return;
+        }        
+  
+        const result = await response.json();
+        router.refresh();
+      } catch (error) {
+        setError('root', { type: 'server', message: 'Error al crear el supermercado' });
+      } finally {
 
-      const { error } = await authClient.supermarketsignUp(values, values.ownerId);
+        setSuccessMessage('Supermercado creado exitosamente');
 
-      if (error) {
-        setError('root', { type: 'server', message: error });
+        reset();
+
         setIsPending(false);
-        return;
       }
-      setSuccessMessage('Su supermercado se ha registrado exitosamente');
       
-      router.refresh();
     },
-    [router, setError]
+    [router, reset, setError]
   );
 
   return (
@@ -98,28 +115,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
-          <Controller
-            control={control}
-            name="ownerId"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.ownerId)}>
-                <InputLabel>ID del propietario</InputLabel>
-                <OutlinedInput {...field} label="ID del propietario" />
-                {errors.ownerId ? <FormHelperText>{errors.ownerId.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="address"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.address)}>
-                <InputLabel>Dirección</InputLabel>
-                <OutlinedInput {...field} label="Dirección" />
-                {errors.address ? <FormHelperText>{errors.address.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
+          <Typography variant="h6">Dirección</Typography>
           <Controller
             control={control}
             name="neighborhood"
@@ -137,7 +133,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
-                <Select {...field} label="Tipo de Vía">
+                <Select {...field} label="Tipo de ubicación">
                     <MenuItem value="avenue">Avenida</MenuItem>
                     <MenuItem value="avenue_street">Avenida Calle</MenuItem>
                     <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
