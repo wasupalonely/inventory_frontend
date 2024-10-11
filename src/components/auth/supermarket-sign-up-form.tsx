@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Grid, InputAdornment, MenuItem, Select, TextField } from '@mui/material';
+import { Grid, TextField } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -45,9 +46,31 @@ const defaultValues = {
   additionalInfo: '', // Opcional
 } satisfies Values;
 
+
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null); // Estado para el mensaje de error
+  const { checkSession } = useUser(); // Usar el hook de autenticación
   const [isPending, setIsPending] = React.useState<boolean>(false);
+   // Función para cerrar sesión
+   const handleSignOut = React.useCallback(async (): Promise<void> => {
+    try {
+      const { error } = await authClient.signOut();
+
+      if (error) {
+        
+        return;
+      }
+
+      // Actualiza el estado de autenticación
+      await checkSession?.();
+
+      // Refresca el router manualmente si es necesario
+      router.refresh();
+    } catch (error) {
+      setErrorMessage('Ocurrió un error al cerrar sesión');
+    }
+  }, [router]);
 
   const {
     control,
@@ -76,6 +99,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     },
     [router, setError]
   );
+ 
 
   return (
     <Stack spacing={3}>
@@ -203,12 +227,13 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Registrar supermercado
           </Button>
+          <Button onClick={handleSignOut} variant="outlined" color="secondary">
+        Cerrar sesión
+      </Button>
         </Stack>
       </form>
     </Stack>
   );
 }
 
-function checkSession(): void {
-  throw new Error('Function not implemented.');
-}
+
