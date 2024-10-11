@@ -51,7 +51,6 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const [isPending, setIsPending] = React.useState<boolean>(false);
-  const [previousPasswordHash, setPreviousPasswordHash] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const {
@@ -88,7 +87,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
       setIsPending(false);
       router.push('/auth/sign-in');
     },
-    [setError, reset, router, token, previousPasswordHash]
+    [setError, reset, router, token]
   );
 
   return (

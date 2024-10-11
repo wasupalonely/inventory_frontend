@@ -266,7 +266,7 @@ export function SignUpForm(): React.JSX.Element {
   )}
   
 />
-        {successMessage && ( // Asegúrate de que esto se renderiza
+        {Boolean(successMessage?.trim()) && ( // Asegúrate de que esto se renderiza
         <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
       )}
 

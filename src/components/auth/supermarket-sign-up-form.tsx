@@ -80,7 +80,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           return;
         }        
   
-        const result = await response.json();
+        await response.json();
         router.refresh();
       } catch (error) {
         setError('root', { type: 'server', message: 'Error al crear el supermercado' });
