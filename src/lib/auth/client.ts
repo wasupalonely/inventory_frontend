@@ -50,7 +50,7 @@ export interface SupermarketSignUpParams {
   streetNumber: string;
   intersectionNumber: string;
   buildingNumber: string;
-  additionalInfo: string; 
+  additionalInfo: string;
 }
 
 export interface SignInWithOAuthParams {
@@ -84,7 +84,7 @@ class AuthClient {
     throw new Error('Método no implementado.');
   }
   async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
-    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role  } = params;
+    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role } = params;
 
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -94,7 +94,6 @@ class AuthClient {
         },
         body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, phoneNumber, role }),
       });
-
 
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
@@ -115,31 +114,29 @@ class AuthClient {
   async supermarketsignUp(params: SupermarketSignUpParams, _ownerId: string): Promise<{ error?: string }> {
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
-  
+
     try {
       // Realiza una petición para registrar el supermercado aquí
       const response = await fetch(`${API_URL}/supermarket`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Añadir el token en el header
+          Authorization: `Bearer ${token}`, // Añadir el token en el header
         },
         body: JSON.stringify(params), // Envía los parámetros como el cuerpo de la petición
       });
-  
+
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
-  
+
       // Si el registro es exitoso, puedes manejar la respuesta aquí
       return {};
     } catch (error) {
       return { error: 'Error de red al registrar el supermercado' };
     }
   }
-  
-  
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
     return { error: 'Autenticación social no implementada' };
@@ -171,8 +168,6 @@ class AuthClient {
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      
-
       return {};
     } catch (error) {
       return { error: 'Error de red' };
@@ -190,7 +185,7 @@ class AuthClient {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json() as SimpleMessageResponse;
+      const data = (await response.json()) as SimpleMessageResponse;
 
       if (!response.ok) {
         return { error: data.message || 'Error de confirmación de la cuenta' };
@@ -213,7 +208,7 @@ class AuthClient {
         body: JSON.stringify({ password }),
       });
 
-      const data = await response.json() as SimpleMessageResponse;
+      const data = (await response.json()) as SimpleMessageResponse;
 
       if (!response.ok) {
         return { error: data.message || 'Error actualizando contraseña' };
@@ -247,7 +242,7 @@ class AuthClient {
         },
       });
 
-      const data = await response.json() as SimpleMessageResponse;
+      const data = (await response.json()) as SimpleMessageResponse;
 
       if (!response.ok) {
         return { error: data.message || 'Error de confirmación de la cuenta' };
@@ -258,6 +253,56 @@ class AuthClient {
       return { error: 'Fallo al confirmar la cuenta' };
     }
   }
+
+  async validateToken({ token }: { token: string }): Promise<{ error?: string | null; message?: boolean }> {
+    try {
+      const response = await fetch(`${API_URL}/token/validate-token/${token}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data: boolean = await response.json();
+
+      if (!response.ok) {
+        return { error: 'Error validating token' };
+      }
+
+      return { error: null, message: data };
+    } catch (err) {
+      return { error: 'Failed to confirm account' };
+    }
+  }
+
+  async comparePasswordByUserId({
+    userId,
+    password,
+  }: {
+    userId: string;
+    password: string;
+  }): Promise<{ error?: string | null; message?: boolean }> {
+    try {
+      const response = await fetch(`${API_URL}/users/compare-password/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data: boolean = await response.json();
+
+      if (!response.ok) {
+        return { error: 'Error comparing passwords' };
+      }
+
+      return { error: null, message: data };
+    } catch (err) {
+      return { error: 'Failed to confirm account' };
+    }
+  }
+
 }
 
 export const authClient = new AuthClient();
