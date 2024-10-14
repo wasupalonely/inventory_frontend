@@ -104,19 +104,22 @@ export function UpdatePasswordForm(): React.JSX.Element {
       });
 
       if (error) {
-        setError('root', { type: 'server', message: error });
+        setError('root', { type: 'server', message: 'La contraseña debe tener entre 9 y 20 caracteres, tener al menos 1 letra mayúscula, 1 número y 1 carácter especial.' });
         setIsPending(false);
         return;
       }
 
-      setSuccessMessage('Enlace de confirmación enviado exitosamente, por favor revisa tu correo electrónico');
+      setSuccessMessage('Su contraseña se ha cambiado exitosamente');
 
       reset();
 
       setIsPending(false);
-      router.push('/auth/sign-in');
+
+      setTimeout(() => {
+        router.push('/auth/sign-in');
+      }, 3000); // 3000ms = 3 segundos
     },
-    [setError, reset, router, token]
+    [router, token, userId, setError, reset]
   );
 
   return (

@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/use-user';
+import { useRouter} from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Grid, InputAdornment, MenuItem, Select, TextField } from '@mui/material';
 import Alert from '@mui/material/Alert';
@@ -14,62 +15,66 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-
-import { authClient, DefaultErrorResponse } from '@/lib/auth/client';
+import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
-import { useUser } from '@/hooks/use-user';
 
-// Esquema de validación actualizado
 const schema = zod.object({
-  name: zod.string()
+  name: zod
+    .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  neighborhood: zod.string().max(255, { message: 'El barrio es requerido' }),
+  neighborhood: zod.string()
+    .min(1, { message: 'El barrio es requerido' })
+    .max(255, { message: 'El barrio no debe tener más de 255 caracteres' }),
   locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
-  streetNumber: zod.string().max(20, { message: 'El número de la calle es requerido' }),
-  intersectionNumber: zod.string().max(20, { message: 'El número de intersección es requerido' }), // Requerido
-  buildingNumber: zod.string().max(20, { message: 'El número de edificio es requerido' }), // Requerido
-  additionalInfo: zod.string().max(255, { message: 'La información adicional es requerida' }), // Requerido
+  streetNumber: zod.string()
+    .min(1, { message: 'El número de la calle es requerido' })
+    .max(20, { message: 'El número de la calle no debe tener más de 20 caracteres' }),
+  intersectionNumber: zod.string()
+    .min(1, { message: 'El número de intersección es requerido' })
+    .max(20, { message: 'El número de intersección no debe tener más de 20 caracteres' }),
+  buildingNumber: zod.string()
+    .min(1, { message: 'El número de edificio es requerido' })
+    .max(20, { message: 'El número de edificio no debe tener más de 20 caracteres' }),
+  additionalInfo: zod.string()
+    .min(1, { message: 'La información adicional es requerida' })
+    .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' }),
 });
 
 type Values = zod.infer<typeof schema>;
 
-// Valores por defecto
 const defaultValues = {
   name: '',
   neighborhood: '',
   locationType: '',
   streetNumber: '',
-  intersectionNumber: '', // Opcional
-  buildingNumber: '', // Opcional
-  additionalInfo: '', // Opcional
+  intersectionNumber: '',
+  buildingNumber: '',
+  additionalInfo: '',
 } satisfies Values;
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null); // Estado para el mensaje de error
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de exito
-  const { checkSession } = useUser(); // Usar el hook de autenticación
+  const [, setErrorMessage] = React.useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const { checkSession } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
-   // Función para cerrar sesión
-   const handleSignOut = React.useCallback(async (): Promise<void> => {
+  const token = localStorage.getItem('custom-auth-token');
+
+  const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
       const { error } = await authClient.signOut();
 
       if (error) {
-
         return;
       }
-
-      // Actualiza el estado de autenticación
       await checkSession?.();
-
-      // Refresca el router manualmente si es necesario
+      
       router.refresh();
     } catch (error) {
       setErrorMessage('Ocurrió un error al cerrar sesión');
     }
-  }, [router]);
+  }, [router, checkSession]);
 
   const {
     control,
@@ -83,43 +88,49 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
-  //Endpoint
   const onSubmit = React.useCallback(
-    async (values: Values): Promise<void> => {
-      setIsPending(true);
-      try {
-        const response = await fetch(`${API_URL}/supermarket`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
-        });
+  async (values: Values): Promise<void> => {
+    setIsPending(true);
 
 
-        if (!response.ok) {
-          const errorData = await response.json() as { message: string };
-          setError('root', { type: 'server', message: errorData.message });
-          setIsPending(false);
-          return;
-        }
+    if (!token) {
+      setError('root', { type: 'server', message: 'No se encontró el token de autorización' });
+      setIsPending(false);
+      return;
+    }
 
-        await response.json();
-        router.refresh();
-      } catch (error) {
-        setError('root', { type: 'server', message: 'Error al crear el supermercado' });
-      } finally {
+    try {
+      const response = await fetch(`${API_URL}/supermarket`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(values),
+      });
 
-        setSuccessMessage('Supermercado creado exitosamente');
+      interface ErrorResponse {
+        message?: string;
+      }      
 
-        reset();
-
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        setError('root', { type: 'server', message: errorData.message || `Error ${response.status}` });
         setIsPending(false);
+        return;
       }
 
-    },
-    [router, reset, setError]
-  );
+      setSuccessMessage('Supermercado registrado exitosamente');
+      reset();
+      router.refresh();
+    } catch (error) {
+      setError('root', { type: 'server', message: 'Error al registrar el supermercado' });
+    } finally {
+      setIsPending(false);
+    }
+  },
+  [router, token, reset, setError]
+);
 
 
   return (
@@ -159,17 +170,17 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               <FormControl error={Boolean(errors.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
                 <Select {...field} label="Tipo de ubicación">
-                    <MenuItem value="avenue">Avenida</MenuItem>
-                    <MenuItem value="avenue_street">Avenida Calle</MenuItem>
-                    <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
-                    <MenuItem value="street">Calle</MenuItem>
-                    <MenuItem value="road">Carrera</MenuItem>
-                    <MenuItem value="circular">Circular</MenuItem>
-                    <MenuItem value="circunvalar">Circunvalar</MenuItem>
-                    <MenuItem value="diagonal">Diagonal</MenuItem>
-                    <MenuItem value="block">Manzana</MenuItem>
-                    <MenuItem value="transversal">Transversal</MenuItem>
-                    <MenuItem value="way">Vía</MenuItem>
+                  <MenuItem value="avenue">Avenida</MenuItem>
+                  <MenuItem value="avenue_street">Avenida Calle</MenuItem>
+                  <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
+                  <MenuItem value="street">Calle</MenuItem>
+                  <MenuItem value="road">Carrera</MenuItem>
+                  <MenuItem value="circular">Circular</MenuItem>
+                  <MenuItem value="circunvalar">Circunvalar</MenuItem>
+                  <MenuItem value="diagonal">Diagonal</MenuItem>
+                  <MenuItem value="block">Manzana</MenuItem>
+                  <MenuItem value="transversal">Transversal</MenuItem>
+                  <MenuItem value="way">Vía</MenuItem>
                 </Select>
                 {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
               </FormControl>
@@ -218,11 +229,11 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Número de edificio"
                     InputProps={{
                       startAdornment: <InputAdornment position="start">-</InputAdornment>,
                     }}
                     inputProps={{ maxLength: 20 }}
+                    label="Número de edificio"
                     error={Boolean(errors.buildingNumber)}
                     helperText={errors.buildingNumber?.message}
                     fullWidth
@@ -237,25 +248,26 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Información adicional"
                 inputProps={{ maxLength: 255 }}
+                label="Información adicional"
                 error={Boolean(errors.additionalInfo)}
                 helperText={errors.additionalInfo?.message}
                 fullWidth
               />
             )}
           />
+          {Boolean(successMessage?.trim()) && (
+            <Alert severity="success">{successMessage}</Alert>
+          )}
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          {successMessage ? <Alert color="success">{successMessage}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Registrar supermercado
+          </Button>
+          <Button onClick={handleSignOut} variant="outlined" color="secondary">
+            Cerrar sesión
           </Button>
         </Stack>
       </form>
     </Stack>
   );
 }
-
-// function checkSession(): void {
-//   throw new Error('Function not implemented.');
-// }

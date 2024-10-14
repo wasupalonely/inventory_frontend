@@ -42,7 +42,9 @@ function ConfirmContent(): JSX.Element {
           // Limpiar el indicador después de confirmar la cuenta
           localStorage.removeItem('canAccessConfirmation');
           // Redirigir al login después de confirmar exitosamente
-          router.push('/auth/sign-in');
+          setTimeout(() => {
+            router.push('/auth/sign-in');
+          }, 3000); // 3000ms = 3 segundos
         }
       } catch (err) {
         setError('Error en la confirmación de cuenta. Inténtalo de nuevo.');
