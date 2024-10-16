@@ -23,35 +23,42 @@ const schema = zod.object({
     .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  neighborhood: zod.string()
-    .min(1, { message: 'El barrio es requerido' })
-    .max(255, { message: 'El barrio no debe tener más de 255 caracteres' }),
-  locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
-  streetNumber: zod.string()
-    .min(1, { message: 'El número de la calle es requerido' })
-    .max(20, { message: 'El número de la calle no debe tener más de 20 caracteres' }),
-  intersectionNumber: zod.string()
-    .min(1, { message: 'El número de intersección es requerido' })
-    .max(20, { message: 'El número de intersección no debe tener más de 20 caracteres' }),
-  buildingNumber: zod.string()
-    .min(1, { message: 'El número de edificio es requerido' })
-    .max(20, { message: 'El número de edificio no debe tener más de 20 caracteres' }),
-  additionalInfo: zod.string()
-    .min(1, { message: 'La información adicional es requerida' })
-    .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' }),
+  address: zod.object({
+    neighborhood: zod.string()
+      .min(1, { message: 'El barrio es requerido' })
+      .max(255, { message: 'El barrio no debe tener más de 255 caracteres' }),
+    locationType: zod.string()
+      .min(1, { message: 'El tipo de ubicación es requerido' }),
+    streetNumber: zod.string()
+      .min(1, { message: 'El número de la calle es requerido' })
+      .max(20, { message: 'El número de la calle no debe tener más de 20 caracteres' }),
+    intersectionNumber: zod.string()
+      .min(1, { message: 'El número de intersección es requerido' })
+      .max(20, { message: 'El número de intersección no debe tener más de 20 caracteres' }),
+    buildingNumber: zod.string()
+      .min(1, { message: 'El número de edificio es requerido' })
+      .max(20, { message: 'El número de edificio no debe tener más de 20 caracteres' }),
+    additionalInfo: zod.string()
+      .min(1, { message: 'La información adicional es requerida' })
+      .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' }),
+  }),
 });
+
 
 type Values = zod.infer<typeof schema>;
 
 const defaultValues = {
   name: '',
-  neighborhood: '',
-  locationType: '',
-  streetNumber: '',
-  intersectionNumber: '',
-  buildingNumber: '',
-  additionalInfo: '',
+  address: {
+    neighborhood: '',
+    locationType: '',
+    streetNumber: '',
+    intersectionNumber: '',
+    buildingNumber: '',
+    additionalInfo: '',
+  },
 } satisfies Values;
+
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -154,20 +161,20 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           <Typography variant="h6">Dirección</Typography>
           <Controller
             control={control}
-            name="neighborhood"
+            name="address.neighborhood"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.neighborhood)}>
+              <FormControl error={Boolean(errors.address?.neighborhood)}>
                 <InputLabel>Barrio</InputLabel>
                 <OutlinedInput {...field} label="Barrio" inputProps={{ maxLength: 255 }} />
-                {errors.neighborhood ? <FormHelperText>{errors.neighborhood.message}</FormHelperText> : null}
+                {errors.address?.neighborhood ? <FormHelperText>{errors.address.neighborhood.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
           <Controller
             control={control}
-            name="locationType"
+            name="address.locationType"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.locationType)}>
+              <FormControl error={Boolean(errors.address?.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
                 <Select {...field} label="Tipo de ubicación">
                   <MenuItem value="avenue">Avenida</MenuItem>
@@ -182,7 +189,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                   <MenuItem value="transversal">Transversal</MenuItem>
                   <MenuItem value="way">Vía</MenuItem>
                 </Select>
-                {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
+                {errors.address?.locationType ? <FormHelperText>{errors.address.locationType.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -190,14 +197,14 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="streetNumber"
+                name="address.streetNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
                     label="Número de la calle"
                     inputProps={{ maxLength: 20 }}
-                    error={Boolean(errors.streetNumber)}
-                    helperText={errors.streetNumber?.message}
+                    error={Boolean(errors.address?.streetNumber)}
+                    helperText={errors.address?.streetNumber?.message}
                     fullWidth
                   />
                 )}
@@ -206,7 +213,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="intersectionNumber"
+                name="address.intersectionNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -215,8 +222,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                       startAdornment: <InputAdornment position="start">#</InputAdornment>,
                     }}
                     inputProps={{ maxLength: 20 }}
-                    error={Boolean(errors.intersectionNumber)}
-                    helperText={errors.intersectionNumber?.message}
+                    error={Boolean(errors.address?.intersectionNumber)}
+                    helperText={errors.address?.intersectionNumber?.message}
                     fullWidth
                   />
                 )}
@@ -225,7 +232,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="buildingNumber"
+                name="address.buildingNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -234,8 +241,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     }}
                     inputProps={{ maxLength: 20 }}
                     label="Número de edificio"
-                    error={Boolean(errors.buildingNumber)}
-                    helperText={errors.buildingNumber?.message}
+                    error={Boolean(errors.address?.buildingNumber)}
+                    helperText={errors.address?.buildingNumber?.message}
                     fullWidth
                   />
                 )}
@@ -244,14 +251,14 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           </Grid>
           <Controller
             control={control}
-            name="additionalInfo"
+            name="address.additionalInfo"
             render={({ field }) => (
               <TextField
                 {...field}
                 inputProps={{ maxLength: 255 }}
                 label="Información adicional"
-                error={Boolean(errors.additionalInfo)}
-                helperText={errors.additionalInfo?.message}
+                error={Boolean(errors.address?.additionalInfo)}
+                helperText={errors.address?.additionalInfo?.message}
                 fullWidth
               />
             )}
