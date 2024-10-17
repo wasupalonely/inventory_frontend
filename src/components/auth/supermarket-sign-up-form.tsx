@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useRouter} from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Grid, InputAdornment, MenuItem, Select, TextField } from '@mui/material';
+import { Grid, InputAdornment, MenuItem, Select, TextField, Checkbox, FormControlLabel, Box } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -33,17 +33,16 @@ const schema = zod.object({
       .min(1, { message: 'El número de la calle es requerido' })
       .max(20, { message: 'El número de la calle no debe tener más de 20 caracteres' }),
     intersectionNumber: zod.string()
-      .min(1, { message: 'El número de intersección es requerido' })
-      .max(20, { message: 'El número de intersección no debe tener más de 20 caracteres' }),
+      .max(20, { message: 'El número de intersección no debe tener más de 20 caracteres' })
+      .optional(),
     buildingNumber: zod.string()
-      .min(1, { message: 'El número de edificio es requerido' })
-      .max(20, { message: 'El número de edificio no debe tener más de 20 caracteres' }),
+      .max(20, { message: 'El número de edificio no debe tener más de 20 caracteres' })
+      .optional(),
     additionalInfo: zod.string()
-      .min(1, { message: 'La información adicional es requerida' })
-      .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' }),
+      .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' })
+      .optional(),
   }),
 });
-
 
 type Values = zod.infer<typeof schema>;
 
@@ -56,9 +55,8 @@ const defaultValues = {
     intersectionNumber: '',
     buildingNumber: '',
     additionalInfo: '',
-  }
+  },
 } satisfies Values;
-
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -66,6 +64,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const { checkSession } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [noNumber, setNoNumber] = React.useState<boolean>(false); // Estado para manejar el checkbox
 
   const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
@@ -166,6 +165,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
+
           <Typography variant="h6">Dirección</Typography>
           <Controller
             control={control}
@@ -178,6 +178,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
+
           <Controller
             control={control}
             name="address.locationType"
@@ -201,7 +202,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
-          <Grid container spacing={2}>
+
+          <Grid container spacing={2} alignItems="center">
             <Grid item xs={4}>
               <Controller
                 control={control}
@@ -218,6 +220,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                 )}
               />
             </Grid>
+  
             <Grid item xs={4}>
               <Controller
                 control={control}
@@ -229,14 +232,18 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     InputProps={{
                       startAdornment: <InputAdornment position="start">#</InputAdornment>,
                     }}
+                    value={noNumber ? 'SN' : field.value}
                     inputProps={{ maxLength: 20 }}
                     error={Boolean(errors.address?.intersectionNumber)}
                     helperText={errors.address?.intersectionNumber?.message}
                     fullWidth
+                    disabled={noNumber}
+                    style={{ opacity: noNumber ? 0.5 : 1 }}
                   />
                 )}
               />
             </Grid>
+
             <Grid item xs={4}>
               <Controller
                 control={control}
@@ -247,16 +254,33 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     InputProps={{
                       startAdornment: <InputAdornment position="start">-</InputAdornment>,
                     }}
+                    value={noNumber ? 'SN' : field.value}
                     inputProps={{ maxLength: 20 }}
                     label="Número de edificio"
                     error={Boolean(errors.address?.buildingNumber)}
                     helperText={errors.address?.buildingNumber?.message}
                     fullWidth
+                    disabled={noNumber}
+                    style={{ opacity: noNumber ? 0.5 : 1 }}
                   />
                 )}
               />
             </Grid>
+
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={noNumber}
+                    onChange={() => {setNoNumber(!noNumber)}}
+                  />
+                }
+                label="No tengo número"
+                style={{ marginTop: '10px' }}
+              />
+            </Grid>
           </Grid>
+
           <Controller
             control={control}
             name="address.additionalInfo"

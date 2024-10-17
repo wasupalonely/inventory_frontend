@@ -11,6 +11,8 @@ import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { Eye as EyeIcon } from '@phosphor-icons/react/dist/ssr/Eye';
+import { EyeSlash as EyeSlashIcon } from '@phosphor-icons/react/dist/ssr/EyeSlash';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 import { authClient } from '@/lib/auth/client';
@@ -54,6 +56,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [usedToken, setUsedToken] = React.useState<boolean>(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = React.useState<boolean>();
 
   const {
     control,
@@ -117,7 +120,7 @@ export function UpdatePasswordForm(): React.JSX.Element {
 
       setTimeout(() => {
         router.push('/auth/sign-in');
-      }, 3000); // 3000ms = 3 segundos
+      }, 3000);
     },
     [router, token, userId, setError, reset]
   );
@@ -137,7 +140,20 @@ export function UpdatePasswordForm(): React.JSX.Element {
                 render={({ field }) => (
                   <FormControl error={Boolean(errors.password)}>
                     <InputLabel>Nueva contraseña</InputLabel>
-                    <OutlinedInput {...field} label="Nueva contraseña" type="password" />
+                    <OutlinedInput {...field} endAdornment={showPassword ? (
+                      <EyeIcon
+                        cursor="pointer"
+                        fontSize="var(--icon-fontSize-md)"
+                        onClick={(): void => { setShowPassword(false); }}
+                      />
+                    ) : (
+                      <EyeSlashIcon
+                        cursor="pointer"
+                        fontSize="var(--icon-fontSize-md)"
+                        onClick={(): void => { setShowPassword(true); }}
+                      />
+                    )} 
+                    label="Nueva contraseña" type="password" inputProps={{ maxLength: 20 }} />
                     {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
                   </FormControl>
                 )}
@@ -148,7 +164,19 @@ export function UpdatePasswordForm(): React.JSX.Element {
                 render={({ field }) => (
                   <FormControl error={Boolean(errors.confirmPassword)}>
                     <InputLabel>Confirmar contraseña</InputLabel>
-                    <OutlinedInput {...field} label="Confirmar contraseña" type="password" />
+                    <OutlinedInput {...field} endAdornment={showPassword ? (
+                      <EyeIcon
+                        cursor="pointer"
+                        fontSize="var(--icon-fontSize-md)"
+                        onClick={(): void => { setShowPassword(false); }}
+                      />
+                    ) : (
+                      <EyeSlashIcon
+                        cursor="pointer"
+                        fontSize="var(--icon-fontSize-md)"
+                        onClick={(): void => { setShowPassword(true); }}
+                      />
+                    )} label="Confirmar contraseña" type="password" inputProps={{ maxLength: 20 }} />
                     {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
                   </FormControl>
                 )}
