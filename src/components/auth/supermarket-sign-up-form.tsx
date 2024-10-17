@@ -56,7 +56,7 @@ const defaultValues = {
     intersectionNumber: '',
     buildingNumber: '',
     additionalInfo: '',
-  },
+  }
 } satisfies Values;
 
 
@@ -66,7 +66,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const { checkSession } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
-  const token = localStorage.getItem('custom-auth-token');
 
   const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
@@ -99,9 +98,17 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   async (values: Values): Promise<void> => {
     setIsPending(true);
 
+    const token = localStorage.getItem('custom-auth-token');
+    const ownerId = localStorage.getItem('userId'); // Obtener el userId del localStorage
 
     if (!token) {
       setError('root', { type: 'server', message: 'No se encontró el token de autorización' });
+      setIsPending(false);
+      return;
+    }
+
+    if (!ownerId) {
+      setError('root', { type: 'server', message: 'No se encontró el ID del propietario' });
       setIsPending(false);
       return;
     }
@@ -113,7 +120,8 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({...values, ownerId: Number(ownerId),
+        }),
       });
 
       interface ErrorResponse {
@@ -136,7 +144,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
       setIsPending(false);
     }
   },
-  [router, token, reset, setError]
+  [router, reset, setError]
 );
 
 

@@ -143,7 +143,6 @@ export function SignInForm(): React.JSX.Element {
           }, 5 * 60 * 1000);
         }
 
-        // Ocultar el mensaje de error después de 3 segundos
         setTimeout(() => {
           setVisibleError(false);
         }, 5000);
