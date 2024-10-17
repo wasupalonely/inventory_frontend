@@ -1,21 +1,20 @@
 'use client';
+import { useUser } from '@/hooks/use-user';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import { paths } from '@/paths';
-import { useUser } from '@/hooks/use-user';
 
 export interface SupermarketGuardProps {
   children: React.ReactNode;
 }
-
 export function SupermarketGuard({ children }: SupermarketGuardProps): React.JSX.Element | null {
     const router = useRouter();
     const { user, error, isLoading } = useUser();
     const [isChecking, setIsChecking] = React.useState<boolean>(true);
   
-    const checkSupermarket = async (): Promise<void> => {
+    const checkSupermarket = React.useCallback(async (): Promise<void> => {
       if (isLoading) {
         return; // Esperar a que se cargue la información del usuario
       }
@@ -41,14 +40,14 @@ export function SupermarketGuard({ children }: SupermarketGuardProps): React.JSX
       }
   
       setIsChecking(false); // Usuario autenticado y tiene ownerId
-    };
+    }, [user, error, isLoading, router, setIsChecking]);
     
   
     React.useEffect(() => {
       checkSupermarket().catch(() => {
         // Manejo de errores
       });
-    }, [user, error, isLoading]);
+    }, [checkSupermarket]);
   
     if (isChecking) {
       return null; // Puedes mostrar un spinner aquí si lo deseas
@@ -60,4 +59,3 @@ export function SupermarketGuard({ children }: SupermarketGuardProps): React.JSX
   
     return <React.Fragment>{children}</React.Fragment>; // Muestra el contenido hijo (el formulario)
   }
-  

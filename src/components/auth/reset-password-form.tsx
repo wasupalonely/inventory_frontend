@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
+import { useRouter } from 'next/navigation';
 
 import { authClient } from '@/lib/auth/client';
 
@@ -28,6 +29,7 @@ const defaultValues = { email: '' } satisfies Values;
 export function ResetPasswordForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const router = useRouter();
 
   const {
     control,
@@ -53,6 +55,10 @@ export function ResetPasswordForm(): React.JSX.Element {
       reset();
 
       setIsPending(false);
+
+      setTimeout(() => {
+        router.push('/auth/sign-in')
+      }, 3000);
     },
     [setError, reset]
   );

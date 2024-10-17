@@ -2,9 +2,9 @@
 
 import * as React from 'react';
 import { useUser } from '@/hooks/use-user';
-import { useRouter } from 'next/navigation';
+import { useRouter} from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Grid, MenuItem, Select, TextField } from '@mui/material';
+import { Grid, InputAdornment, MenuItem, Select, TextField, Checkbox, FormControlLabel, Box } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -15,63 +15,71 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
-
-import { authClient, DefaultErrorResponse } from '@/lib/auth/client';
+import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
 
-// Esquema de validación actualizado
 const schema = zod.object({
   name: zod
     .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  neighborhood: zod.string().max(255, { message: 'El barrio es requerido' }),
-  locationType: zod.string().min(1, { message: 'El tipo de ubicación es requerido' }),
-  streetNumber: zod.string().min(1, { message: 'El número de la calle es requerido' }),
-  intersectionNumber: zod.string().min(1, { message: 'El número de intersección es requerido' }),
-  buildingNumber: zod.string().min(1, { message: 'El número de edificio es requerido' }),
-  additionalInfo: zod.string().min(1, { message: 'La información adicional es requerida' }),
+  address: zod.object({
+    neighborhood: zod.string()
+      .min(1, { message: 'El barrio es requerido' })
+      .max(255, { message: 'El barrio no debe tener más de 255 caracteres' }),
+    locationType: zod.string()
+      .min(1, { message: 'El tipo de ubicación es requerido' }),
+    streetNumber: zod.string()
+      .min(1, { message: 'El número de la calle es requerido' })
+      .max(20, { message: 'El número de la calle no debe tener más de 20 caracteres' }),
+    intersectionNumber: zod.string()
+      .max(20, { message: 'El número de intersección no debe tener más de 20 caracteres' })
+      .optional(),
+    buildingNumber: zod.string()
+      .max(20, { message: 'El número de edificio no debe tener más de 20 caracteres' })
+      .optional(),
+    additionalInfo: zod.string()
+      .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' })
+      .optional(),
+  }),
 });
 
 type Values = zod.infer<typeof schema>;
 
-// Valores por defecto
 const defaultValues = {
   name: '',
-  neighborhood: '',
-  locationType: '',
-  streetNumber: '',
-  intersectionNumber: '',
-  buildingNumber: '',
-  additionalInfo: '',
+  address: {
+    neighborhood: '',
+    locationType: '',
+    streetNumber: '',
+    intersectionNumber: '',
+    buildingNumber: '',
+    additionalInfo: '',
+  },
 } satisfies Values;
-
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null); // Estado para el mensaje de error
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de exito
-  const { checkSession } = useUser(); // Usar el hook de autenticación
+  const [, setErrorMessage] = React.useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const { checkSession } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
-   // Función para cerrar sesión
-   const handleSignOut = React.useCallback(async (): Promise<void> => {
+  const [noNumber, setNoNumber] = React.useState<boolean>(false); // Estado para manejar el checkbox
+
+  const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
       const { error } = await authClient.signOut();
 
       if (error) {
-
         return;
       }
-
-      // Actualiza el estado de autenticación
       await checkSession?.();
-
-      // Refresca el router manualmente si es necesario
+      
       router.refresh();
     } catch (error) {
       setErrorMessage('Ocurrió un error al cerrar sesión');
     }
-  }, [router]);
+  }, [router, checkSession]);
 
   const {
     control,
@@ -85,43 +93,58 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
-  //Endpoint
   const onSubmit = React.useCallback(
-    async (values: Values): Promise<void> => {
-      setIsPending(true);
-      try {
-        const response = await fetch(`${API_URL}/supermarket`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
-        });
+  async (values: Values): Promise<void> => {
+    setIsPending(true);
 
+    const token = localStorage.getItem('custom-auth-token');
+    const ownerId = localStorage.getItem('userId'); // Obtener el userId del localStorage
 
-        if (!response.ok) {
-          const errorData = await response.json() as { message: string };
-          setError('root', { type: 'server', message: errorData.message });
-          setIsPending(false);
-          return;
-        }
+    if (!token) {
+      setError('root', { type: 'server', message: 'No se encontró el token de autorización' });
+      setIsPending(false);
+      return;
+    }
 
-        await response.json();
-        router.refresh();
-      } catch (error) {
-        setError('root', { type: 'server', message: 'Error al crear el supermercado' });
-      } finally {
+    if (!ownerId) {
+      setError('root', { type: 'server', message: 'No se encontró el ID del propietario' });
+      setIsPending(false);
+      return;
+    }
 
-        setSuccessMessage('Supermercado creado exitosamente');
+    try {
+      const response = await fetch(`${API_URL}/supermarket`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({...values, ownerId: Number(ownerId),
+        }),
+      });
 
-        reset();
+      interface ErrorResponse {
+        message?: string;
+      }      
 
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        setError('root', { type: 'server', message: errorData.message || `Error ${response.status}` });
         setIsPending(false);
+        return;
       }
 
-    },
-    [router, reset, setError]
-  );
+      setSuccessMessage('Supermercado registrado exitosamente');
+      reset();
+      router.refresh();
+    } catch (error) {
+      setError('root', { type: 'server', message: 'Error al registrar el supermercado' });
+    } finally {
+      setIsPending(false);
+    }
+  },
+  [router, reset, setError]
+);
 
 
   return (
@@ -137,117 +160,153 @@ export function SupermarketSignUpForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.name)}>
                 <InputLabel>Nombre del supermercado</InputLabel>
-                <OutlinedInput {...field} label="Nombre del supermercado" />
+                <OutlinedInput {...field} label="Nombre del supermercado" inputProps={{ maxLength: 255 }} />
                 {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
+
           <Typography variant="h6">Dirección</Typography>
           <Controller
             control={control}
-            name="neighborhood"
+            name="address.neighborhood"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.neighborhood)}>
+              <FormControl error={Boolean(errors.address?.neighborhood)}>
                 <InputLabel>Barrio</InputLabel>
-                <OutlinedInput {...field} label="Barrio" />
-                {errors.neighborhood ? <FormHelperText>{errors.neighborhood.message}</FormHelperText> : null}
+                <OutlinedInput {...field} label="Barrio" inputProps={{ maxLength: 255 }} />
+                {errors.address?.neighborhood ? <FormHelperText>{errors.address.neighborhood.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
+
           <Controller
             control={control}
-            name="locationType"
+            name="address.locationType"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.locationType)}>
+              <FormControl error={Boolean(errors.address?.locationType)}>
                 <InputLabel>Tipo de ubicación</InputLabel>
                 <Select {...field} label="Tipo de ubicación">
-                    <MenuItem value="avenue">Avenida</MenuItem>
-                    <MenuItem value="avenue_street">Avenida Calle</MenuItem>
-                    <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
-                    <MenuItem value="street">Calle</MenuItem>
-                    <MenuItem value="road">Carrera</MenuItem>
-                    <MenuItem value="circular">Circular</MenuItem>
-                    <MenuItem value="circunvalar">Circunvalar</MenuItem>
-                    <MenuItem value="diagonal">Diagonal</MenuItem>
-                    <MenuItem value="block">Manzana</MenuItem>
-                    <MenuItem value="transversal">Transversal</MenuItem>
-                    <MenuItem value="way">Vía</MenuItem>
+                  <MenuItem value="avenue">Avenida</MenuItem>
+                  <MenuItem value="avenue_street">Avenida Calle</MenuItem>
+                  <MenuItem value="avenue_road">Avenida Carrera</MenuItem>
+                  <MenuItem value="street">Calle</MenuItem>
+                  <MenuItem value="road">Carrera</MenuItem>
+                  <MenuItem value="circular">Circular</MenuItem>
+                  <MenuItem value="circunvalar">Circunvalar</MenuItem>
+                  <MenuItem value="diagonal">Diagonal</MenuItem>
+                  <MenuItem value="block">Manzana</MenuItem>
+                  <MenuItem value="transversal">Transversal</MenuItem>
+                  <MenuItem value="way">Vía</MenuItem>
                 </Select>
-                {errors.locationType ? <FormHelperText>{errors.locationType.message}</FormHelperText> : null}
+                {errors.address?.locationType ? <FormHelperText>{errors.address.locationType.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
-          <Grid container spacing={2}>
+
+          <Grid container spacing={2} alignItems="center">
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="streetNumber"
+                name="address.streetNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
                     label="Número de la calle"
-                    error={Boolean(errors.streetNumber)}
-                    helperText={errors.streetNumber?.message}
+                    inputProps={{ maxLength: 20 }}
+                    error={Boolean(errors.address?.streetNumber)}
+                    helperText={errors.address?.streetNumber?.message}
                     fullWidth
                   />
                 )}
               />
             </Grid>
+  
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="intersectionNumber"
+                name="address.intersectionNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
                     label="Número de intersección"
-                    error={Boolean(errors.intersectionNumber)}
-                    helperText={errors.intersectionNumber?.message}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">#</InputAdornment>,
+                    }}
+                    value={noNumber ? 'SN' : field.value}
+                    inputProps={{ maxLength: 20 }}
+                    error={Boolean(errors.address?.intersectionNumber)}
+                    helperText={errors.address?.intersectionNumber?.message}
                     fullWidth
+                    disabled={noNumber}
+                    style={{ opacity: noNumber ? 0.5 : 1 }}
                   />
                 )}
               />
             </Grid>
+
             <Grid item xs={4}>
               <Controller
                 control={control}
-                name="buildingNumber"
+                name="address.buildingNumber"
                 render={({ field }) => (
                   <TextField
                     {...field}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">-</InputAdornment>,
+                    }}
+                    value={noNumber ? 'SN' : field.value}
+                    inputProps={{ maxLength: 20 }}
                     label="Número de edificio"
-                    error={Boolean(errors.buildingNumber)}
-                    helperText={errors.buildingNumber?.message}
+                    error={Boolean(errors.address?.buildingNumber)}
+                    helperText={errors.address?.buildingNumber?.message}
                     fullWidth
+                    disabled={noNumber}
+                    style={{ opacity: noNumber ? 0.5 : 1 }}
                   />
                 )}
               />
             </Grid>
+
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={noNumber}
+                    onChange={() => {setNoNumber(!noNumber)}}
+                  />
+                }
+                label="No tengo número"
+                style={{ marginTop: '10px' }}
+              />
+            </Grid>
           </Grid>
+
           <Controller
             control={control}
-            name="additionalInfo"
+            name="address.additionalInfo"
             render={({ field }) => (
               <TextField
                 {...field}
+                inputProps={{ maxLength: 255 }}
                 label="Información adicional"
-                error={Boolean(errors.additionalInfo)}
-                helperText={errors.additionalInfo?.message}
+                error={Boolean(errors.address?.additionalInfo)}
+                helperText={errors.address?.additionalInfo?.message}
                 fullWidth
               />
             )}
           />
+          {Boolean(successMessage?.trim()) && (
+            <Alert severity="success">{successMessage}</Alert>
+          )}
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={!isValid || isPending} type="submit" variant="contained">
             Registrar supermercado
           </Button>
           <Button onClick={handleSignOut} variant="outlined" color="secondary">
-        Cerrar sesión
-      </Button>
+            Cerrar sesión
+          </Button>
         </Stack>
       </form>
     </Stack>
   );
 }
-
-

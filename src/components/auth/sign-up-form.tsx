@@ -20,6 +20,7 @@ import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 const schema = zod.object({
   firstName: zod.string()
@@ -71,6 +72,7 @@ export function SignUpForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de éxito
+  const [openTerms, setOpenTerms] = React.useState<boolean>(false); // Estado para el diálogo de términos y condiciones
   const {
     control,
     handleSubmit,
@@ -102,6 +104,14 @@ export function SignUpForm(): React.JSX.Element {
     },
     [setError, reset]
   );
+
+  const handleOpenTerms = (): void => {
+    setOpenTerms(true);
+  };
+
+  const handleCloseTerms = (): void => {
+    setOpenTerms(false);
+  };
 
   return (
     <Stack spacing={3}>
@@ -253,7 +263,7 @@ export function SignUpForm(): React.JSX.Element {
                   control={<Checkbox {...inputfield} />}
                   label={
                     <React.Fragment>
-                      He leído los <Link>términos y condiciones</Link>
+                      He leído los <Link onClick={handleOpenTerms} style={{ cursor: 'pointer' }}>términos y condiciones</Link>
                     </React.Fragment>
                   }
                 />
@@ -276,6 +286,104 @@ export function SignUpForm(): React.JSX.Element {
           </Button>
         </Stack>
       </form>
+            <Dialog open={openTerms} onClose={handleCloseTerms} maxWidth="md" fullWidth>
+        <DialogTitle>Términos y Condiciones</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="subtitle1" gutterBottom>
+            Sistema de Gestión de Inventario Alimenticio con Visión Artificial y Notificación de Caducidad en Cárnicos
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom>
+            Fecha de actualización: [DD/MM/YY]
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El acceso y uso del Sistema de Gestión de Inventario Alimenticio, en adelante el Sistema, implica la aceptación plena de estos Términos y Condiciones por parte del usuario. Si no está de acuerdo con los mismos, no debe utilizar el Sistema.
+          </Typography>
+          
+          <Typography variant="subtitle1" gutterBottom>
+            1. Autorizaciones
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            Al utilizar el Sistema, el usuario autoriza al operador del sistema para procesar y almacenar los datos relacionados con el inventario y las notificaciones de caducidad. Esta autorización incluye el uso de tecnologías de visión artificial para la detección de productos, el monitoreo de fechas de caducidad, y la emisión de alertas automáticas.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            2. Responsabilidad
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El Sistema es una herramienta de apoyo en la gestión del inventario alimenticio, diseñada para optimizar la operación y minimizar el desperdicio mediante la notificación oportuna de productos a punto de caducar...
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            3. Restricciones
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El usuario no podrá:
+
+              - Acceder o intentar acceder a áreas del Sistema a las que no tiene autorización.
+              - Manipular o alterar el código fuente o cualquier funcionalidad del Sistema.
+              - Utilizar el Sistema para actividades fraudulentas o ilícitas.
+              - Revender, sublicenciar o redistribuir el Sistema sin la autorización previa y por escrito del operador del sistema.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            4. Derechos de Autor
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El Sistema y todos sus componentes, incluyendo software, diseño, logotipos y textos, son propiedad exclusiva del operador del Sistema y están protegidos por las leyes de derechos de autor vigentes. No se permite la reproducción, distribución, modificación o cualquier otro uso no autorizado del Sistema sin el consentimiento explícito del propietario.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            5. Marcas y Propiedad Intelectual
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            Las marcas, logotipos y nombres comerciales utilizados en el Sistema son propiedad del operador o de terceros que han autorizado su uso. El uso no autorizado de estos elementos constituye una violación de las leyes de propiedad intelectual.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            6. Enlaces a Sitios de Terceros
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El Sistema puede contener enlaces a sitios web de terceros. Estos enlaces se proporcionan solo para la conveniencia del usuario. El operador del Sistema no asume ninguna responsabilidad sobre el contenido, servicios o productos ofrecidos en dichos sitios externos.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            7. Condiciones de Uso del Sistema
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El operador del Sistema se reserva el derecho a modificar, suspender o interrumpir cualquier función del Sistema en cualquier momento y sin previo aviso. Además, se puede denegar el acceso al Sistema a cualquier usuario que viole estos Términos y Condiciones.
+
+            El usuario es responsable de la confidencialidad de sus credenciales de acceso y de todas las acciones realizadas bajo su cuenta.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            8. Autorización de Uso de Datos de Registro
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El usuario acepta que los datos personales proporcionados durante el registro, o cualquier otra información relevante, serán utilizados para la operación del Sistema. Esto incluye, pero no se limita a, la identificación de productos, el seguimiento de inventario, y la generación de alertas de caducidad.
+
+            Los datos recolectados podrán ser compartidos con terceros únicamente en cumplimiento de obligaciones legales o con fines operativos, tales como mejorar el rendimiento del Sistema.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            8.1. Texto de Autorización
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            De acuerdo con las normativas vigentes sobre protección de datos, el usuario autoriza al operador del Sistema a recolectar, almacenar, y tratar sus datos personales para los fines mencionados, y para la mejora de los servicios. El usuario podrá revocar esta autorización en cualquier momento, lo cual puede afectar la funcionalidad del Sistema.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            9. Terminación
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            El operador del Sistema se reserva el derecho de terminar o suspender el acceso de cualquier usuario que incumpla estos Términos y Condiciones o que haga un uso indebido del Sistema. Si tiene preguntas o comentarios sobre estos Términos y Condiciones, puede contactarnos a través de [correo electrónico o teléfono de contacto].
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseTerms} color="primary">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

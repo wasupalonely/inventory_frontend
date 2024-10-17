@@ -45,12 +45,14 @@ export interface RegisterResponse {
 
 export interface SupermarketSignUpParams {
   name: string;
-  neighborhood: string;
-  locationType: string;
-  streetNumber: string;
-  intersectionNumber: string;
-  buildingNumber: string;
-  additionalInfo: string;
+  address: {
+    neighborhood: string;
+    locationType: string;
+    streetNumber: string;
+    intersectionNumber: string;
+    buildingNumber: string;
+    additionalInfo: string;
+  }
 }
 
 export interface SignInWithOAuthParams {
@@ -161,12 +163,17 @@ class AuthClient {
         return { error: 'Usuario y/o contraseña incorrectos' }; // Manejo seguro del error
       }
 
-      const token = data.access_token; // Aserción de tipo
+      const token = data.access_token;
+      const userId = data.user.id; // Aquí obtienes el ID del usuario // Aserción de tipo
       if (!token) {
         return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
       }
+      if (!userId) {
+        return { error: 'ID de usuario no encontrado' };
+      }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userId', userId); // Guardas el userId en el localStorage
 
       return {};
     } catch (error) {

@@ -37,13 +37,13 @@ export function SignInForm(): React.JSX.Element {
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [isPending, setIsPending] = React.useState<boolean>(false);
   
-  // Estado para controlar intentos fallidos y bloqueo del botón
   const [failedAttempts, setFailedAttempts] = React.useState<number>(0);
   const [isBlocked, setIsBlocked] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [remainingTime, setRemainingTime] = React.useState<number>(0); // Estado para el tiempo restante
+  const [visibleError, setVisibleError] = React.useState<boolean>(false); // Controla la visibilidad del error
 
   React.useEffect(() => {
-    // Recuperar intentos fallidos y bloqueo desde localStorage
     const storedAttempts = localStorage.getItem('failedAttempts');
     const blockedUntil = localStorage.getItem('blockedUntil');
 
@@ -57,36 +57,33 @@ export function SignInForm(): React.JSX.Element {
 
       if (currentTime < unblockTime) {
         setIsBlocked(true);
-        const remainingTime = unblockTime - currentTime;
-        setTimeout(() => {setIsBlocked(false);}, remainingTime);
-      } else {
-        localStorage.removeItem('blockedUntil');
+        const timeLeft = unblockTime - currentTime;
+        setRemainingTime(timeLeft);
+
+        const timer = setInterval(() => {
+          const newTimeLeft = unblockTime - Date.now();
+          if (newTimeLeft <= 0) {
+            clearInterval(timer);
+            setIsBlocked(false);
+            setRemainingTime(0);
+            localStorage.removeItem('blockedUntil');
+            localStorage.removeItem('failedAttempts');
+          } else {
+            setRemainingTime(newTimeLeft);
+          }
+        }, 1000);
+
+        return () => {clearInterval(timer)};
       }
     }
   }, []);
 
-  React.useEffect(() => {
-    // Recuperar intentos fallidos y bloqueo desde localStorage
-    const storedAttempts = localStorage.getItem('failedAttempts');
-    const blockedUntil = localStorage.getItem('blockedUntil');
-
-    if (storedAttempts) {
-      setFailedAttempts(Number(storedAttempts));
-    }
-
-    if (blockedUntil) {
-      const unblockTime = Number(blockedUntil);
-      const currentTime = Date.now();
-
-      if (currentTime < unblockTime) {
-        setIsBlocked(true);
-        const remainingTime = unblockTime - currentTime;
-        setTimeout(() => {setIsBlocked(false)}, remainingTime);
-      } else {
-        localStorage.removeItem('blockedUntil');
-      }
-    }
-  }, []);
+  const formatTime = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   const {
     control,
@@ -100,7 +97,7 @@ export function SignInForm(): React.JSX.Element {
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-      if (isBlocked) return;  // No permitir más intentos si está bloqueado
+      if (isBlocked) return;
 
       setIsPending(true);
 
@@ -108,34 +105,52 @@ export function SignInForm(): React.JSX.Element {
 
       if (error) {
         setError('root', { type: 'server', message: error });
+        setVisibleError(true); // Muestra el error
 
-        // Incrementar intentos fallidos
         const newFailedAttempts = failedAttempts + 1;
         setFailedAttempts(newFailedAttempts);
         localStorage.setItem('failedAttempts', newFailedAttempts.toString());
 
         if (newFailedAttempts >= 5) {
-          // Bloquear el inicio de sesión por 5 minutos
           setIsBlocked(true);
           setErrorMessage('Demasiados intentos fallidos. Intenta de nuevo en 5 minutos.');
-          
-          const unblockTime = Date.now() + 5 * 60 * 1000; // 5 minutos
+          setVisibleError(true); // Muestra el mensaje de bloqueo
+
+          const unblockTime = Date.now() + 5 * 60 * 1000;
           localStorage.setItem('blockedUntil', unblockTime.toString());
 
-          // Desbloquear después de 5 minutos
+          setRemainingTime(5 * 60 * 1000);
+
+          const timer = setInterval(() => {
+            const newTimeLeft = unblockTime - Date.now();
+            if (newTimeLeft <= 0) {
+              clearInterval(timer);
+              setIsBlocked(false);
+              setRemainingTime(0);
+              localStorage.removeItem('blockedUntil');
+              localStorage.removeItem('failedAttempts');
+            } else {
+              setRemainingTime(newTimeLeft);
+            }
+          }, 1000);
+
           setTimeout(() => {
             setIsBlocked(false);
             setFailedAttempts(0);
             localStorage.removeItem('failedAttempts');
             localStorage.removeItem('blockedUntil');
-          }, 5 * 60 * 1000);  // 5 minutos en milisegundos
+            setRemainingTime(0);
+          }, 5 * 60 * 1000);
         }
+
+        setTimeout(() => {
+          setVisibleError(false);
+        }, 5000);
 
         setIsPending(false);
         return;
       }
 
-      // Si el inicio de sesión es exitoso, restablecer intentos
       setFailedAttempts(0);
       localStorage.removeItem('failedAttempts');
       localStorage.removeItem('blockedUntil');
@@ -213,9 +228,14 @@ export function SignInForm(): React.JSX.Element {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          {Boolean(errorMessage?.trim()) && <Alert color="error">{errorMessage}</Alert>}
-          <Button disabled={!isValid || isPending} type="submit" variant="contained">
+          {visibleError && errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+          {visibleError && Boolean(errorMessage?.trim()) && <Alert color="error">{errorMessage}</Alert>}
+          {isBlocked && (
+            <Alert severity="warning">
+              {`Estás bloqueado. Intenta nuevamente en ${formatTime(remainingTime)}`}
+            </Alert>
+          )}
+          <Button disabled={!isValid || isPending || isBlocked} type="submit" variant="contained">
             Iniciar sesión
           </Button>
         </Stack>
