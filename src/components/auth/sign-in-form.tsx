@@ -229,8 +229,10 @@ export function SignInForm(): React.JSX.Element {
             </Link>
           </div>
           {visibleError && errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          {visibleError && Boolean(errorMessage?.trim()) && <Alert color="error">{errorMessage}</Alert>}
-          {isBlocked && (
+          {visibleError && Boolean(errorMessage?.trim()) && (
+            <Alert color="error">{errorMessage}</Alert>
+          )}
+          {Boolean(isBlocked) && (
             <Alert severity="warning">
               {`Estás bloqueado. Intenta nuevamente en ${formatTime(remainingTime)}`}
             </Alert>

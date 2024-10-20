@@ -71,8 +71,10 @@ export function SignUpForm(): React.JSX.Element {
 
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [showPassword, setShowPassword] = React.useState<boolean>();
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState<boolean>(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null); // Estado para el mensaje de éxito
   const [openTerms, setOpenTerms] = React.useState<boolean>(false); // Estado para el diálogo de términos y condiciones
+  const [isTermsChecked, setIsTermsChecked] = React.useState<boolean>(false); 
   const {
     control,
     handleSubmit,
@@ -99,6 +101,7 @@ export function SignUpForm(): React.JSX.Element {
         localStorage.setItem('canAccessConfirmation', 'true');
         setSuccessMessage('Registro exitoso, confirma tu correo electrónico');
         reset();
+        setIsTermsChecked(false);
 }
       setIsPending(false);
     },
@@ -237,40 +240,72 @@ export function SignUpForm(): React.JSX.Element {
       <InputLabel required>Confirmar contraseña</InputLabel>
       <OutlinedInput
         {...field}
-        endAdornment={showPassword ? (
+        endAdornment={showConfirmPassword ? (
           <EyeIcon
             cursor="pointer"
             fontSize="var(--icon-fontSize-md)"
-            onClick={(): void => { setShowPassword(false); }}
+            onClick={(): void => { setShowConfirmPassword(false); }}
           />
         ) : (
           <EyeSlashIcon
             cursor="pointer"
             fontSize="var(--icon-fontSize-md)"
-            onClick={(): void => { setShowPassword(true); }}
+            onClick={(): void => { setShowConfirmPassword(true); }}
           />
         )}
         label="Confirmar contraseña"
-        type={showPassword ? 'text' : 'password'}
+        type={showConfirmPassword ? 'text' : 'password'}
         inputProps={{ maxLength: 20 }}
       />
       <Controller
-            control={control}
-            name="terms"
-            render={({ field: inputfield }) => (
-              <div>
-                <FormControlLabel
-                  control={<Checkbox {...inputfield} />}
-                  label={
-                    <React.Fragment>
-                      He leído los <Link onClick={handleOpenTerms} style={{ cursor: 'pointer' }}>términos y condiciones</Link>
-                    </React.Fragment>
-                  }
-                />
-                {errors.terms ? <FormHelperText error>{errors.terms.message}</FormHelperText> : null}
-              </div>
-            )}
+  control={control}
+  name="terms"
+  render={({ field: inputfield }) => (
+    <FormControl error={Boolean(errors.terms)}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            {...inputfield}
+            checked={isTermsChecked}
+            onChange={(event) => {
+              field.onChange(event); // Ejecuta el onChange de Controller
+              setIsTermsChecked(event.target.checked); // Actualiza el estado local
+            }}
           />
+        }
+        label={
+          <span
+            style={{ cursor: 'default' }}
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                // Lógica para activar el click con Enter o espacio
+              }
+            }}
+          >
+            He leído los{' '}
+            <Link
+              onClick={(event) => {
+                event.preventDefault();
+                handleOpenTerms();
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              términos y condiciones
+            </Link>
+          </span>
+        }
+      />
+      {errors.terms ? <FormHelperText>{errors.terms.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+
       {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -281,7 +316,7 @@ export function SignUpForm(): React.JSX.Element {
       )}
 
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          <Button disabled={!isValid || isPending} type="submit" variant="contained">
+          <Button disabled={!isValid || isPending || !isTermsChecked} type="submit" variant="contained">
             Regístrate
           </Button>
         </Stack>

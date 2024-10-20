@@ -28,21 +28,4 @@ export default function SupermarketInfoPage() {
 
     fetchSupermarketData();
   }, [token]);
-
-//   return (
-//     <Stack spacing={3}>
-//       <Typography variant="h4">Información del Supermercado</Typography>
-//       {supermarket ? (
-//         <Stack spacing={2}>
-//           <Typography variant="h6">Nombre del Supermercado: {supermarket.name}</Typography>
-//           <Typography variant="h6">Propietario: {supermarket.ownerName}</Typography>
-//           <Typography variant="h6">Dirección: {supermarket.address.neighborhood}, {supermarket.address.locationType} {supermarket.address.streetNumber} #{supermarket.address.intersectionNumber}-{supermarket.address.buildingNumber}</Typography>
-//         </Stack>
-//       ) : (
-//         <Typography>Cargando información del supermercado...</Typography>
-//       )}
-
-//       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-//     </Stack>
-//   );
 }
