@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress'; // Importar el spinner
 
 import { paths } from '@/paths';
 import { logger } from '@/lib/default-logger';
@@ -32,7 +33,16 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
       router.replace(paths.auth.signIn);
       return;
     }
-
+    
+    logger.debug('[AuthGuard]: Checking user.ownedSupermarket', user.ownedSupermarket);
+    
+    // Si user está definido y ownedSupermarket es null, redirige al formulario
+    if (user.ownedSupermarket === null) {
+      logger.debug('[AuthGuard]: No supermarket found, rendering the supermarket sign-up form');
+      router.replace(paths.auth.superMarketSignUp);
+      setIsChecking(false);
+      return; 
+    }   
     setIsChecking(false);
   };
 
@@ -40,16 +50,17 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
     checkPermissions().catch(() => {
       // noop
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Expected
   }, [user, error, isLoading]);
 
-  if (isChecking) {
-    return null;
+  // Mostrar el spinner mientras se verifica
+  if (isChecking || isLoading) {
+    return <CircularProgress />; // Mostrar el spinner
   }
 
   if (error) {
-    return <Alert color="error">{error}</Alert>;
+    return <Alert color="error">{error}</Alert>; // Mostrar un error si lo hay
   }
 
-  return <React.Fragment>{children}</React.Fragment>;
+  // Aquí se renderiza el formulario porque no hay redirección
+  return <>{children}</>;
 }
