@@ -69,7 +69,7 @@ function ConfirmContent(): JSX.Element {
       <Typography variant="h5">Confirmando cuenta...</Typography>
 
       {isPending ? (
-        <div className="loader"></div>
+        <div className="loader"/>
       ) : globalError ? (
         <>
           <Alert severity="error">{globalError}</Alert>
@@ -88,7 +88,7 @@ export default function Page(): React.JSX.Element {
   return (
     <Layout>
       <GuestGuard>
-        <React.Suspense fallback={<div className="loader"></div>}>
+        <React.Suspense fallback={<div className="loader"/>}>
           <ConfirmContent />
         </React.Suspense>
       </GuestGuard>

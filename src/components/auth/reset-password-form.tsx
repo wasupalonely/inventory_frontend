@@ -60,7 +60,7 @@ export function ResetPasswordForm(): React.JSX.Element {
         router.push('/auth/sign-in')
       }, 3000);
     },
-    [setError, reset]
+    [setError, reset, router]
   );
 
   return (
