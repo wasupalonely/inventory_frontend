@@ -23,7 +23,9 @@ import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
 
 const schema = zod.object({
-  email: zod.string().min(1, { message: 'El correo electrónico es requerido' }).email(),
+  email: zod.string()
+    .email({ message: 'El correo electrónico es inválido' })
+    .min(1, { message: 'El correo electrónico es requerido' }),
   password: zod.string().min(1, { message: 'La contraseña es requerida' }),
 });
 
@@ -31,48 +33,135 @@ type Values = zod.infer<typeof schema>;
 
 export function SignInForm(): React.JSX.Element {
   const router = useRouter();
-
   const { checkSession } = useUser();
-
   const [showPassword, setShowPassword] = React.useState<boolean>();
-
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  
+  const [failedAttempts, setFailedAttempts] = React.useState<number>(0);
+  const [isBlocked, setIsBlocked] = React.useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [remainingTime, setRemainingTime] = React.useState<number>(0); // Estado para el tiempo restante
+  const [visibleError, setVisibleError] = React.useState<boolean>(false); // Controla la visibilidad del error
+
+  React.useEffect(() => {
+    const storedAttempts = localStorage.getItem('failedAttempts');
+    const blockedUntil = localStorage.getItem('blockedUntil');
+
+    if (storedAttempts) {
+      setFailedAttempts(Number(storedAttempts));
+    }
+
+    if (blockedUntil) {
+      const unblockTime = Number(blockedUntil);
+      const currentTime = Date.now();
+
+      if (currentTime < unblockTime) {
+        setIsBlocked(true);
+        const timeLeft = unblockTime - currentTime;
+        setRemainingTime(timeLeft);
+
+        const timer = setInterval(() => {
+          const newTimeLeft = unblockTime - Date.now();
+          if (newTimeLeft <= 0) {
+            clearInterval(timer);
+            setIsBlocked(false);
+            setRemainingTime(0);
+            localStorage.removeItem('blockedUntil');
+            localStorage.removeItem('failedAttempts');
+          } else {
+            setRemainingTime(newTimeLeft);
+          }
+        }, 1000);
+
+        return () => {clearInterval(timer)};
+      }
+    }
+  }, []);
+
+  const formatTime = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isValid },
-  } = useForm<Values>({resolver: zodResolver(schema),
-    mode: 'onChange', 
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
   });
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
+      if (isBlocked) return;
+
       setIsPending(true);
-  
+
       const { error } = await authClient.signInWithPassword(values);
-  
+
       if (error) {
         setError('root', { type: 'server', message: error });
+        setVisibleError(true); // Muestra el error
+
+        const newFailedAttempts = failedAttempts + 1;
+        setFailedAttempts(newFailedAttempts);
+        localStorage.setItem('failedAttempts', newFailedAttempts.toString());
+
+        if (newFailedAttempts >= 5) {
+          setIsBlocked(true);
+          setErrorMessage('Demasiados intentos fallidos. Intenta de nuevo en 5 minutos.');
+          setVisibleError(true); // Muestra el mensaje de bloqueo
+
+          const unblockTime = Date.now() + 5 * 60 * 1000;
+          localStorage.setItem('blockedUntil', unblockTime.toString());
+
+          setRemainingTime(5 * 60 * 1000);
+
+          const timer = setInterval(() => {
+            const newTimeLeft = unblockTime - Date.now();
+            if (newTimeLeft <= 0) {
+              clearInterval(timer);
+              setIsBlocked(false);
+              setRemainingTime(0);
+              localStorage.removeItem('blockedUntil');
+              localStorage.removeItem('failedAttempts');
+            } else {
+              setRemainingTime(newTimeLeft);
+            }
+          }, 1000);
+
+          setTimeout(() => {
+            setIsBlocked(false);
+            setFailedAttempts(0);
+            localStorage.removeItem('failedAttempts');
+            localStorage.removeItem('blockedUntil');
+            setRemainingTime(0);
+          }, 5 * 60 * 1000);
+        }
+
+        setTimeout(() => {
+          setVisibleError(false);
+        }, 5000);
+
         setIsPending(false);
         return;
       }
-  
-      // Aquí, el token debería estar guardado en localStorage
-      const { data } = await authClient.getUser(); // Obtén los datos del usuario aquí
-  
-      // Verifica si el usuario tiene un supermercado
-      if (data?.ownedSupermarket === null) {
-        router.push('/auth/supermarket-sign-up');
-        return;
-      }
-  
-      // Refresh the auth state
+
+      setFailedAttempts(0);
+      localStorage.removeItem('failedAttempts');
+      localStorage.removeItem('blockedUntil');
+
+      const { data } = await authClient.getUser();
+
+
       await checkSession?.();
       router.refresh();
     },
-    [checkSession, router, setError]
+    [checkSession, router, setError, failedAttempts, isBlocked]
   );
 
   return (
@@ -94,7 +183,7 @@ export function SignInForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Correo electrónico</InputLabel>
-                <OutlinedInput {...field} label="Correo Electronico" type="email" />
+                <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255 }}/>
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -112,22 +201,19 @@ export function SignInForm(): React.JSX.Element {
                       <EyeIcon
                         cursor="pointer"
                         fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => {
-                          setShowPassword(false);
-                        }}
+                        onClick={(): void => {setShowPassword(false);}}
                       />
                     ) : (
                       <EyeSlashIcon
                         cursor="pointer"
                         fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => {
-                          setShowPassword(true);
-                        }}
+                        onClick={(): void => {setShowPassword(true);}}
                       />
                     )
                   }
                   label="Contraseña"
                   type={showPassword ? 'text' : 'password'}
+                  inputProps={{ maxLength: 20 }}
                 />
                 {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
               </FormControl>
@@ -138,8 +224,14 @@ export function SignInForm(): React.JSX.Element {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-          <Button disabled={!isValid || isPending} type="submit" variant="contained">
+          {visibleError && errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+          {visibleError && Boolean(errorMessage?.trim()) && <Alert color="error">{errorMessage}</Alert>}
+          {isBlocked && (
+            <Alert severity="warning">
+              {`Estás bloqueado. Intenta nuevamente en ${formatTime(remainingTime)}`}
+            </Alert>
+          )}
+          <Button disabled={!isValid || isPending || isBlocked} type="submit" variant="contained">
             Iniciar sesión
           </Button>
         </Stack>
