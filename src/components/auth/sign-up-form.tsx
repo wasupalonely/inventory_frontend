@@ -64,11 +64,7 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-<<<<<<< HEAD
-const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '', role: 'owner' } satisfies Values;
-=======
 const defaultValues = { firstName: '', middleName: '', lastName: '', secondlastName: '', phone: '', email: '', password: '', confirmPassword: '', role: 'owner', terms: false } satisfies Values;
->>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
 
 
 export function SignUpForm(): React.JSX.Element {

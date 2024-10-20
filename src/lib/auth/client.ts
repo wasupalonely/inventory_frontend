@@ -126,11 +126,8 @@ class AuthClient {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
-<<<<<<< HEAD
       const data = await response.json();
     
-=======
->>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
 
       // Si el registro es exitoso, puedes manejar la respuesta aquí
       return {};
@@ -163,10 +160,7 @@ class AuthClient {
       }
 
       const token = data.access_token;
-<<<<<<< HEAD
       const user = data.user;
-=======
->>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
       const userId = data.user.id; // Aquí obtienes el ID del usuario // Aserción de tipo
       if (!token) {
         return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
@@ -179,12 +173,8 @@ class AuthClient {
       }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
-<<<<<<< HEAD
       localStorage.setItem('userId', userId);
       
-=======
-      localStorage.setItem('userId', userId); // Guardas el userId en el localStorage
->>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
 
       return {};
     } catch (error) {

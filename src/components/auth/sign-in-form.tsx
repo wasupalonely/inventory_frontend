@@ -157,13 +157,6 @@ export function SignInForm(): React.JSX.Element {
 
       const { data } = await authClient.getUser();
 
-<<<<<<< HEAD
-=======
-      if (data?.ownedSupermarket === null) {
-        router.push('/auth/supermarket-sign-up');
-        return;
-      }
->>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
 
       await checkSession?.();
       router.refresh();
