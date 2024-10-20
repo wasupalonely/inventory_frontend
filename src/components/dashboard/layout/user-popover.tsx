@@ -40,6 +40,8 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       // Refresh the auth state
       await checkSession?.();
 
+      
+
       // UserProvider, for this case, will not refresh the router and we need to do it manually
       router.refresh();
       // After refresh, AuthGuard will handle the redirect

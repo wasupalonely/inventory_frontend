@@ -9,13 +9,7 @@ function generateToken(): string {
   return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
 }
 
-const user: User = {
-  id: 'USR-000',
-  avatar: '/assets/avatar.png',
-  firstName: 'Sofia',
-  lastName: 'Rivers',
-  email: 'sofia@devias.io',
-};
+
 
 export interface SignUpParams {
   firstName: string;
@@ -132,6 +126,8 @@ class AuthClient {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
+      const data = await response.json();
+    
 
       // Si el registro es exitoso, puedes manejar la respuesta aquí
       return {};
@@ -164,6 +160,7 @@ class AuthClient {
       }
 
       const token = data.access_token;
+      const user = data.user;
       const userId = data.user.id; // Aquí obtienes el ID del usuario // Aserción de tipo
       if (!token) {
         return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
@@ -171,15 +168,24 @@ class AuthClient {
       if (!userId) {
         return { error: 'ID de usuario no encontrado' };
       }
+      if (!userId) {
+        return { error: 'ID de usuario no encontrado' };
+      }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('userId', userId); // Guardas el userId en el localStorage
+      localStorage.setItem('userId', userId);
+      
 
       return {};
     } catch (error) {
       return { error: 'Error de red' };
     }
   }
+  
+  
+  
+  
+  
 
   async resetPassword(params: ResetPasswordParams): Promise<{ error?: string | null }> {
     try {
@@ -232,6 +238,7 @@ class AuthClient {
     if (!token) {
       return { data: null };
     }
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
     return { data: user };
   }
 
