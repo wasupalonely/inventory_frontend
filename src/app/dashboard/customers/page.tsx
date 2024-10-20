@@ -95,3 +95,134 @@ export default function Page(): React.JSX.Element {
 function applyPagination(rows: Customer[], page: number, rowsPerPage: number): Customer[] {
   return rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 }
+
+// import * as React from 'react';
+// import { useEffect, useState } from 'react';
+// import { Button, MenuItem, Select, Stack, Typography, Alert } from '@mui/material';
+// import { API_URL } from '@/config';
+
+// export default function UserManagement() {
+//   const [users, setUsers] = useState<any[]>([]);
+//   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+//   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+//   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+//   const [supermarkets, setSupermarkets] = useState<any[]>([]);
+//   const [selectedSupermarket, setSelectedSupermarket] = useState<string | null>(null);
+//   const token = localStorage.getItem('custom-auth-token');
+
+//   // Obtener la lista de usuarios
+//   useEffect(() => {
+//     const fetchUsers = async () => {
+//       try {
+//         const response = await fetch(`${API_URL}/users`, {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         });
+//         const data = await response.json();
+//         setUsers(data);
+//       } catch (error) {
+//         setErrorMessage('Error al obtener la lista de usuarios');
+//       }
+//     };
+
+//     fetchUsers();
+//   }, [token]);
+
+//   // Obtener la lista de supermercados
+//   useEffect(() => {
+//     const fetchSupermarkets = async () => {
+//       try {
+//         const response = await fetch(`${API_URL}/supermarket`, {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         });
+//         const data = await response.json();
+//         setSupermarkets(data);
+//       } catch (error) {
+//         setErrorMessage('Error al obtener la lista de supermercados');
+//       }
+//     };
+
+//     fetchSupermarkets();
+//   }, [token]);
+
+//   // Asignar usuario a un supermercado
+//   const handleAssignUser = async () => {
+//     if (!selectedUser || !selectedSupermarket) {
+//       setErrorMessage('Debes seleccionar un usuario y un supermercado');
+//       return;
+//     }
+
+//     try {
+//       const response = await fetch(`${API_URL}/supermarket/${selectedSupermarket}/assign-cashier`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           Authorization: `Bearer ${token}`,
+//         },
+//         body: JSON.stringify({ userId: selectedUser }),
+//       });
+
+//       if (!response.ok) {
+//         throw new Error('Error al asignar usuario');
+//       }
+
+//       setSuccessMessage('Usuario asignado exitosamente');
+//     } catch (error) {
+//       setErrorMessage('Error al asignar usuario');
+//     }
+//   };
+
+//   return (
+//     <Stack spacing={3}>
+//       <Typography variant="h4">Gestión de Usuarios</Typography>
+
+//       {/* Selección de supermercado */}
+//       <Stack spacing={2}>
+//         <Typography variant="h6">Selecciona un Supermercado</Typography>
+//         <Select
+//           value={selectedSupermarket}
+//           onChange={(e) => setSelectedSupermarket(e.target.value as string)}
+//           displayEmpty
+//         >
+//           <MenuItem value="" disabled>
+//             Elije un supermercado
+//           </MenuItem>
+//           {supermarkets.map((supermarket) => (
+//             <MenuItem key={supermarket.id} value={supermarket.id}>
+//               {supermarket.name}
+//             </MenuItem>
+//           ))}
+//         </Select>
+//       </Stack>
+
+//       {/* Selección de usuario */}
+//       <Stack spacing={2}>
+//         <Typography variant="h6">Selecciona un Usuario</Typography>
+//         <Select
+//           value={selectedUser}
+//           onChange={(e) => setSelectedUser(e.target.value as string)}
+//           displayEmpty
+//         >
+//           <MenuItem value="" disabled>
+//             Elige un usuario
+//           </MenuItem>
+//           {users.map((user) => (
+//             <MenuItem key={user.id} value={user.id}>
+//               {user.name}
+//             </MenuItem>
+//           ))}
+//         </Select>
+//       </Stack>
+
+//       <Button variant="contained" onClick={handleAssignUser}>
+//         Asignar Usuario como Cajero
+//       </Button>
+
+//       {successMessage && <Alert severity="success">{successMessage}</Alert>}
+//       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+//     </Stack>
+//   );
+// }

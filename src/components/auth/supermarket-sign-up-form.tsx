@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useRouter} from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Grid, InputAdornment, MenuItem, Select, TextField } from '@mui/material';
+import { Grid, InputAdornment, MenuItem, Select, TextField, Checkbox, FormControlLabel, Box } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -18,8 +18,6 @@ import { z as zod } from 'zod';
 import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
 
-
-// Esquema de validación actualizado
 const schema = zod.object({
   name: zod
     .string()
@@ -48,7 +46,6 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-// Valores por defecto
 const defaultValues = {
   name: '',
   address: {
@@ -100,23 +97,22 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
+  
       const token = localStorage.getItem('custom-auth-token');
-      const ownerId = localStorage.getItem('userId');
-      
-
+      const ownerId = localStorage.getItem('userId'); // Obtener el userId del localStorage
+  
       if (!token) {
         setError('root', { type: 'server', message: 'No se encontró el token de autorización' });
         setIsPending(false);
         return;
       }
-
+  
       if (!ownerId) {
         setError('root', { type: 'server', message: 'No se encontró el ID del propietario' });
         setIsPending(false);
         return;
       }
-
+  
       try {
         const response = await fetch(`${API_URL}/supermarket`, {
           method: 'POST',
@@ -126,27 +122,33 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           },
           body: JSON.stringify({ ...values, ownerId: Number(ownerId) }),
         });
-
+  
+        interface ErrorResponse {
+          message?: string;
+        }
+  
         if (!response.ok) {
-          const errorData: { message: string } = await response.json();
+          const errorData: ErrorResponse = await response.json();
           setError('root', { type: 'server', message: errorData.message || `Error ${response.status}` });
           setIsPending(false);
           return;
         }
-
+  
+        // No es necesario verificar ownerId de nuevo aquí
         const data = await response.json();
-        
-       // Muestra el mensaje primero
+  
+        // Muestra el mensaje primero
         setSuccessMessage('Supermercado registrado exitosamente. Por favor, vuelva a iniciar sesión.');
         reset();
-          // Espera 5 segundos para que el mensaje sea visible
+        
+        // Espera 5 segundos para que el mensaje sea visible
         await new Promise<void>((resolve) => {
           setTimeout(resolve, 5000); // Resuelve después de 5 segundos sin devolver ningún valor
-            });
-
+        });
+  
         // Cerrar sesión después de los 5 segundos
         await handleSignOut();
-
+  
         router.refresh();
       } catch (error) {
         setError('root', { type: 'server', message: 'Error al registrar el supermercado' });
@@ -154,8 +156,9 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         setIsPending(false);
       }
     },
-    [router, reset, setError]
+    [router, reset, setError, handleSignOut] // Asegúrate de incluir handleSignOut si se usa en el callback
   );
+  
 
 
     return (

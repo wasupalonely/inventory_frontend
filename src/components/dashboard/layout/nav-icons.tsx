@@ -4,7 +4,7 @@ import { Users as UsersIcon } from '@phosphor-icons/react/dist/ssr/Users';
 import { House, Scroll } from '@phosphor-icons/react';
 import { BoxArrowUp } from '@phosphor-icons/react/dist/ssr';
 import { GearSix as GearSixIcon } from '@phosphor-icons/react/dist/ssr/GearSix';
-
+import { ShoppingCart as ShoppingCartIcon } from '@phosphor-icons/react';
 
 export const navIcons = {
   'gear-six': GearSixIcon,
@@ -13,4 +13,5 @@ export const navIcons = {
   scroll: Scroll,
   user: UserIcon,
   users: UsersIcon,
+  'shopping-cart' : ShoppingCartIcon,
 } as Record<string, Icon>;

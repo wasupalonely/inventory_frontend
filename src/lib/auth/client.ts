@@ -76,8 +76,11 @@ interface LoginResponse {
 }
 
 class AuthClient {
+  getPasswordHash(): { passwordHash: string; } | PromiseLike<{ passwordHash: string; }> {
+    throw new Error('Método no implementado.');
+  }
   async signUp(params: SignUpParams): Promise<{ error?: string; message?: string | null }> {
-    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role  } = params;
+    const { email, password, firstName, middleName, lastName, secondLastName, phoneNumber, role } = params;
 
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -88,11 +91,10 @@ class AuthClient {
         body: JSON.stringify({ firstName, middleName, lastName, secondLastName, email, password, phoneNumber, role }),
       });
 
-
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
 
-        const errorMessage = errorResponse.message || 'Error signing up';
+        const errorMessage = errorResponse.message || 'Error al registrarse';
         return { error: errorMessage };
       }
 
@@ -101,31 +103,34 @@ class AuthClient {
       return { message: data.message };
     } catch (error) {
 
-      return { error: 'Network error' };
+      return { error: 'Error de red' };
     }
   }
 
-  async supermarketsignUp(params: SupermarketSignUpParams, ownerId: string): Promise<{ error?: string }> {
+  async supermarketsignUp(params: SupermarketSignUpParams, _ownerId: string): Promise<{ error?: string }> {
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
-  
+
     try {
       // Realiza una petición para registrar el supermercado aquí
       const response = await fetch(`${API_URL}/supermarket`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Añadir el token en el header
+          Authorization: `Bearer ${token}`, // Añadir el token en el header
         },
         body: JSON.stringify(params), // Envía los parámetros como el cuerpo de la petición
       });
-  
+
       if (!response.ok) {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
+<<<<<<< HEAD
       const data = await response.json();
     
+=======
+>>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
 
       // Si el registro es exitoso, puedes manejar la respuesta aquí
       return {};
@@ -133,8 +138,6 @@ class AuthClient {
       return { error: 'Error de red al registrar el supermercado' };
     }
   }
-  
-  
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
     return { error: 'Autenticación social no implementada' };
@@ -160,18 +163,28 @@ class AuthClient {
       }
 
       const token = data.access_token;
+<<<<<<< HEAD
       const user = data.user;
+=======
+>>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
       const userId = data.user.id; // Aquí obtienes el ID del usuario // Aserción de tipo
       if (!token) {
-        return { error: 'Token not found' }; // Manejo seguro del caso en que no se recibe el token
+        return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
+      }
+      if (!userId) {
+        return { error: 'ID de usuario no encontrado' };
       }
       if (!userId) {
         return { error: 'ID de usuario no encontrado' };
       }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
+<<<<<<< HEAD
       localStorage.setItem('userId', userId);
       
+=======
+      localStorage.setItem('userId', userId); // Guardas el userId en el localStorage
+>>>>>>> f9d8f3fee688663d50a09b08563b9c40453c3297
 
       return {};
     } catch (error) {

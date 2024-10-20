@@ -7,5 +7,6 @@ export const navItems = [
   { key: 'inventory', title: 'Inventario', href: paths.dashboard.integrations, icon: 'box' },
   // { key: 'reports', title: 'Reportes', href: paths.errors.notFound, icon: 'scroll' },
   { key: 'account', title: 'Cuenta', href: paths.dashboard.account, icon: 'user' },
+  { key: 'supermarket', title: 'Supermercado', href: paths.dashboard.supermarket, icon: 'shopping-cart' },
   { key: 'settings', title: 'Configuración', href: paths.dashboard.settings, icon: 'gear-six' },
 ] satisfies NavItemConfig[];

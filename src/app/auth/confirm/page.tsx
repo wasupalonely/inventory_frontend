@@ -1,29 +1,24 @@
 'use client';
 
 import * as React from 'react';
+import type { JSX } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, Stack, Typography } from '@mui/material';
 
 import { authClient } from '@/lib/auth/client';
 import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 
-const ConfirmContent = () => {
+function ConfirmContent(): JSX.Element {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
 
   const [globalError, setError] = React.useState<string | null>(null);
   const [isPending, setIsPending] = React.useState<boolean>(true);
+  const [isConfirmed, setIsConfirmed] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    // Verificar si el usuario tiene permiso para acceder
-    const canAccess = localStorage.getItem('canAccessConfirmation');
-    if (!canAccess) {
-      router.replace('/auth/sign-in');
-      return;
-    }
-
     const confirmAccount = async (): Promise<void> => {
       const tokenStr = Array.isArray(token) ? token[0] : token;
 
@@ -33,16 +28,31 @@ const ConfirmContent = () => {
         return;
       }
 
+      const canAccess = localStorage.getItem('canAccessConfirmation');
+      if (!canAccess) {
+        setError('No tienes permiso para acceder a esta página porque este token ya ha sido utilizado.');
+        setIsPending(false);
+        setTimeout(() => {
+          router.replace('/auth/sign-in');
+        }, 3000);
+        return;
+      }
+
       try {
         const { error } = await authClient.confirmAccount({ token: tokenStr });
 
         if (error) {
-          setError(error);
+          if (error === 'Token ya ha sido usado.') {
+            setError('Este token ya ha sido usado. Si ya confirmaste tu cuenta, intenta iniciar sesión.');
+          } else {
+            setError(error);
+          }
         } else {
-          // Limpiar el indicador después de confirmar la cuenta
+          setIsConfirmed(true);
           localStorage.removeItem('canAccessConfirmation');
-          // Redirigir al login después de confirmar exitosamente
-          router.push('/auth/sign-in');
+          setTimeout(() => {
+            router.push('/auth/sign-in');
+          }, 3000);
         }
       } catch (err) {
         setError('Error en la confirmación de cuenta. Inténtalo de nuevo.');
@@ -58,18 +68,27 @@ const ConfirmContent = () => {
     <Stack spacing={4}>
       <Typography variant="h5">Confirmando cuenta...</Typography>
 
-      {isPending && <CircularProgress />}
-      {globalError && <Alert severity="error">{globalError}</Alert>}
-      {!isPending && !globalError && <Typography>Redirigiendo al login...</Typography>}
+      {isPending ? (
+        <div className="loader"></div>
+      ) : globalError ? (
+        <>
+          <Alert severity="error">{globalError}</Alert>
+          <Typography>Redirigiendo al login...</Typography>
+        </>
+      ) : isConfirmed ? (
+        <Alert severity="success">Confirmación exitosa.</Alert>
+      ) : (
+        <Typography>Redirigiendo al login...</Typography>
+      )}
     </Stack>
   );
-};
+}
 
 export default function Page(): React.JSX.Element {
   return (
     <Layout>
       <GuestGuard>
-        <React.Suspense fallback={<CircularProgress />}>
+        <React.Suspense fallback={<div className="loader"></div>}>
           <ConfirmContent />
         </React.Suspense>
       </GuestGuard>
