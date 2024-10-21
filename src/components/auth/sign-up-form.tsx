@@ -257,7 +257,11 @@ export function SignUpForm(): React.JSX.Element {
         type={showConfirmPassword ? 'text' : 'password'}
         inputProps={{ maxLength: 20 }}
       />
-      <Controller
+      {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
+    </FormControl>
+  )}
+/>
+<Controller
   control={control}
   name="terms"
   render={({ field: inputfield }) => (
@@ -268,7 +272,7 @@ export function SignUpForm(): React.JSX.Element {
             {...inputfield}
             checked={isTermsChecked}
             onChange={(event) => {
-              field.onChange(event); // Ejecuta el onChange de Controller
+              inputfield.onChange(event); // Ejecuta el onChange de Controller
               setIsTermsChecked(event.target.checked); // Actualiza el estado local
             }}
           />
@@ -304,12 +308,6 @@ export function SignUpForm(): React.JSX.Element {
       {errors.terms ? <FormHelperText>{errors.terms.message}</FormHelperText> : null}
     </FormControl>
   )}
-/>
-
-      {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
-    </FormControl>
-  )}
-  
 />
         {Boolean(successMessage?.trim()) && ( // Asegúrate de que esto se renderiza
         <Alert severity="success">{successMessage}</Alert> // Mensaje de éxito
