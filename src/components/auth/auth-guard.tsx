@@ -18,6 +18,7 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
   const { user, error, isLoading } = useUser();
   const [isChecking, setIsChecking] = React.useState<boolean>(true);
 
+  
   const checkPermissions = async (): Promise<void> => {
     if (isLoading) {
       return;
@@ -28,6 +29,8 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
       return;
     }
 
+    
+
     if (!user) {
       logger.debug('[AuthGuard]: User is not logged in, redirecting to sign in');
       router.replace(paths.auth.signIn);
@@ -36,8 +39,8 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
     
     logger.debug('[AuthGuard]: Checking user.ownedSupermarket', user.ownedSupermarket);
     
-    // Si user está definido y ownedSupermarket es null, redirige al formulario
-    if (user.ownedSupermarket === null) {
+    
+    if (user.role === 'owner' && user.ownedSupermarket === null) {
       logger.debug('[AuthGuard]: No supermarket found, rendering the supermarket sign-up form');
       router.replace(paths.auth.superMarketSignUp);
       setIsChecking(false);
@@ -47,6 +50,7 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
   };
 
   React.useEffect(() => {
+    
     checkPermissions().catch(() => {
       // noop
     });
