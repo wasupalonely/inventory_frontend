@@ -167,8 +167,9 @@ export function SupermarketSignUpForm(): React.JSX.Element {
 
       // Refrescar la sesión para obtener los datos nuevos
       await checkSession?.(); 
-
-      router.push(paths.dashboard.overview);
+      setTimeout(() => {
+        router.push(paths.dashboard.overview);
+      }, 3000);
 
     } catch (error) {
       setError('root', { type: 'server', message: 'Error al registrar el supermercado' });

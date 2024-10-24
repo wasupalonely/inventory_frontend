@@ -165,15 +165,14 @@ class AuthClient {
       if (!token) {
         return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
       }
-      if (!userId) {
-        return { error: 'ID de usuario no encontrado' };
-      }
+      
       if (!userId) {
         return { error: 'ID de usuario no encontrado' };
       }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('userId', userId);
+      
       
 
       return {};
@@ -256,6 +255,8 @@ class AuthClient {
   
       const user = await response.json();
       localStorage.setItem('user', JSON.stringify(user)); // Actualiza localStorage con el usuario obtenido
+
+      
   
       return { data: user };
     } catch (error) {
