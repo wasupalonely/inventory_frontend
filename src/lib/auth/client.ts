@@ -140,9 +140,9 @@ class AuthClient {
     return { error: 'Autenticación social no implementada' };
   }
 
-  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string; message?: string }> {
+  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string; message?: string; isConfirmed?: boolean; isTokenExpired?: boolean; }> {
     const { email, password } = params;
-
+  
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -151,21 +151,27 @@ class AuthClient {
         },
         body: JSON.stringify({ email, password }),
       });
-
-      // Asegúrate de que el tipo de 'data' sea del tipo esperado
+  
       const data: LoginResponse = await response.json();
-
+  
       if (!response.ok) {
-        return { error: 'Usuario y/o contraseña incorrectos' }; // Manejo seguro del error
-      }
+        if (data.message === 'Credenciales inválidas para el inicio de sesión.') {
+          return { error: 'Usuario y/o contraseña incorrectos' };
+        }
+  
+        if (data.message === 'Cuenta no confirmada.') {
+          return { error: 'Tu cuenta no está confirmada, revisa tu correo para activarla' };
+        }
 
+        return { error: 'Ocurrió un error. Inténtalo de nuevo' };
+      }
+  
       const token = data.access_token;
       const user = data.user;
-      const userId = data.user.id; // Aquí obtienes el ID del usuario // Aserción de tipo
+      const userId = data.user.id;
       if (!token) {
-        return { error: 'Token no encontrado' }; // Manejo seguro del caso en que no se recibe el token
+        return { error: 'Token no encontrado' };
       }
-      
       if (!userId) {
         return { error: 'ID de usuario no encontrado' };
       }
@@ -177,7 +183,7 @@ class AuthClient {
 
       return {};
     } catch (error) {
-      return { error: 'Error de red' };
+      return { error: 'Error de red. Inténtalo de nuevo.' };
     }
   }
   
@@ -307,7 +313,7 @@ class AuthClient {
 
       return { error: null, message: data };
     } catch (err) {
-      return { error: 'Failed to confirm account' };
+      return { error: 'Error al confirmar la cuenta' };
     }
   }
 
@@ -330,12 +336,12 @@ class AuthClient {
       const data: boolean = await response.json();
 
       if (!response.ok) {
-        return { error: 'Error comparing passwords' };
+        return { error: 'Error comparando contraseñas' };
       }
 
       return { error: null, message: data };
     } catch (err) {
-      return { error: 'Failed to confirm account' };
+      return { error: 'Error al confirmar la cuenta' };
     }
   }
 

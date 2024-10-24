@@ -56,7 +56,8 @@ export function UpdatePasswordForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [usedToken, setUsedToken] = React.useState<boolean>(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
-  const [showPassword, setShowPassword] = React.useState<boolean>();
+  const [showNewPassword, setShowNewPassword] = React.useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState<boolean>(false);
 
   const {
     control,
@@ -134,49 +135,65 @@ export function UpdatePasswordForm(): React.JSX.Element {
           <Typography variant="h5">Actualizar contraseña</Typography>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={2}>
-              <Controller
+            <Controller
                 control={control}
                 name="password"
                 render={({ field }) => (
                   <FormControl error={Boolean(errors.password)}>
                     <InputLabel>Nueva contraseña</InputLabel>
-                    <OutlinedInput {...field} endAdornment={showPassword ? (
-                      <EyeIcon
-                        cursor="pointer"
-                        fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => { setShowPassword(false); }}
-                      />
-                    ) : (
-                      <EyeSlashIcon
-                        cursor="pointer"
-                        fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => { setShowPassword(true); }}
-                      />
-                    )} 
-                    label="Nueva contraseña" type="password" inputProps={{ maxLength: 20 }} />
+                    <OutlinedInput
+                      {...field}
+                      endAdornment={
+                        showNewPassword ? (
+                          <EyeIcon
+                            cursor="pointer"
+                            fontSize="var(--icon-fontSize-md)"
+                            onClick={(): void => { setShowNewPassword(false); }}
+                          />
+                        ) : (
+                          <EyeSlashIcon
+                            cursor="pointer"
+                            fontSize="var(--icon-fontSize-md)"
+                            onClick={(): void => { setShowNewPassword(true); }}
+                          />
+                        )
+                      }
+                      label="Nueva contraseña"
+                      type={showNewPassword ? 'text' : 'password'} // Cambia según el estado de visibilidad
+                      inputProps={{ maxLength: 20 }}
+                    />
                     {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
                   </FormControl>
                 )}
               />
+
               <Controller
                 control={control}
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormControl error={Boolean(errors.confirmPassword)}>
                     <InputLabel>Confirmar contraseña</InputLabel>
-                    <OutlinedInput {...field} endAdornment={showPassword ? (
-                      <EyeIcon
-                        cursor="pointer"
-                        fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => { setShowPassword(false); }}
-                      />
-                    ) : (
-                      <EyeSlashIcon
-                        cursor="pointer"
-                        fontSize="var(--icon-fontSize-md)"
-                        onClick={(): void => { setShowPassword(true); }}
-                      />
-                    )} label="Confirmar contraseña" type="password" inputProps={{ maxLength: 20 }} />
+                    <OutlinedInput
+                      {...field}
+                      endAdornment={
+                        showConfirmPassword ? (
+                          <EyeIcon
+                            cursor="pointer"
+                            fontSize="var(--icon-fontSize-md)"
+                            onClick={(): void => { setShowConfirmPassword(false); }}
+                          />
+                        ) : (
+                          <EyeSlashIcon
+                            cursor="pointer"
+                            fontSize="var(--icon-fontSize-md)"
+                            onClick={(): void => { setShowConfirmPassword(true); }}
+                          />
+                        )
+                      }
+                      label="Confirmar contraseña"
+                      type={showConfirmPassword ? 'text' : 'password'} // Cambia según el estado de visibilidad
+                      inputProps={{ maxLength: 20 }}
+                    />
                     {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
                   </FormControl>
                 )}
