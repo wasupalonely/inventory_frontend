@@ -179,6 +179,7 @@ class AuthClient {
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('userId', userId);
       
+      
 
       return {};
     } catch (error) {
@@ -260,6 +261,8 @@ class AuthClient {
   
       const user = await response.json();
       localStorage.setItem('user', JSON.stringify(user)); // Actualiza localStorage con el usuario obtenido
+
+      
   
       return { data: user };
     } catch (error) {
