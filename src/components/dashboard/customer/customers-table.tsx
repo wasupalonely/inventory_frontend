@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
@@ -11,11 +12,11 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
+import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 
 import { useSelection } from '@/hooks/use-selection';
-import { Button } from '@mui/material';
-import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
-import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
+import { useUser } from '@/hooks/use-user';
 
 export interface Customer {
   id: number;
@@ -38,7 +39,7 @@ interface CustomersTableProps {
   rowsPerPage?: number;
   onPageChange?: (event: unknown, newPage: number) => void;
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onEdit?: (user?: Customer) => void; 
+  onEdit?: (user?: Customer) => void;
   onDelete?: (userId: number) => Promise<void>;
 }
 
@@ -47,14 +48,24 @@ export function CustomersTable({
   rows = [],
   page = 0,
   rowsPerPage = 0,
-  onPageChange = () => { /* No implementation needed */ },
-  onRowsPerPageChange = () => { /* No implementation needed */ },
-  onEdit = async () => { /* No implementation needed */ },
-  onDelete = async () => { /* No implementation needed */ },
+  onPageChange = () => {
+    /* No implementation needed */
+  },
+  onRowsPerPageChange = () => {
+    /* No implementation needed */
+  },
+  onEdit = async () => {
+    /* No implementation needed */
+  },
+  onDelete = async () => {
+    /* No implementation needed */
+  },
 }: CustomersTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
     return rows.map((customer) => customer.id);
   }, [rows]);
+
+  const { user } = useUser();
 
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
 
@@ -87,7 +98,7 @@ export function CustomersTable({
               <TableCell>Correo electrónico</TableCell>
               <TableCell>Número de celular</TableCell>
               <TableCell>Rol</TableCell>
-              <TableCell>Acciones</TableCell>
+              {user?.role !== 'viewer' && <TableCell>Acciones</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -115,21 +126,23 @@ export function CustomersTable({
                   <TableCell>{row.email}</TableCell>
                   <TableCell>{row.phoneNumber}</TableCell>
                   <TableCell>{row.role}</TableCell>
-                  <TableCell> {/* Nueva celda para botones de acción */}
-                    <Button
-                      startIcon={<PencilIcon/>}
-                      onClick={() => {onEdit(row)}}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      startIcon={<TrashIcon />}
-                      color="error"
-                      onClick={() => onDelete(row.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </TableCell>
+                  {user?.role !== 'viewer' && (
+                    <TableCell>
+                      {' '}
+                      {/* Nueva celda para botones de acción */}
+                      <Button
+                        startIcon={<PencilIcon />}
+                        onClick={() => {
+                          onEdit(row);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button startIcon={<TrashIcon />} color="error" onClick={() => onDelete(row.id)}>
+                        Eliminar
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}

@@ -177,7 +177,7 @@ class AuthClient {
       }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('userId', userId);
+      localStorage.setItem('userId', userId.toString());
       
       
 
