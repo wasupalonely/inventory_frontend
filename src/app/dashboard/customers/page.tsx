@@ -1,26 +1,42 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  Menu,
+  MenuItem,
+  Select,
+} from '@mui/material';
 import Button from '@mui/material/Button';
+// import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
+import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
-// import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
-import Modal from '@mui/material/Modal';
-import TextField from '@mui/material/TextField';
-import { FormControl, InputLabel, Select, MenuItem, Menu, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { jsPDF } from 'jspdf';
+
 import { API_URL } from '@/config';
 import { CustomersFilters } from '@/components/dashboard/customer/customers-filters';
-import { CustomersTable} from '@/components/dashboard/customer/customers-table';
+import { CustomersTable } from '@/components/dashboard/customer/customers-table';
 import type { Customer } from '@/components/dashboard/customer/customers-table';
-import { jsPDF } from 'jspdf';
+
 import 'jspdf-autotable';
+
+import { Controller, useForm } from 'react-hook-form';
 import * as XLSX from 'xlsx';
-import { useForm, Controller } from 'react-hook-form';
+
+import { useUser } from '@/hooks/use-user';
 
 export default function Page(): React.JSX.Element {
+  const { user: currentUser } = useUser();
   const [user, setUser] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -29,12 +45,18 @@ export default function Page(): React.JSX.Element {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
-  const { control, handleSubmit, formState: { errors }, reset, setValue } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm({
     defaultValues: {
       firstName: '',
       middleName: '',
       lastName: '',
-      secondLastName: '', 
+      secondLastName: '',
       email: '',
       phoneNumber: '',
       password: '',
@@ -42,20 +64,19 @@ export default function Page(): React.JSX.Element {
     },
   });
 
-  const [anchorEl, setAnchorEl] = useState<null |  HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleChangePage = (event: unknown, newPage: number): void => {
     setPage(newPage);
-  };  
-  
-const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): void => {
-  setRowsPerPage(parseInt(event.target.value, 10));
-  setPage(0);
-};
+  };
 
-  
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const fetchUser = async (): Promise<void> => {
     interface User {
       ownedSupermarket?: {
@@ -96,25 +117,46 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
-  
+
   const handleOpenModal = (selectedUser?: Customer): void => {
     setEditingUser(selectedUser || null);
-    
+
     if (selectedUser) {
       (Object.keys(selectedUser) as (keyof Customer)[]).forEach((key) => {
-        if (["firstName", "middleName", "lastName", "secondLastName", "email", "phoneNumber", "password", "role"].includes(key)) {
+        if (
+          [
+            'firstName',
+            'middleName',
+            'lastName',
+            'secondLastName',
+            'email',
+            'phoneNumber',
+            'password',
+            'role',
+          ].includes(key)
+        ) {
           const value = selectedUser[key];
-  
-          setValue(key as "firstName" | "middleName" | "lastName" | "secondLastName" | "email" | "phoneNumber" | "password" | "role", value ? String(value) : '');
+
+          setValue(
+            key as
+              | 'firstName'
+              | 'middleName'
+              | 'lastName'
+              | 'secondLastName'
+              | 'email'
+              | 'phoneNumber'
+              | 'password'
+              | 'role',
+            value ? String(value) : ''
+          );
         }
       });
     } else {
       reset();
     }
-  
+
     setModalOpen(true);
   };
-   
 
   const handleCloseModal = (): void => {
     setModalOpen(false);
@@ -124,25 +166,25 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
 
   const handleFormSubmit = async (data: any): Promise<void> => {
     const submitUser = localStorage.getItem('user');
-  
+
     interface User {
       id: string;
       ownedSupermarket?: { id: string };
       password?: string;
       supermarketId?: number;
     }
-  
+
     if (!submitUser) {
       return;
     }
-  
+
     const userObject: User = JSON.parse(submitUser);
-  
-    const updatedFormData: Partial<User> = { 
-      ...data, 
-      supermarketId: userObject.ownedSupermarket?.id 
+
+    const updatedFormData: Partial<User> = {
+      ...data,
+      supermarketId: userObject.ownedSupermarket?.id,
     };
-  
+
     if (editingUser) {
       if ('password' in updatedFormData) {
         delete updatedFormData.password;
@@ -170,15 +212,13 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
       }
 
       const savedUser: Customer = await response.json();
-    if (!editingUser) {
-      setUser((prevUsers) => [savedUser, ...prevUsers]);
-    } else {
-      setUser((prevUsers) =>
-        prevUsers.map((editUser) => (editUser.id === savedUser.id ? savedUser : editUser))
-      );
-    }
-    
-    fetchUser();
+      if (!editingUser) {
+        setUser((prevUsers) => [savedUser, ...prevUsers]);
+      } else {
+        setUser((prevUsers) => prevUsers.map((editUser) => (editUser.id === savedUser.id ? savedUser : editUser)));
+      }
+
+      fetchUser();
       showSuccessMessage(editingUser ? 'Usuario actualizado con éxito' : 'Usuario creado con éxito');
       handleCloseModal();
       reset();
@@ -187,9 +227,8 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
     }
   };
 
-
   const handleDeleteUser = async (userId: number): Promise<void> => {
-    setUserToDelete(userId);  
+    setUserToDelete(userId);
     setDialogOpen(true);
   };
 
@@ -198,23 +237,25 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
       showErrorMessage('No hay datos para exportar');
       return;
     }
-    
-    const worksheet = XLSX.utils.json_to_sheet(user.map((userXLSXL) => ({
-      'Primer Nombre': userXLSXL.firstName || '',
-      'Segundo Nombre': userXLSXL.middleName || '',
-      'Primer Apellido': userXLSXL.lastName || '',
-      'Segundo Apellido': userXLSXL.secondLastName || '',
-      'Correo Electrónico': userXLSXL.email || '',
-      'Número de Celular': userXLSXL.phoneNumber || '',
-      'Rol': userXLSXL.role || ''
-    })));
-  
+
+    const worksheet = XLSX.utils.json_to_sheet(
+      user.map((userXLSXL) => ({
+        'Primer Nombre': userXLSXL.firstName || '',
+        'Segundo Nombre': userXLSXL.middleName || '',
+        'Primer Apellido': userXLSXL.lastName || '',
+        'Segundo Apellido': userXLSXL.secondLastName || '',
+        'Correo Electrónico': userXLSXL.email || '',
+        'Número de Celular': userXLSXL.phoneNumber || '',
+        Rol: userXLSXL.role || '',
+      }))
+    );
+
     const headerCell = worksheet['!rows'] || [];
     headerCell[0] = { hpt: 18, hpx: 18 };
-  
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Usuarios');
-  
+
     XLSX.writeFile(workbook, 'usuarios.xlsx');
     handleCloseMenu();
     showSuccessMessage('Exportado a Excel con éxito');
@@ -223,7 +264,7 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
     // eslint-disable-next-line new-cap -- Utilizamos `new jsPDF()` como una excepción ya que el nombre viene de una biblioteca externa que no sigue esta convención.
     const doc = new jsPDF();
     doc.text('Lista de Usuarios', 10, 10);
-  
+
     const columns = ['Primer Nombre', 'Apellido', 'Correo Electrónico', 'Número de Celular', 'Rol'];
     const rows = user.map((userPdf) => [
       userPdf.firstName,
@@ -232,14 +273,14 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
       userPdf.phoneNumber,
       userPdf.role,
     ]);
-    
+
     doc.autoTable({
       head: [columns],
       body: rows,
     });
-    
+
     doc.save('usuarios.pdf');
-    handleCloseMenu(); 
+    handleCloseMenu();
     showSuccessMessage('Exportado a PDF con éxito');
   };
 
@@ -253,12 +294,16 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
 
   const showSuccessMessage = (message: string): void => {
     setSuccessMessage(message);
-    setTimeout(() => { setSuccessMessage(null); }, 3000);
-  };  
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+  };
 
   const showErrorMessage = (message: string): void => {
     setErrorMessage(message);
-    setTimeout(() => {setErrorMessage(null);}, 3000);
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 3000);
   };
 
   const paginatedCustomers = applyPagination(user, page, rowsPerPage);
@@ -272,30 +317,32 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
             {/* <Button color="inherit" startIcon={<UploadIcon fontSize="var(--icon-fontSize-md)" />}>
               Importar
             </Button> */}
-            <Button color="inherit" startIcon={<DownloadIcon fontSize="var(--icon-fontSize-md)" />} 
-            onClick={handleClickMenu}>
+            <Button
+              color="inherit"
+              startIcon={<DownloadIcon fontSize="var(--icon-fontSize-md)" />}
+              onClick={handleClickMenu}
+            >
               Exportar
             </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleCloseMenu}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
               <MenuItem onClick={handleExportPDF}>Exportar a PDF</MenuItem>
               <MenuItem onClick={handleExportExcel}>Exportar a Excel</MenuItem>
             </Menu>
           </Stack>
         </Stack>
-        <div>
-        <Button
-        startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />}
-        variant="contained"
-        onClick={() => { handleOpenModal(); }}
-      >
-        Añadir
-      </Button>
-
-        </div>
+        {currentUser?.role !== 'viewer' && (
+          <div>
+            <Button
+              startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />}
+              variant="contained"
+              onClick={() => {
+                handleOpenModal();
+              }}
+            >
+              Añadir
+            </Button>
+          </div>
+        )}
       </Stack>
       <CustomersFilters />
       {loading ? (
@@ -330,144 +377,153 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
         >
           <Typography variant="h6">{editingUser ? 'Editar Usuario' : 'Agregar Usuario'}</Typography>
           <Controller
-          name="firstName"
-          control={control}
-          rules={{ required: 'El primer nombre es obligatorio' }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label="Primer Nombre"
-              fullWidth
-              error={Boolean(errors.firstName)}
-              helperText={errors.firstName ? errors.firstName.message : ''}
-              inputProps={{ maxLength: 50 }}
-              required
-            />
-          )}
-        />
+            name="firstName"
+            control={control}
+            rules={{ required: 'El primer nombre es obligatorio' }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Primer Nombre"
+                fullWidth
+                error={Boolean(errors.firstName)}
+                helperText={errors.firstName ? errors.firstName.message : ''}
+                inputProps={{ maxLength: 50 }}
+                required
+              />
+            )}
+          />
 
-        <Controller
-          name="middleName"
-          control={control}
-          rules={{ required: 'El segundo nombre es obligatorio' }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label="Segundo Nombre"
-              fullWidth
-              error={Boolean(errors.middleName)}
-              helperText={errors.middleName?.message}
-              inputProps={{ maxLength: 50 }}
-              required
-            />
-          )}
-        />
+          <Controller
+            name="middleName"
+            control={control}
+            rules={{ required: 'El segundo nombre es obligatorio' }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Segundo Nombre"
+                fullWidth
+                error={Boolean(errors.middleName)}
+                helperText={errors.middleName?.message}
+                inputProps={{ maxLength: 50 }}
+                required
+              />
+            )}
+          />
 
-        <Controller
-          name="lastName"
-          control={control}
-          rules={{ required: 'El primer apellido es obligatorio' }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label="Primer Apellido"
-              fullWidth
-              error={Boolean(errors.lastName)}
-              helperText={errors.lastName?.message}
-              inputProps={{ maxLength: 50 }}
-              required
-            />
-          )}
-        />
+          <Controller
+            name="lastName"
+            control={control}
+            rules={{ required: 'El primer apellido es obligatorio' }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Primer Apellido"
+                fullWidth
+                error={Boolean(errors.lastName)}
+                helperText={errors.lastName?.message}
+                inputProps={{ maxLength: 50 }}
+                required
+              />
+            )}
+          />
 
-        <Controller
-          name="secondLastName"
-          control={control}
-          rules={{ required: 'El segundo apellido es obligatorio' }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label="Segundo Apellido"
-              fullWidth
-              error={Boolean(errors.secondLastName)}
-              helperText={errors.secondLastName?.message}
-              inputProps={{ maxLength: 50 }}
-              required
-            />
-          )}
-        />
+          <Controller
+            name="secondLastName"
+            control={control}
+            rules={{ required: 'El segundo apellido es obligatorio' }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Segundo Apellido"
+                fullWidth
+                error={Boolean(errors.secondLastName)}
+                helperText={errors.secondLastName?.message}
+                inputProps={{ maxLength: 50 }}
+                required
+              />
+            )}
+          />
 
-        <Controller
-          name="email"
-          control={control}
-          rules={{
-            required: 'El correo electrónico es obligatorio',
-            pattern: {
-              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-              message: 'El formato del correo es inválido',
-            },
-          }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label="Correo Electrónico"
-              fullWidth
-              error={Boolean(errors.email)}
-              helperText={errors.email?.message}
-              inputProps={{ maxLength: 255 }}
-              required
-            />
-          )}
-        />
+          <Controller
+            name="email"
+            control={control}
+            rules={{
+              required: 'El correo electrónico es obligatorio',
+              pattern: {
+                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                message: 'El formato del correo es inválido',
+              },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Correo Electrónico"
+                fullWidth
+                error={Boolean(errors.email)}
+                helperText={errors.email?.message}
+                inputProps={{ maxLength: 255 }}
+                required
+              />
+            )}
+          />
 
-        <Controller
-          name="phoneNumber"
-          control={control}
-          rules={{
-            required: 'El número de celular es obligatorio',
-            pattern: {
-              value: /^[0-9]{10}$/,
-              message: 'El número de celular debe tener 10 dígitos',
-            },
-          }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label="Número de Celular"
-              fullWidth
-              error={Boolean(errors.phoneNumber)}
-              helperText={errors.phoneNumber?.message}
-              inputProps={{ maxLength: 10 }}
-              onKeyPress={(event) => {
-                if (!/[0-9]/.test(event.key)) {
-                  event.preventDefault();
-                }
-              }}
-              required
-            />
-          )}
-        />
+          <Controller
+            name="phoneNumber"
+            control={control}
+            rules={{
+              required: 'El número de celular es obligatorio',
+              pattern: {
+                value: /^[0-9]{10}$/,
+                message: 'El número de celular debe tener 10 dígitos',
+              },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Número de Celular"
+                fullWidth
+                error={Boolean(errors.phoneNumber)}
+                helperText={errors.phoneNumber?.message}
+                inputProps={{ maxLength: 10 }}
+                onKeyPress={(event) => {
+                  if (!/[0-9]/.test(event.key)) {
+                    event.preventDefault();
+                  }
+                }}
+                required
+              />
+            )}
+          />
 
           <Controller
             name="password"
             control={control}
-            rules={editingUser ? undefined : { // Solo aplica las reglas si no está editando
-              required: 'La contraseña es obligatoria',
-              minLength: {
-                value: 9, // Cambia a 9 como especificaste antes
-                message: 'La contraseña debe tener al menos 9 caracteres',
-              },
-              maxLength: {
-                value: 20,
-                message: 'La contraseña no debe tener más de 20 caracteres',
-              },
-              validate: {
-                uppercase: (value) => /[A-Z]/.test(value) || 'La contraseña debe contener al menos una letra mayúscula',
-                lowercase: (value) => /[a-z]/.test(value) || 'La contraseña debe contener al menos una letra minúscula',
-                number: (value) => /[0-9]/.test(value) || 'La contraseña debe contener al menos un número',
-                specialChar: (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value) || 'La contraseña debe contener al menos un carácter especial',
-              },
-            }}
+            rules={
+              editingUser
+                ? undefined
+                : {
+                    // Solo aplica las reglas si no está editando
+                    required: 'La contraseña es obligatoria',
+                    minLength: {
+                      value: 9, // Cambia a 9 como especificaste antes
+                      message: 'La contraseña debe tener al menos 9 caracteres',
+                    },
+                    maxLength: {
+                      value: 20,
+                      message: 'La contraseña no debe tener más de 20 caracteres',
+                    },
+                    validate: {
+                      uppercase: (value) =>
+                        /[A-Z]/.test(value) || 'La contraseña debe contener al menos una letra mayúscula',
+                      lowercase: (value) =>
+                        /[a-z]/.test(value) || 'La contraseña debe contener al menos una letra minúscula',
+                      number: (value) => /[0-9]/.test(value) || 'La contraseña debe contener al menos un número',
+                      specialChar: (value) =>
+                        /[!@#$%^&*(),.?":{}|<>]/.test(value) ||
+                        'La contraseña debe contener al menos un carácter especial',
+                    },
+                  }
+            }
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
@@ -485,25 +541,21 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
             )}
           />
           <Controller
-                name="role"
-                control={control}
-                rules={{ required: 'Debes seleccionar un rol' }}
-                render={({ field, fieldState: { error } }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Rol</InputLabel>
-                    <Select
-                      {...field}
-                      label="Rol"
-                      error={Boolean(errors.role)}
-                    >
-                      <MenuItem value="admin">Admin</MenuItem>
-                      <MenuItem value="viewer">Viewer</MenuItem>
-                      <MenuItem value="cashier">Cashier</MenuItem>
-                    </Select>
-                    {errors.role && <Typography color="error">{errors.role?.message}</Typography>}
-                  </FormControl>
-                )}
-              />
+            name="role"
+            control={control}
+            rules={{ required: 'Debes seleccionar un rol' }}
+            render={({ field, fieldState: { error } }) => (
+              <FormControl fullWidth>
+                <InputLabel>Rol</InputLabel>
+                <Select {...field} label="Rol" error={Boolean(errors.role)}>
+                  <MenuItem value="admin">Admin</MenuItem>
+                  <MenuItem value="viewer">Viewer</MenuItem>
+                  <MenuItem value="cashier">Cashier</MenuItem>
+                </Select>
+                {errors.role && <Typography color="error">{errors.role?.message}</Typography>}
+              </FormControl>
+            )}
+          />
           <Button variant="contained" onClick={handleSubmit(handleFormSubmit)}>
             {editingUser ? 'Actualizar' : 'Agregar'}
           </Button>
@@ -513,14 +565,21 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
       {errorMessage && <Typography sx={{ color: 'red' }}>{errorMessage}</Typography>}
       <Dialog
         open={dialogOpen}
-        onClose={() => {setDialogOpen(false)}}
+        onClose={() => {
+          setDialogOpen(false);
+        }}
       >
         <DialogTitle>Confirmar eliminación</DialogTitle>
         <DialogContent>
           <Typography>¿Estás seguro de que deseas eliminar este usuario?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {setDialogOpen(false)}} color="primary">
+          <Button
+            onClick={() => {
+              setDialogOpen(false);
+            }}
+            color="primary"
+          >
             Cancelar
           </Button>
           <Button
@@ -540,8 +599,8 @@ const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): vo
                 } catch (error) {
                   showErrorMessage('Error al eliminar el usuario');
                 } finally {
-                  setDialogOpen(false);  // Cierra el diálogo
-                  setUserToDelete(null);  // Limpia el estado
+                  setDialogOpen(false); // Cierra el diálogo
+                  setUserToDelete(null); // Limpia el estado
                 }
               }
             }}
