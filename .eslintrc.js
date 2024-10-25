@@ -22,6 +22,7 @@ module.exports = {
     },
   },
   rules: {
+    "@typescript-eslint/naming-convention": "off",
     '@typescript-eslint/non-nullable-type-assertion-style': 'off',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
