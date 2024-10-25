@@ -17,6 +17,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
+import { paths } from '@/paths';
+
 
 const schema = zod.object({
   name: zod
@@ -134,30 +136,49 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           return;
         }
   
-        // No es necesario verificar ownerId de nuevo aquí
-        const data = await response.json();
-  
-        // Muestra el mensaje primero
-        setSuccessMessage('Supermercado registrado exitosamente. Por favor, vuelva a iniciar sesión.');
+        setSuccessMessage('Supermercado registrado exitosamente.');
         reset();
-        
-        // Espera 5 segundos para que el mensaje sea visible
-        await new Promise<void>((resolve) => {
-          setTimeout(resolve, 5000); // Resuelve después de 5 segundos sin devolver ningún valor
-        });
-  
-        // Cerrar sesión después de los 5 segundos
-        await handleSignOut();
-  
-        router.refresh();
-      } catch (error) {
-        setError('root', { type: 'server', message: 'Error al registrar el supermercado' });
-      } finally {
-        setIsPending(false);
-      }
-    },
-    [router, reset, setError, handleSignOut] // Asegúrate de incluir handleSignOut si se usa en el callback
-  );
+      // Actualizar la información del usuario
+      const userResponse = await fetch(`${API_URL}/users/${ownerId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+        // Define la interfaz para la respuesta de error
+        interface ErrorResponse {
+          message?: string;
+        }
+
+        if (!userResponse.ok) {
+          // Espera la respuesta y tipa adecuadamente
+          const errorData = await userResponse.json() as ErrorResponse; // Aserción de tipo
+
+          // Verifica si errorData tiene la propiedad message
+          const errorMessage = errorData.message || `Error ${userResponse.status}`;
+          setError('root', { type: 'server', message: errorMessage });
+          setIsPending(false);
+          return;
+        }
+
+
+      const updatedUserData = await userResponse.json();
+
+      // Refrescar la sesión para obtener los datos nuevos
+      await checkSession?.(); 
+      setTimeout(() => {
+        router.push(paths.dashboard.overview);
+      }, 3000);
+
+    } catch (error) {
+      setError('root', { type: 'server', message: 'Error al registrar el supermercado' });
+    } finally {
+      setIsPending(false);
+    }
+  },
+  [router, reset, setError, checkSession]
+);
   
 
 

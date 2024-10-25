@@ -179,6 +179,7 @@ class AuthClient {
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('userId', userId);
       
+      
 
       return {};
     } catch (error) {
@@ -234,11 +235,34 @@ class AuthClient {
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {
     const token = localStorage.getItem('custom-auth-token');
-    if (!token) {
-      return { data: null };
+    const userId = localStorage.getItem('userId'); // Obtener el userId de localStorage
+  
+    if (!token || !userId) {
+      return { data: null, error: 'No token or userId found' }; // Manejo de errores si no hay token o userId
     }
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    return { data: user };
+  
+    try {
+      const response = await fetch(`${API_URL}/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        return { data: null, error: 'Failed to fetch user data from server' };
+      }
+  
+      const user = await response.json();
+      localStorage.setItem('user', JSON.stringify(user)); // Actualiza localStorage con el usuario obtenido
+
+      
+  
+      return { data: user };
+    } catch (error) {
+      return { data: null, error: 'Error fetching user data' };
+    }
   }
 
   async signOut(): Promise<{ error?: string }> {
