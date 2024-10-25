@@ -1,4 +1,4 @@
-import { SupermarketSignUpParams } from "@/lib/auth/client";
+import type { SupermarketSignUpParams } from "@/lib/auth/client";
 
 export interface User {
   id: string;
