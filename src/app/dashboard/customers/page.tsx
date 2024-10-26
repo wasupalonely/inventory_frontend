@@ -1,18 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useState } from 'react';
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  InputLabel,
-  Menu,
-  MenuItem,
-  Select,
-} from '@mui/material';
+import { useEffect, useState, useCallback } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Menu, MenuItem, Select,} from '@mui/material';
 import Button from '@mui/material/Button';
 // import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 import Modal from '@mui/material/Modal';
@@ -45,6 +35,8 @@ export default function Page(): React.JSX.Element {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
+
   const {
     control,
     handleSubmit,
@@ -64,6 +56,14 @@ export default function Page(): React.JSX.Element {
     },
   });
 
+  const filteredCustomers = user.filter((customer) => {
+    const fullName = `${customer.firstName} ${customer.middleName || ''} ${customer.lastName} ${customer.secondLastName || ''}`.toLowerCase();
+    const email = customer.email.toLowerCase();
+    return (
+      fullName.includes(searchTerm.toLowerCase()) || email.includes(searchTerm.toLowerCase())
+    );
+  });
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -77,7 +77,7 @@ export default function Page(): React.JSX.Element {
     setPage(0);
   };
 
-  const fetchUser = async (): Promise<void> => {
+  const fetchUser = useCallback(async (): Promise<void> => {
     interface User {
       ownedSupermarket?: {
         id: string;
@@ -111,9 +111,8 @@ export default function Page(): React.JSX.Element {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Llamar a la API cuando el componente se monta
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -306,7 +305,7 @@ export default function Page(): React.JSX.Element {
     }, 3000);
   };
 
-  const paginatedCustomers = applyPagination(user, page, rowsPerPage);
+  const paginatedCustomers = applyPagination(filteredCustomers, user, page, rowsPerPage);
 
   return (
     <Stack spacing={3}>
@@ -344,7 +343,7 @@ export default function Page(): React.JSX.Element {
           </div>
         )}
       </Stack>
-      <CustomersFilters />
+      <CustomersFilters onSearch={setSearchTerm} />
       {loading ? (
         <Typography>Cargando...</Typography>
       ) : (
@@ -380,7 +379,7 @@ export default function Page(): React.JSX.Element {
             name="firstName"
             control={control}
             rules={{ required: 'El primer nombre es obligatorio' }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <TextField
                 {...field}
                 label="Primer Nombre"
@@ -397,7 +396,7 @@ export default function Page(): React.JSX.Element {
             name="middleName"
             control={control}
             rules={{ required: 'El segundo nombre es obligatorio' }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <TextField
                 {...field}
                 label="Segundo Nombre"
@@ -414,7 +413,7 @@ export default function Page(): React.JSX.Element {
             name="lastName"
             control={control}
             rules={{ required: 'El primer apellido es obligatorio' }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <TextField
                 {...field}
                 label="Primer Apellido"
@@ -431,7 +430,7 @@ export default function Page(): React.JSX.Element {
             name="secondLastName"
             control={control}
             rules={{ required: 'El segundo apellido es obligatorio' }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <TextField
                 {...field}
                 label="Segundo Apellido"
@@ -454,7 +453,7 @@ export default function Page(): React.JSX.Element {
                 message: 'El formato del correo es inválido',
               },
             }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <TextField
                 {...field}
                 label="Correo Electrónico"
@@ -477,7 +476,7 @@ export default function Page(): React.JSX.Element {
                 message: 'El número de celular debe tener 10 dígitos',
               },
             }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <TextField
                 {...field}
                 label="Número de Celular"
@@ -544,13 +543,13 @@ export default function Page(): React.JSX.Element {
             name="role"
             control={control}
             rules={{ required: 'Debes seleccionar un rol' }}
-            render={({ field, fieldState: { error } }) => (
+            render={({ field }) => (
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
                 <Select {...field} label="Rol" error={Boolean(errors.role)}>
-                  <MenuItem value="admin">Admin</MenuItem>
-                  <MenuItem value="viewer">Viewer</MenuItem>
-                  <MenuItem value="cashier">Cashier</MenuItem>
+                  <MenuItem value="admin">Administrador</MenuItem>
+                  <MenuItem value="viewer">Observador</MenuItem>
+                  <MenuItem value="cashier">Cajero</MenuItem>
                 </Select>
                 {errors.role && <Typography color="error">{errors.role?.message}</Typography>}
               </FormControl>
@@ -614,6 +613,6 @@ export default function Page(): React.JSX.Element {
   );
 }
 
-function applyPagination(rows: Customer[], page: number, rowsPerPage: number): Customer[] {
+function applyPagination(rows: Customer[], _user: Customer[], page: number, rowsPerPage: number): Customer[] {
   return rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 }

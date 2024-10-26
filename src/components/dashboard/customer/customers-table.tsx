@@ -19,6 +19,7 @@ import { useSelection } from '@/hooks/use-selection';
 import { useUser } from '@/hooks/use-user';
 
 export interface Customer {
+  name: any;
   id: number;
   supermarketId: number;
   ownedSupermarket: object;
