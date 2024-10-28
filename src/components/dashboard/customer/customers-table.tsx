@@ -14,6 +14,8 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
+import { Snackbar, Alert } from '@mui/material';
+
 
 import { useSelection } from '@/hooks/use-selection';
 import { useUser } from '@/hooks/use-user';
@@ -33,6 +35,12 @@ export interface Customer {
   role: 'admin' | 'viewer' | 'cashier';
 }
 
+interface SuccessMessageProps {
+  open: boolean;
+  message: string;
+  onClose: () => void;
+}
+
 interface CustomersTableProps {
   count?: number;
   page?: number;
@@ -43,6 +51,16 @@ interface CustomersTableProps {
   onEdit?: (user?: Customer) => void;
   onDelete?: (userId: number) => Promise<void>;
 }
+
+export const SuccessMessage: React.FC<SuccessMessageProps> = ({ open, message, onClose }) => {
+  return (
+    <Snackbar open={open} autoHideDuration={4000} onClose={onClose}>
+      <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>
+        {message}
+      </Alert>
+    </Snackbar>
+  );
+};
 
 export function CustomersTable({
   count = 0,
@@ -67,13 +85,33 @@ export function CustomersTable({
   }, [rows]);
 
   const { user } = useUser();
-
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
-
   const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
   const selectedAll = rows.length > 0 && selected?.size === rows.length;
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const [alertOpen, setAlertOpen] = React.useState(false);
+
+  const handleCloseAlert = () => {
+    setAlertOpen(false);
+    setSuccessMessage(null);
+  };
+
+  const handleEdit = async (row: Customer) => {
+    onEdit(row);
+  };
+
+  const handleDelete = async (userId: number) => {
+    await onDelete(userId);
+  };
+
+  const roleTranslations: Record<string, string> = {
+    admin: 'Administrador',
+    viewer: 'Observador',
+    cashier: 'Cajero',
+  };
 
   return (
+  <>
     <Card>
       <Box sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: '800px' }}>
@@ -126,20 +164,15 @@ export function CustomersTable({
                   <TableCell>{row.secondLastName}</TableCell>
                   <TableCell>{row.email}</TableCell>
                   <TableCell>{row.phoneNumber}</TableCell>
-                  <TableCell>{row.role}</TableCell>
+                  <TableCell>{roleTranslations[row.role]}</TableCell>
                   {user?.role !== 'viewer' && (
                     <TableCell>
                       {' '}
-                      {/* Nueva celda para botones de acción */}
                       <Button
-                        startIcon={<PencilIcon />}
-                        onClick={() => {
-                          onEdit(row);
-                        }}
-                      >
+                        startIcon={<PencilIcon />}onClick={() => handleEdit(row)}>
                         Editar
                       </Button>
-                      <Button startIcon={<TrashIcon />} color="error" onClick={() => onDelete(row.id)}>
+                      <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
                         Eliminar
                       </Button>
                     </TableCell>
@@ -161,5 +194,11 @@ export function CustomersTable({
         rowsPerPageOptions={[5, 10, 25]} // Opciones de filas por página
       />
     </Card>
+          <SuccessMessage
+          open={alertOpen}
+          message={successMessage || ''}
+          onClose={handleCloseAlert}
+        />
+      </>
   );
 }

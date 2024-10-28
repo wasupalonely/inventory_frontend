@@ -9,6 +9,12 @@ export const navItems: NavItemConfig[] = [
     icon: 'house',
   },
   { 
+    key: 'supermarket', 
+    title: 'Supermercado', 
+    href: paths.dashboard.supermarket, 
+    icon: 'shopping-cart',
+  },
+  { 
     key: 'customers', 
     title: 'Usuarios', 
     href: paths.dashboard.customers, 
@@ -26,12 +32,6 @@ export const navItems: NavItemConfig[] = [
     title: 'Cuenta', 
     href: paths.dashboard.account, 
     icon: 'user',
-  },
-  { 
-    key: 'supermarket', 
-    title: 'Supermercado', 
-    href: paths.dashboard.supermarket, 
-    icon: 'shopping-cart',
   },
   { 
     key: 'settings', 

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState, useCallback } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Menu, MenuItem, Select,} from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, InputLabel, Menu, MenuItem, Select,} from '@mui/material';
 import Button from '@mui/material/Button';
 // import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 import Modal from '@mui/material/Modal';
@@ -12,6 +12,8 @@ import Typography from '@mui/material/Typography';
 import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { jsPDF } from 'jspdf';
+import { Snackbar, Alert } from '@mui/material';
+
 
 import { API_URL } from '@/config';
 import { CustomersFilters } from '@/components/dashboard/customer/customers-filters';
@@ -36,6 +38,10 @@ export default function Page(): React.JSX.Element {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
 
   const {
     control,
@@ -55,6 +61,19 @@ export default function Page(): React.JSX.Element {
       role: '',
     },
   });
+
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+  };  
 
   const filteredCustomers = user.filter((customer) => {
     const fullName = `${customer.firstName} ${customer.middleName || ''} ${customer.lastName} ${customer.secondLastName || ''}`.toLowerCase();
@@ -78,44 +97,51 @@ export default function Page(): React.JSX.Element {
   };
 
   const fetchUser = useCallback(async (): Promise<void> => {
-    interface User {
-      ownedSupermarket?: {
-        id: string;
-      };
-      supermarket?: {
-        id: string;
-      };
-    }
-    try {
-      const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
-      const supermarketId = storedUser.ownedSupermarket?.id || storedUser.supermarket?.id;
-      const token = localStorage.getItem('custom-auth-token');
-      const response = await fetch(`${API_URL}/users/supermarket/${supermarketId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+    let retryCount = 0;
+    const maxRetries = 3; // Limitar los reintentos
+  
+    while (retryCount < maxRetries) {
+      try {
+        interface User {
+          ownedSupermarket?: { id: string };
+          supermarket?: { id: string };
+        }
+        const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+        const supermarketId = storedUser.ownedSupermarket?.id || storedUser.supermarket?.id;
+        const token = localStorage.getItem('custom-auth-token');
+        const response = await fetch(`${API_URL}/users/supermarket/${supermarketId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+  
+        const data: Customer[] = await response.json();
+        data.sort((a, b) => b.id - a.id);
+        setUser(data);
+        break; // Si todo va bien, rompe el ciclo y no reintenta
+      } catch (error) {
+        retryCount += 1;  
+        if (retryCount >= maxRetries) {
+          setUser([]);
+          showErrorMessage('Error al cargar los usuarios después de varios intentos');
+          break; // Para evitar un loop infinito si no puede completar los llamados
+        }
+      } finally {
+        setLoading(false);
       }
-
-      const data: Customer[] = await response.json();
-      data.sort((a, b) => b.id - a.id);
-      setUser(data);
-    } catch (error) {
-      setUser([]);
-      showErrorMessage('Error al cargar los usuarios');
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, []);  
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    fetchUser(); // Llama solo una vez o cuando cambie la función
+  }, [fetchUser]); // El efecto solo se ejecutará si `fetchUser` cambia
+  
 
   const handleOpenModal = (selectedUser?: Customer): void => {
     setEditingUser(selectedUser || null);
@@ -165,25 +191,25 @@ export default function Page(): React.JSX.Element {
 
   const handleFormSubmit = async (data: any): Promise<void> => {
     const submitUser = localStorage.getItem('user');
-
+  
     interface User {
       id: string;
       ownedSupermarket?: { id: string };
       password?: string;
       supermarketId?: number;
     }
-
+  
     if (!submitUser) {
       return;
     }
-
+  
     const userObject: User = JSON.parse(submitUser);
-
+  
     const updatedFormData: Partial<User> = {
       ...data,
       supermarketId: userObject.ownedSupermarket?.id,
     };
-
+  
     if (editingUser) {
       if ('password' in updatedFormData) {
         delete updatedFormData.password;
@@ -192,11 +218,12 @@ export default function Page(): React.JSX.Element {
         delete updatedFormData.supermarketId;
       }
     }
-
+  
     try {
       const token = localStorage.getItem('custom-auth-token');
       const method = editingUser ? 'PUT' : 'POST';
       const url = editingUser ? `${API_URL}/users/${editingUser.id}` : `${API_URL}/users`;
+  
       const response = await fetch(url, {
         method,
         headers: {
@@ -205,26 +232,32 @@ export default function Page(): React.JSX.Element {
         },
         body: JSON.stringify({ ...updatedFormData }),
       });
-
+  
       if (!response.ok) {
-        return;
+        showErrorMessage('Error al guardar el usuario');
+        return;  // Si la solicitud falla, muestra error y sal
       }
-
+  
       const savedUser: Customer = await response.json();
+      
       if (!editingUser) {
         setUser((prevUsers) => [savedUser, ...prevUsers]);
       } else {
-        setUser((prevUsers) => prevUsers.map((editUser) => (editUser.id === savedUser.id ? savedUser : editUser)));
+        setUser((prevUsers) => 
+          prevUsers.map((editUser) => (editUser.id === savedUser.id ? savedUser : editUser))
+        );
       }
-
-      fetchUser();
-      showSuccessMessage(editingUser ? 'Usuario actualizado con éxito' : 'Usuario creado con éxito');
-      handleCloseModal();
-      reset();
+  
+      // Mostrar el mensaje después de que se haya completado la operación
+      showSnackbar(editingUser ? 'Usuario actualizado con éxito' : 'Usuario creado con éxito', 'success');
+      
+      fetchUser();  // Actualiza la lista de usuarios
+      handleCloseModal();  // Cierra el modal después de completar la acción
+      reset();  // Limpia el formulario
     } catch (error) {
-      showErrorMessage('Error al guardar el usuario');
+      showSnackbar('Error al guardar el usuario', 'error');
     }
-  };
+  };  
 
   const handleDeleteUser = async (userId: number): Promise<void> => {
     setUserToDelete(userId);
@@ -395,7 +428,6 @@ export default function Page(): React.JSX.Element {
           <Controller
             name="middleName"
             control={control}
-            rules={{ required: 'El segundo nombre es obligatorio' }}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -404,7 +436,6 @@ export default function Page(): React.JSX.Element {
                 error={Boolean(errors.middleName)}
                 helperText={errors.middleName?.message}
                 inputProps={{ maxLength: 50 }}
-                required
               />
             )}
           />
@@ -429,7 +460,6 @@ export default function Page(): React.JSX.Element {
           <Controller
             name="secondLastName"
             control={control}
-            rules={{ required: 'El segundo apellido es obligatorio' }}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -438,7 +468,6 @@ export default function Page(): React.JSX.Element {
                 error={Boolean(errors.secondLastName)}
                 helperText={errors.secondLastName?.message}
                 inputProps={{ maxLength: 50 }}
-                required
               />
             )}
           />
@@ -501,10 +530,9 @@ export default function Page(): React.JSX.Element {
               editingUser
                 ? undefined
                 : {
-                    // Solo aplica las reglas si no está editando
                     required: 'La contraseña es obligatoria',
                     minLength: {
-                      value: 9, // Cambia a 9 como especificaste antes
+                      value: 9,
                       message: 'La contraseña debe tener al menos 9 caracteres',
                     },
                     maxLength: {
@@ -533,9 +561,9 @@ export default function Page(): React.JSX.Element {
                 helperText={error?.message}
                 inputProps={{
                   maxLength: 20,
-                  readOnly: editingUser, // Campo de solo lectura si está editando
+                  readOnly: editingUser,
                 }}
-                required={!editingUser} // El campo es requerido solo si no está editando
+                required={!editingUser}
               />
             )}
           />
@@ -544,14 +572,16 @@ export default function Page(): React.JSX.Element {
             control={control}
             rules={{ required: 'Debes seleccionar un rol' }}
             render={({ field }) => (
-              <FormControl fullWidth>
+              <FormControl fullWidth error={Boolean(errors.role)}>
                 <InputLabel>Rol</InputLabel>
-                <Select {...field} label="Rol" error={Boolean(errors.role)}>
+                <Select {...field} label="Rol">
                   <MenuItem value="admin">Administrador</MenuItem>
                   <MenuItem value="viewer">Observador</MenuItem>
                   <MenuItem value="cashier">Cajero</MenuItem>
                 </Select>
-                {errors.role && <Typography color="error">{errors.role?.message}</Typography>}
+                {errors.role && (
+                  <FormHelperText error>{errors.role?.message}</FormHelperText>
+                )}
               </FormControl>
             )}
           />
@@ -586,20 +616,26 @@ export default function Page(): React.JSX.Element {
               if (userToDelete !== null) {
                 try {
                   const token = localStorage.getItem('custom-auth-token');
-                  await fetch(`${API_URL}/users/${userToDelete}`, {
+                  const response = await fetch(`${API_URL}/users/${userToDelete}`, {
                     method: 'DELETE',
                     headers: {
                       Authorization: `Bearer ${token}`,
                       'Content-Type': 'application/json',
                     },
                   });
-                  fetchUser();
-                  showSuccessMessage('Usuario eliminado con éxito');
+            
+                  if (!response.ok) {
+                    showErrorMessage('Error al eliminar el usuario');
+                    return;
+                  }
+            
+                  fetchUser();  // Actualiza la lista de usuarios
+                  showSnackbar('Usuario eliminado con éxito', 'success');
                 } catch (error) {
-                  showErrorMessage('Error al eliminar el usuario');
+                  showSnackbar('Error al eliminar el usuario', 'error');
                 } finally {
-                  setDialogOpen(false); // Cierra el diálogo
-                  setUserToDelete(null); // Limpia el estado
+                  setDialogOpen(false);  // Cierra el diálogo
+                  setUserToDelete(null);  // Limpia el estado
                 }
               }
             }}
@@ -609,6 +645,16 @@ export default function Page(): React.JSX.Element {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

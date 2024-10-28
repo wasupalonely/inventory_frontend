@@ -76,7 +76,7 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
           <ListItemIcon>
             <UserIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
-          Perfl
+          Perfil
         </MenuItem>
         <MenuItem onClick={handleSignOut}>
           <ListItemIcon>
