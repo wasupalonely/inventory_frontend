@@ -16,9 +16,9 @@ import { ArrowRight as ArrowRightIcon } from '@phosphor-icons/react/dist/ssr/Arr
 import dayjs from 'dayjs';
 
 const statusMap = {
-  pending: { label: 'Pending', color: 'warning' },
-  delivered: { label: 'Delivered', color: 'success' },
-  refunded: { label: 'Refunded', color: 'error' },
+  pending: { label: 'Pendiente', color: 'warning' },
+  delivered: { label: 'Entregado', color: 'success' },
+  refunded: { label: 'Extraviado', color: 'error' },
 } as const;
 
 export interface Order {
@@ -37,16 +37,16 @@ export interface LatestOrdersProps {
 export function LatestOrders({ orders = [], sx }: LatestOrdersProps): React.JSX.Element {
   return (
     <Card sx={sx}>
-      <CardHeader title="Latest orders" />
+      <CardHeader title="Últimos pedidos" />
       <Divider />
       <Box sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Order</TableCell>
-              <TableCell>Customer</TableCell>
-              <TableCell sortDirection="desc">Date</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell>Orden</TableCell>
+              <TableCell>Usuario</TableCell>
+              <TableCell sortDirection="desc">Fecha</TableCell>
+              <TableCell>Estado</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -75,7 +75,7 @@ export function LatestOrders({ orders = [], sx }: LatestOrdersProps): React.JSX.
           size="small"
           variant="text"
         >
-          View all
+          Ver todo
         </Button>
       </CardActions>
     </Card>
