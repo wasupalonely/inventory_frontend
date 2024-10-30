@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState, useCallback } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, InputLabel, Menu, MenuItem, Select,} from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, InputLabel, Menu, MenuItem, Select, Snackbar, Alert} from '@mui/material';
 import Button from '@mui/material/Button';
 // import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 import Modal from '@mui/material/Modal';
@@ -12,7 +12,8 @@ import Typography from '@mui/material/Typography';
 import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { jsPDF } from 'jspdf';
-import { Snackbar, Alert } from '@mui/material';
+import { Eye as EyeIcon } from '@phosphor-icons/react/dist/ssr/Eye';
+import { EyeSlash as EyeSlashIcon } from '@phosphor-icons/react/dist/ssr/EyeSlash';
 
 
 import { API_URL } from '@/config';
@@ -41,12 +42,13 @@ export default function Page(): React.JSX.Element {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-
+  const [showPassword, setShowPassword] = React.useState<boolean>();
+  const [isPending] = React.useState<boolean>(false);
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
     setValue,
   } = useForm({
@@ -62,13 +64,13 @@ export default function Page(): React.JSX.Element {
     },
   });
 
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+  const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
   };
 
-  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string): void => {
     if (reason === 'clickaway') {
       return;
     }
@@ -116,6 +118,16 @@ export default function Page(): React.JSX.Element {
             'Content-Type': 'application/json',
           },
         });
+
+        const clearStorageAndReload = (): void => {
+          localStorage.clear();
+          window.location.reload();  // Recarga la página después de limpiar el almacenamiento
+        };
+        
+        // Puedes usar esto en el caso de un error 401
+        if (response.status === 401) {
+          clearStorageAndReload();
+        }
   
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -139,7 +151,7 @@ export default function Page(): React.JSX.Element {
   }, []);  
 
   useEffect(() => {
-    fetchUser(); // Llama solo una vez o cuando cambie la función
+    fetchUser(); // Cargar datos si todo está bien
   }, [fetchUser]); // El efecto solo se ejecutará si `fetchUser` cambia
   
 
@@ -234,8 +246,8 @@ export default function Page(): React.JSX.Element {
       });
   
       if (!response.ok) {
-        showErrorMessage('Error al guardar el usuario');
-        return;  // Si la solicitud falla, muestra error y sal
+        showSnackbar('El correo ya está registrado. Por favor, use otro', 'error');
+        return;
       }
   
       const savedUser: Customer = await response.json();
@@ -255,7 +267,7 @@ export default function Page(): React.JSX.Element {
       handleCloseModal();  // Cierra el modal después de completar la acción
       reset();  // Limpia el formulario
     } catch (error) {
-      showSnackbar('Error al guardar el usuario', 'error');
+      showSnackbar('El correo ya está registrado. Por favor, use otro', 'error');
     }
   };  
 
@@ -337,6 +349,11 @@ export default function Page(): React.JSX.Element {
       setErrorMessage(null);
     }, 3000);
   };
+  
+  const togglePasswordVisibility = (): void => {
+    setShowPassword(!showPassword);
+  };
+  
 
   const paginatedCustomers = applyPagination(filteredCustomers, user, page, rowsPerPage);
 
@@ -522,40 +539,36 @@ export default function Page(): React.JSX.Element {
               />
             )}
           />
-
-          <Controller
+    {!editingUser && (
+      <Controller
             name="password"
             control={control}
-            rules={
-              editingUser
-                ? undefined
-                : {
-                    required: 'La contraseña es obligatoria',
-                    minLength: {
-                      value: 9,
-                      message: 'La contraseña debe tener al menos 9 caracteres',
-                    },
-                    maxLength: {
-                      value: 20,
-                      message: 'La contraseña no debe tener más de 20 caracteres',
-                    },
-                    validate: {
-                      uppercase: (value) =>
-                        /[A-Z]/.test(value) || 'La contraseña debe contener al menos una letra mayúscula',
-                      lowercase: (value) =>
-                        /[a-z]/.test(value) || 'La contraseña debe contener al menos una letra minúscula',
-                      number: (value) => /[0-9]/.test(value) || 'La contraseña debe contener al menos un número',
-                      specialChar: (value) =>
-                        /[!@#$%^&*(),.?":{}|<>]/.test(value) ||
-                        'La contraseña debe contener al menos un carácter especial',
-                    },
-                  }
-            }
+            rules={{
+              required: 'La contraseña es obligatoria',
+              minLength: {
+                value: 9,
+                message: 'La contraseña debe tener al menos 9 caracteres',
+              },
+              maxLength: {
+                value: 20,
+                message: 'La contraseña no debe tener más de 20 caracteres',
+              },
+              validate: {
+                uppercase: (value) =>
+                  /[A-Z]/.test(value) || 'La contraseña debe contener al menos una letra mayúscula',
+                lowercase: (value) =>
+                  /[a-z]/.test(value) || 'La contraseña debe contener al menos una letra minúscula',
+                number: (value) => /[0-9]/.test(value) || 'La contraseña debe contener al menos un número',
+                specialChar: (value) =>
+                  /[!@#$%^&*(),.?":{}|<>]/.test(value) ||
+                  'La contraseña debe contener al menos un carácter especial',
+            },
+          }}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
                 label="Contraseña"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 fullWidth
                 error={Boolean(error)}
                 helperText={error?.message}
@@ -564,9 +577,18 @@ export default function Page(): React.JSX.Element {
                   readOnly: editingUser,
                 }}
                 required={!editingUser}
+                InputProps={{
+                  endAdornment: (
+                    <button type="button" onClick={togglePasswordVisibility} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
+                      {showPassword ? <EyeIcon /> : <EyeSlashIcon />}
+                    </button>
+                  ),
+                }}
               />
             )}
           />
+        )}
+
           <Controller
             name="role"
             control={control}
@@ -579,13 +601,11 @@ export default function Page(): React.JSX.Element {
                   <MenuItem value="viewer">Observador</MenuItem>
                   <MenuItem value="cashier">Cajero</MenuItem>
                 </Select>
-                {errors.role && (
-                  <FormHelperText error>{errors.role?.message}</FormHelperText>
-                )}
+                {errors.role?.message && (<FormHelperText error>{errors.role.message}</FormHelperText>)}
               </FormControl>
             )}
           />
-          <Button variant="contained" onClick={handleSubmit(handleFormSubmit)}>
+          <Button variant="contained" onClick={handleSubmit(handleFormSubmit)} disabled={!isValid || isPending}>
             {editingUser ? 'Actualizar' : 'Agregar'}
           </Button>
         </Stack>
@@ -593,7 +613,7 @@ export default function Page(): React.JSX.Element {
       {successMessage && <Typography sx={{ color: 'green' }}>{successMessage}</Typography>}
       {errorMessage && <Typography sx={{ color: 'red' }}>{errorMessage}</Typography>}
       <Dialog
-        open={dialogOpen}
+        open={Boolean (dialogOpen)}
         onClose={() => {
           setDialogOpen(false);
         }}
