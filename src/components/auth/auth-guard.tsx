@@ -56,9 +56,19 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
     });
   }, [user, error, isLoading]);
 
-  // Mostrar el spinner mientras se verifica
+  const centeredContainerStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh', // Asegura que el spinner esté centrado en toda la pantalla
+  };
+
   if (isChecking || isLoading) {
-    return <CircularProgress />; // Mostrar el spinner
+    return (
+      <div style={centeredContainerStyle}>
+        <CircularProgress />
+      </div>
+    );
   }
 
   if (error) {

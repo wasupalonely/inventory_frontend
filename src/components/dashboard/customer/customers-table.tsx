@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@mui/material';
+import { Button, Snackbar, Alert } from '@mui/material';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
@@ -14,8 +14,6 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
-import { Snackbar, Alert } from '@mui/material';
-
 
 import { useSelection } from '@/hooks/use-selection';
 import { useUser } from '@/hooks/use-user';
@@ -52,7 +50,7 @@ interface CustomersTableProps {
   onDelete?: (userId: number) => Promise<void>;
 }
 
-export const SuccessMessage: React.FC<SuccessMessageProps> = ({ open, message, onClose }) => {
+export function SuccessMessage({ open, message, onClose }: SuccessMessageProps) {
   return (
     <Snackbar open={open} autoHideDuration={4000} onClose={onClose}>
       <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>
@@ -60,7 +58,7 @@ export const SuccessMessage: React.FC<SuccessMessageProps> = ({ open, message, o
       </Alert>
     </Snackbar>
   );
-};
+}
 
 export function CustomersTable({
   count = 0,
@@ -91,16 +89,16 @@ export function CustomersTable({
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const [alertOpen, setAlertOpen] = React.useState(false);
 
-  const handleCloseAlert = () => {
+  const handleCloseAlert = (): void => {
     setAlertOpen(false);
     setSuccessMessage(null);
   };
 
-  const handleEdit = async (row: Customer) => {
+  const handleEdit = async (row: Customer): Promise<void> => {
     onEdit(row);
   };
 
-  const handleDelete = async (userId: number) => {
+  const handleDelete = async (userId: number): Promise<void> => {
     await onDelete(userId);
   };
 
