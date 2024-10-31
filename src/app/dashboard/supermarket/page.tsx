@@ -2,30 +2,515 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Alert } from '@mui/material';
+import {Card, CardContent, CircularProgress, Typography, Alert, Button, TextField, Stack, Box, Divider, CardHeader, IconButton, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
+import { FloppyDisk as FloppyDiskIcon  } from '@phosphor-icons/react/dist/ssr/FloppyDisk';
+import { X as XIcon } from '@phosphor-icons/react/dist/ssr/X';
+import { Building as BuildingIcon } from '@phosphor-icons/react/dist/ssr/Building';
+import { UserFocus as UserFocusIcon } from '@phosphor-icons/react/dist/ssr/UserFocus';
+import { Signpost as SignpostIcon } from '@phosphor-icons/react/dist/ssr/Signpost';
+import { Gps as GpsIcon } from '@phosphor-icons/react/dist/ssr/Gps';
+import { Info as InfoIcon } from '@phosphor-icons/react/dist/ssr/Info';
+import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
+import { Zoom } from '@mui/material';
 
-export default function SupermarketInfoPage() {
-  const [supermarket, setSupermarket] = useState<any>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const token = localStorage.getItem('custom-auth-token');
+const Container = styled('div')(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'center',
+    padding: theme.spacing(4),
+    backgroundColor: 'transparent',
+}));
 
-  // Obtener información del supermercado
-  useEffect(() => {
-    const fetchSupermarketData = async () => {
-      try {
-        const response = await fetch(`${API_URL}/supermarket`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+const CustomTextField = styled(TextField)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+  '& .MuiOutlinedInput-root': {
+      borderRadius: theme.shape.borderRadius * 2,
+  },
+}));
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  maxWidth: 800,
+  width: '100%',
+  boxShadow: theme.shadows[5],
+  padding: theme.spacing(3),
+  marginTop: theme.spacing(-2),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor: '#f9f9f9',
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: '600',
+  color: 'black',
+  marginBottom: theme.spacing(1),
+  fontSize: '1.5rem',
+  paddingBottom: theme.spacing(1),
+}));
+
+interface Address {
+    neighborhood?: string;
+    locationType?: string;
+    streetNumber?: string;
+    buildingNumber?: string;
+    additionalInfo?: string;
+    intersectionNumber?: string;
+}
+
+interface Supermarket {
+    id: number;
+    name: string;
+    owner: { id: number };
+    address: Address;
+}
+
+interface StoredUser {
+    ownedSupermarket?: { id: string };
+    supermarket?: { id: string };
+    role?: string;
+  }
+
+const SupermarketDetails = () => {
+    const [supermarket, setSupermarket] = useState<Supermarket | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState<Supermarket | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [deleteSuccess, setDeleteSuccess] = useState(false);
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success'); // Tipo de alerta
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const maxRetries = 3;
+
+    const fetchSupermarketDetails = async (supermarketId: string): Promise<Supermarket> => {
+        const token = localStorage.getItem('custom-auth-token');
+        const url = `${API_URL}/supermarket/${supermarketId}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
         });
-        const data = await response.json();
-        setSupermarket(data);
-      } catch (error) {
-        setErrorMessage('Error al obtener la información del supermercado');
-      }
+    
+        if (!response.ok) {
+            const errorDetail = await response.text();
+            throw new Error(`Error en la respuesta de red (${response.status}): ${errorDetail}`);
+        }
+    
+        return (await response.json()) as Supermarket;
+    };    
+
+    const updateSupermarketDetails = async () => {
+        const token = localStorage.getItem('custom-auth-token');
+        const supermarketId = supermarket?.id;
+
+        if (!supermarketId) {
+            setError("ID del supermercado no disponible. No se puede actualizar el supermercado.");
+            return;
+        }
+
+        const url = `${API_URL}/supermarket/${supermarketId}`;
+
+        const dataToUpdate = {
+            name: formData?.name,
+            ownerId: supermarket.owner.id,
+            address: formData?.address,
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataToUpdate),
+            });
+
+            if (!response.ok) {
+                const errorDetail = await response.text();
+                throw new Error(`Error al actualizar los datos: ${errorDetail}`);
+            }
+
+            const updatedData = (await response.json()) as Supermarket;
+            setSupermarket(updatedData);
+            setIsEditing(false);
+            setFormData(updatedData);
+            setSnackbarMessage('Información del supermercado actualizada exitosamente');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+        } catch (updateError: unknown) {
+            setSnackbarMessage('Error al actualizar el supermercado. Intente nuevamente.');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        }
     };
 
-    fetchSupermarketData();
-  }, [token]);
-}
+    const handleDeleteClick = () => {
+        setDialogOpen(true);
+    };
+    
+    const deleteSupermarket = async () => {
+        const token = localStorage.getItem('custom-auth-token');
+        const supermarketId = supermarket?.id;
+    
+        if (!supermarketId) {
+            setError("ID del supermercado no disponible. No se puede eliminar.");
+            return;
+        }
+    
+        const url = `${API_URL}/supermarket/${supermarketId}`;
+    
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            if (!response.ok) {
+                const errorDetail = await response.text();
+                throw new Error(`Error al eliminar el supermercado: ${errorDetail}`);
+            }
+    
+            // Mostrar Snackbar de éxito
+            setDeleteSuccess(true);
+            setSnackbarMessage('Supermercado eliminado exitosamente');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+    
+            // Limpiar formulario después de eliminar
+            setSupermarket(null); // Limpiar estado del supermercado
+            setFormData(null); // Limpiar formulario
+    
+            // Redirigir después de un breve retraso para que el usuario vea el mensaje
+            setTimeout(() => {
+                window.location.href = '/supermarket-sign-up';
+            }, 2000);
+    
+        } catch (deleteError: unknown) {    
+            setDeleteSuccess(false);
+            setSnackbarMessage('Error al eliminar el supermercado. Intente nuevamente.');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        } finally {
+            setDialogOpen(false); // Cerrar el diálogo después de eliminar
+        }
+    };    
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            let retryCount = 0;
+
+            while (retryCount < maxRetries) {
+                try {
+                  const storedUser: StoredUser = JSON.parse(localStorage.getItem('user') || '{}');
+                  const supermarketId = storedUser.ownedSupermarket?.id || storedUser.supermarket?.id;
+              
+                  if (!supermarketId) {
+                    throw new Error('Supermarket ID no encontrado');
+                  }
+              
+                  const supermarketDetails: Supermarket = await fetchSupermarketDetails(supermarketId);
+                  setSupermarket(supermarketDetails);
+                  setFormData({
+                    ...supermarketDetails,
+                  });
+                  setUserRole(storedUser.role || null);
+                  break;
+                } catch (loadError: unknown) {
+                    retryCount += 1;
+                    if (retryCount >= maxRetries) {
+                        if (loadError instanceof Error) {
+                            setError(`Error al cargar los datos del supermercado después de varios intentos: ${loadError.message}`);
+                        } else {
+                            setError("Error desconocido al cargar los datos del supermercado.");
+                        }
+                        setSupermarket(null);
+                        break;
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const handleEditClick = () => {
+        setIsEditing(true);
+        setFormData(supermarket);
+    };
+
+    const handleCancelClick = () => {
+        setIsEditing(false);
+        setFormData(supermarket);
+    };
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+
+        // Definir las claves válidas de Address
+        const addressKeys: (keyof Address)[] = [
+            'neighborhood',
+            'locationType',
+            'streetNumber',
+            'intersectionNumber',
+            'buildingNumber',
+            'additionalInfo'
+        ];
+
+        if (name === 'name') {
+            setFormData(prevData => ({
+                ...prevData!,
+                name: value
+            }));
+        } else if (addressKeys.includes(name as keyof Address)) {
+            setFormData(prevData => ({
+                ...prevData!,
+                address: {
+                    ...prevData?.address,
+                    [name as keyof Address]: value
+                }
+            }));
+        }
+    };
+
+    const translateLocationType = (locationType: string | undefined): string => {
+      const translations: Record<string, string> = {
+          "avenue": "Avenida",
+          "avenue_street": "Avenida Calle",
+          "avenue_road": "Avenida Carrera",
+          "street": "Calle",
+          "road": "Carrera",
+          "circular": "Circular",
+          "circunvalar": "Circunvalar",
+          "diagonal": "Diagonal",
+          "block": "Manzana",
+          "transversal": "Transversal",
+          "way": "Vía"
+      };
+      return translations[locationType || ""] || locationType || "";
+  };
+
+    return (
+      <Zoom in={!loading}>
+        <Container>
+            {loading ? (
+                <CircularProgress />
+            ) : (
+                <StyledCard>
+                    <CardHeader title={supermarket?.name} />
+                    <Divider />
+                    <CardContent>
+                        {error && <Alert severity="error">{error}</Alert>}
+                        {supermarket && (
+                            <>
+                                <Typography variant="h6" sx={{ mb: 2 }}>
+                                    <strong>Dirección:</strong>
+                                </Typography>
+                                <Stack spacing={2}>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Barrio:</strong> {supermarket.address.neighborhood}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Tipo de ubicación:</strong> {translateLocationType(supermarket.address.locationType)}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Número de calle:</strong> {supermarket.address.streetNumber}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Número de intersección:</strong> {supermarket.address.intersectionNumber}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Número de edificio:</strong> {supermarket.address.buildingNumber}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Información adicional:</strong> {supermarket.address.additionalInfo}</Typography>
+                                    </Box>
+                                </Stack>
+                                {userRole === 'owner' && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                        <Button
+                                            startIcon={<PencilIcon />}
+                                            color="primary"
+                                            size="small"
+                                            onClick={handleEditClick}
+                                            sx={{
+                                                fontSize: '0.875rem',
+                                                padding: '4px 8px',
+                                                textTransform: 'none'
+                                            }}
+                                        >
+                                            Editar
+                                        </Button>
+                                        <Button
+                                            startIcon={<TrashIcon />}
+                                            color="error"
+                                            size="small"
+                                            onClick={handleDeleteClick}
+                                            sx={{
+                                                fontSize: '0.875rem',
+                                                padding: '4px 8px',
+                                                textTransform: 'none'
+                                            }}
+                                        >
+                                            Eliminar
+                                        </Button>
+                                    </Box>
+                                )}
+                                <Divider sx={{ my: 3 }} />
+                            </>
+                        )}
+                        {isEditing && formData && (
+                            <>
+                                <SectionTitle variant="h5">Editar Supermercado</SectionTitle>
+                                <CustomTextField
+                                    label="Nombre"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    fullWidth
+                                    InputProps={{startAdornment: <IconButton><UserFocusIcon /></IconButton>}}
+                                />
+                                <SectionTitle variant="h6">Dirección</SectionTitle>
+                                <Stack spacing={2}>
+                                    <CustomTextField
+                                        label="Barrio"
+                                        name="neighborhood"
+                                        value={formData.address?.neighborhood || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{startAdornment: <IconButton><GpsIcon  /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Tipo de ubicación"
+                                        name="locationType"
+                                        value={translateLocationType(formData.address?.locationType || '')}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Número de calle"
+                                        name="streetNumber"
+                                        value={formData.address?.streetNumber || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Número de intersección"
+                                        name="intersectionNumber"
+                                        value={formData.address?.intersectionNumber || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Número de edificio"
+                                        name="buildingNumber"
+                                        value={formData.address?.buildingNumber || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{startAdornment: <IconButton><BuildingIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Información adicional"
+                                        name="additionalInfo"
+                                        value={formData.address?.additionalInfo || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{startAdornment: <IconButton><InfoIcon /></IconButton>}}
+                                    />
+                                </Stack>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                <Button
+                                    startIcon={<FloppyDiskIcon />}
+                                    color="primary"
+                                    onClick={updateSupermarketDetails}
+                                    size="small"
+                                    sx={{
+                                        fontSize: '0.875rem',
+                                        padding: '4px 8px',
+                                        textTransform: 'none',
+                                        ml: 1
+                                    }}
+                                >
+                                    Guardar
+                                </Button>
+                                <Button
+                                    startIcon={<XIcon />}
+                                    color="error"
+                                    onClick={handleCancelClick}
+                                    size="small"
+                                    sx={{
+                                        fontSize: '0.875rem',
+                                        padding: '4px 8px',
+                                        textTransform: 'none',
+                                        ml: 1
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                              </Box>
+                            </>
+                        )}
+                    </CardContent>
+                </StyledCard>
+            )}
+            <Dialog
+                open={dialogOpen}
+                onClose={() => {setDialogOpen(false)}}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">Confirmar eliminación</DialogTitle>
+                <DialogContent>
+                    <Typography>¿Estás seguro de que deseas eliminar este supermercado?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => {setDialogOpen(false)}} color="primary">
+                        Cancelar
+                    </Button>
+                    <Button onClick={deleteSupermarket} color="error">
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => {setSnackbarOpen(false)}}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert onClose={() => {setSnackbarOpen(false)}} severity={deleteSuccess ? 'success' : 'error'}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => {setSnackbarOpen(false)}}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => {setSnackbarOpen(false)}}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </Container>
+      </Zoom>
+    );
+};
+
+export default SupermarketDetails;
