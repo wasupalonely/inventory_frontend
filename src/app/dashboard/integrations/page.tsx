@@ -595,7 +595,7 @@ const handleSnackbarClose = () => {
               error={Boolean(fieldState.error)}
               helperText={fieldState.error ? fieldState.error.message : ''}
               inputProps={{ maxLength: 50 }}
-              
+              sx={{ marginTop: '5px' }}
             />
           )}
         />
