@@ -54,7 +54,6 @@ const [openEditProduct, setOpenEditProduct] = React.useState(false);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [products, setProducts] = React.useState<Inventory[]>([]); // Define el tipo para products
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [showInfoBox, setShowInfoBox] = React.useState(false);
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
   const [snackbarSeverity, setSnackbarSeverity] = React.useState<'success' | 'error'>('success');
@@ -481,6 +480,7 @@ const handleSnackbarClose = () => {
                 '&:hover': {
                   transform: 'scale(1.02)', // Zoom ligero al pasar el ratón
                 },
+                position: 'relative',
               }}
             >
 
@@ -501,8 +501,7 @@ const handleSnackbarClose = () => {
     justifyContent: 'center', // Centrar horizontalmente
       }}
     >
-      
-    </Box>
+  </Box>    
           {/* Nombre del producto truncado en una sola línea */}
           <Typography
             variant="h6"
@@ -596,12 +595,14 @@ const handleSnackbarClose = () => {
               error={Boolean(fieldState.error)}
               helperText={fieldState.error ? fieldState.error.message : ''}
               inputProps={{ maxLength: 50 }}
+              
             />
           )}
         />
 
         
         <Controller
+        
           name="description"
           control={control}
           render={({ field }) => (
@@ -726,6 +727,7 @@ const handleSnackbarClose = () => {
               error={Boolean(fieldState.error)}
               helperText={fieldState.error ? fieldState.error.message : ''}
               inputProps={{ maxLength: 50 }}
+              sx={{ marginTop: '5px' }}
             />
           )}
         />
@@ -754,7 +756,12 @@ const handleSnackbarClose = () => {
   </Dialog>
 
   {/* Modal para editar producto */}
-<Dialog open={openEditProduct} onClose={handleCloseEditProduct}>
+<Dialog open={openEditProduct} 
+onClose={handleCloseEditProduct}
+  maxWidth="md" // Cambia el ancho máximo, puedes probar con "lg" también
+  fullWidth // Esto permite que el modal use el ancho máximo definido
+  sx={{ '& .MuiDialog-paper': { width: '400px', maxWidth: '100%' } }}
+>
   <DialogTitle>Editar Producto</DialogTitle>
   <DialogContent>
     <Stack spacing={2}>
@@ -770,6 +777,7 @@ const handleSnackbarClose = () => {
             error={Boolean(fieldState.error)}
             helperText={fieldState.error ? fieldState.error.message : ''}
             inputProps={{ maxLength: 50 }}
+            sx={{ marginTop: '5px' }}
           />
         )}
       />
