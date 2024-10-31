@@ -15,12 +15,7 @@ import { ArrowRight as ArrowRightIcon } from '@phosphor-icons/react/dist/ssr/Arr
 import { DotsThreeVertical as DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/ssr/DotsThreeVertical';
 import dayjs from 'dayjs';
 
-export interface Product {
-  id: string;
-  image: string;
-  name: string;
-  updatedAt: Date;
-}
+import { type Product } from '@/lib/dashboard/client';
 
 export interface LatestProductsProps {
   products?: Product[];

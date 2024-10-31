@@ -38,6 +38,7 @@ export interface RegisterResponse {
 }
 
 export interface SupermarketSignUpParams {
+  id?: number;
   name: string;
   address: {
     neighborhood: string;

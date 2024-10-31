@@ -13,11 +13,12 @@ export const navItems: NavItemConfig[] = [
     title: 'Supermercado', 
     href: paths.dashboard.supermarket, 
     icon: 'shopping-cart',
+    roles: ['admin', 'owner', 'viewer']
   },
   { 
-    key: 'customers', 
-    title: 'Usuarios', 
-    href: paths.dashboard.customers, 
+    key: 'customers',
+    title: 'Usuarios',
+    href: paths.dashboard.customers,
     icon: 'users',
     roles: ['admin', 'owner', 'viewer']
   },
