@@ -74,7 +74,12 @@ export function ResetPasswordForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Correo electrónico</InputLabel>
-                <OutlinedInput {...field} label="Correo electronico" type="email" inputProps={{ maxLength: 255 }} />
+                <OutlinedInput {...field} label="Correo electronico" type="email" inputProps={{ maxLength: 255,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                 }} />
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}

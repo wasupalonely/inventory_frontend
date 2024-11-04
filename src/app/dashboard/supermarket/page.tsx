@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import {Card, CardContent, CircularProgress, Typography, Alert, Button, TextField, Stack, Box, Divider, CardHeader, IconButton, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions} from '@mui/material';
+import {Card, CardContent, Typography, Alert, Button, TextField, Stack, Box, Divider, CardHeader, IconButton, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
 import { FloppyDisk as FloppyDiskIcon  } from '@phosphor-icons/react/dist/ssr/FloppyDisk';
@@ -14,7 +14,6 @@ import { Gps as GpsIcon } from '@phosphor-icons/react/dist/ssr/Gps';
 import { Info as InfoIcon } from '@phosphor-icons/react/dist/ssr/Info';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
-import { Zoom } from '@mui/material';
 
 const Container = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -72,7 +71,7 @@ interface StoredUser {
 
 const SupermarketDetails = () => {
     const [supermarket, setSupermarket] = useState<Supermarket | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Supermarket | null>(null);
@@ -300,11 +299,7 @@ const SupermarketDetails = () => {
   };
 
     return (
-      <Zoom in={!loading}>
         <Container>
-            {loading ? (
-                <CircularProgress />
-            ) : (
                 <StyledCard>
                     <CardHeader title={supermarket?.name} />
                     <Divider />
@@ -377,7 +372,11 @@ const SupermarketDetails = () => {
                                     value={formData.name}
                                     onChange={handleInputChange}
                                     fullWidth
-                                    InputProps={{startAdornment: <IconButton><UserFocusIcon /></IconButton>}}
+                                    InputProps={{onInput: (event) => {
+                                      const input = event.target as HTMLInputElement;
+                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                    },
+                                    startAdornment: <IconButton><UserFocusIcon /></IconButton>}}
                                 />
                                 <SectionTitle variant="h6">Dirección</SectionTitle>
                                 <Stack spacing={2}>
@@ -387,7 +386,11 @@ const SupermarketDetails = () => {
                                         value={formData.address?.neighborhood || ''}
                                         onChange={handleInputChange}
                                         fullWidth
-                                        InputProps={{startAdornment: <IconButton><GpsIcon  /></IconButton>}}
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                          startAdornment: <IconButton><GpsIcon  /></IconButton>}}
                                     />
                                     <CustomTextField
                                         label="Tipo de ubicación"
@@ -403,7 +406,11 @@ const SupermarketDetails = () => {
                                         value={formData.address?.streetNumber || ''}
                                         onChange={handleInputChange}
                                         fullWidth
-                                        InputProps={{startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                          startAdornment: <IconButton><SignpostIcon /></IconButton>}}
                                     />
                                     <CustomTextField
                                         label="Número de intersección"
@@ -411,7 +418,11 @@ const SupermarketDetails = () => {
                                         value={formData.address?.intersectionNumber || ''}
                                         onChange={handleInputChange}
                                         fullWidth
-                                        InputProps={{startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><SignpostIcon /></IconButton>}}
                                     />
                                     <CustomTextField
                                         label="Número de edificio"
@@ -419,7 +430,11 @@ const SupermarketDetails = () => {
                                         value={formData.address?.buildingNumber || ''}
                                         onChange={handleInputChange}
                                         fullWidth
-                                        InputProps={{startAdornment: <IconButton><BuildingIcon /></IconButton>}}
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><BuildingIcon /></IconButton>}}
                                     />
                                     <CustomTextField
                                         label="Información adicional"
@@ -427,7 +442,11 @@ const SupermarketDetails = () => {
                                         value={formData.address?.additionalInfo || ''}
                                         onChange={handleInputChange}
                                         fullWidth
-                                        InputProps={{startAdornment: <IconButton><InfoIcon /></IconButton>}}
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><InfoIcon /></IconButton>}}
                                     />
                                 </Stack>
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
@@ -464,7 +483,6 @@ const SupermarketDetails = () => {
                         )}
                     </CardContent>
                 </StyledCard>
-            )}
             <Dialog
                 open={dialogOpen}
                 onClose={() => {setDialogOpen(false)}}
@@ -509,7 +527,6 @@ const SupermarketDetails = () => {
                 </Alert>
             </Snackbar>
         </Container>
-      </Zoom>
     );
 };
 

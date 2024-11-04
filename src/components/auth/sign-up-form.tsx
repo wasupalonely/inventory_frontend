@@ -136,7 +136,12 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.firstName)} required>
       <InputLabel required>Primer nombre</InputLabel>
-      <OutlinedInput {...field} label="Primer Nombre" inputProps={{ maxLength: 50 }}/>
+      <OutlinedInput {...field} label="Primer Nombre" inputProps={{ maxLength: 50,
+        onInput: (event) => {
+          const input = event.target as HTMLInputElement;
+          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+        }
+       }}/>
       {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -147,7 +152,12 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl>
       <InputLabel>Segundo nombre</InputLabel>
-      <OutlinedInput {...field} label="Segundo Nombre" inputProps={{ maxLength: 50 }} />
+      <OutlinedInput {...field} label="Segundo Nombre" inputProps={{ maxLength: 50,
+        onInput: (event) => {
+          const input = event.target as HTMLInputElement;
+          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+        }
+       }} />
     </FormControl>
   )}
 />
@@ -157,7 +167,12 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.lastName)} required>
       <InputLabel required>Primer apellido</InputLabel>
-      <OutlinedInput {...field} label="Primer Apellido" inputProps={{ maxLength: 50 }} />
+      <OutlinedInput {...field} label="Primer Apellido" inputProps={{ maxLength: 50,
+        onInput: (event) => {
+          const input = event.target as HTMLInputElement;
+          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+        }
+       }} />
       {errors.lastName ? <FormHelperText>{errors.lastName.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -168,7 +183,11 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl>
       <InputLabel>Segundo apellido</InputLabel>
-      <OutlinedInput {...field} label="Segundo Apellido" inputProps={{ maxLength: 50 }} />
+      <OutlinedInput {...field} label="Segundo Apellido" inputProps={{ maxLength: 50,
+      onInput: (event) => {
+            const input = event.target as HTMLInputElement;
+            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+          } }} />
     </FormControl>
   )}
 />
@@ -178,7 +197,11 @@ export function SignUpForm(): React.JSX.Element {
   render={({ field }) => (
     <FormControl error={Boolean(errors.email)} required>
       <InputLabel required>Correo electrónico</InputLabel>
-      <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255 }} />
+      <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255,
+       onInput: (event) => {
+            const input = event.target as HTMLInputElement;
+            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+          } }} />
       {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
     </FormControl>
   )}
@@ -192,7 +215,12 @@ export function SignUpForm(): React.JSX.Element {
       <OutlinedInput
         {...field}
         label="Numero de Celular"
-        inputProps={{ maxLength: 10 }}
+        inputProps={{ maxLength: 10,
+          onInput: (event) => {
+            const input = event.target as HTMLInputElement;
+            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+          }
+         }}
         onKeyPress={(event) => {
           if (!/[0-9]/.test(event.key)) {
             event.preventDefault();
@@ -226,7 +254,12 @@ export function SignUpForm(): React.JSX.Element {
         )}
         label="Contraseña"
         type={showPassword ? 'text' : 'password'}
-        inputProps={{ maxLength: 20 }}
+        inputProps={{ maxLength: 20,
+          onInput: (event) => {
+            const input = event.target as HTMLInputElement;
+            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+          }
+         }}
       />
       {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
     </FormControl>
@@ -255,7 +288,12 @@ export function SignUpForm(): React.JSX.Element {
         )}
         label="Confirmar contraseña"
         type={showConfirmPassword ? 'text' : 'password'}
-        inputProps={{ maxLength: 20 }}
+        inputProps={{ maxLength: 20,
+                    onInput: (event) => {
+            const input = event.target as HTMLInputElement;
+            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+          }
+         }}
       />
       {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
     </FormControl>

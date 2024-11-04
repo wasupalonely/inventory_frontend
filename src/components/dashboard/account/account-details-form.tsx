@@ -14,7 +14,6 @@
   import Alert from '@mui/material/Alert';
   import { useUser } from '@/hooks/use-user';
   import { API_URL } from '@/config';
-  import { useRouter, useSearchParams } from 'next/navigation';
   import Dialog from '@mui/material/Dialog';
   import DialogActions from '@mui/material/DialogActions';
   import DialogContent from '@mui/material/DialogContent';
@@ -47,7 +46,6 @@
     const [showPassword, setShowPassword] = React.useState<boolean>();
     const [showNewPassword, setShowNewPassword] = React.useState<boolean>();
     const [showConfirmPassword, setShowConfirmPassword] = React.useState<boolean>()
-    const router = useRouter();
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = event.target;

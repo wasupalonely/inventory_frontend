@@ -18,19 +18,11 @@ import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { useSelection } from '@/hooks/use-selection';
 import { useUser } from '@/hooks/use-user';
 
-export interface Customer {
-  name: any;
+export interface Categories {
   id: number;
+  name: string;
+  description: string;
   supermarketId: number;
-  ownedSupermarket: object;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  secondLastName?: string;
-  email: string;
-  phoneNumber: string;
-  password?: string;
-  role: 'admin' | 'viewer' | 'cashier';
 }
 
 interface SuccessMessageProps {
@@ -39,14 +31,14 @@ interface SuccessMessageProps {
   onClose: () => void;
 }
 
-interface CustomersTableProps {
+interface CategoriesTableProps {
   count?: number;
   page?: number;
-  rows?: Customer[];
+  rows?: Categories[];
   rowsPerPage?: number;
   onPageChange?: (event: unknown, newPage: number) => void;
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onEdit?: (user?: Customer) => void;
+  onEdit?: (user?: Categories) => void;
   onDelete?: (userId: number) => Promise<void>;
 }
 
@@ -60,7 +52,7 @@ export function SuccessMessage({ open, message, onClose }: SuccessMessageProps) 
   );
 }
 
-export function CustomersTable({
+export function CategoriesTable({
   count = 0,
   rows = [],
   page = 0,
@@ -77,9 +69,9 @@ export function CustomersTable({
   onDelete = async () => {
     /* No implementation needed */
   },
-}: CustomersTableProps): React.JSX.Element {
+}: CategoriesTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
-    return rows.map((customer) => customer.id);
+    return rows.map((categories) => categories.id);
   }, [rows]);
 
   const { user } = useUser();
@@ -94,18 +86,12 @@ export function CustomersTable({
     setSuccessMessage(null);
   };
 
-  const handleEdit = async (row: Customer): Promise<void> => {
+  const handleEdit = async (row: Categories): Promise<void> => {
     onEdit(row);
   };
 
   const handleDelete = async (userId: number): Promise<void> => {
     await onDelete(userId);
-  };
-
-  const roleTranslations: Record<string, string> = {
-    admin: 'Administrador',
-    viewer: 'Observador',
-    cashier: 'Cajero',
   };
 
   return (
@@ -128,13 +114,8 @@ export function CustomersTable({
                   }}
                 />
               </TableCell>
-              <TableCell>Primer Nombre</TableCell>
-              <TableCell>Segundo Nombre</TableCell>
-              <TableCell>Primer Apellido</TableCell>
-              <TableCell>Segundo Apellido</TableCell>
-              <TableCell>Correo electrónico</TableCell>
-              <TableCell>Número de celular</TableCell>
-              <TableCell>Rol</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell style={{ width: '70%' }}>Descripción</TableCell>
               {user?.role !== 'viewer' && <TableCell>Acciones</TableCell>}
             </TableRow>
           </TableHead>
@@ -156,13 +137,8 @@ export function CustomersTable({
                       }}
                     />
                   </TableCell>
-                  <TableCell>{row.firstName}</TableCell>
-                  <TableCell>{row.middleName}</TableCell>
-                  <TableCell>{row.lastName}</TableCell>
-                  <TableCell>{row.secondLastName}</TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.phoneNumber}</TableCell>
-                  <TableCell>{roleTranslations[row.role]}</TableCell>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.description}</TableCell>
                   {user?.role !== 'viewer' && (
                     <TableCell>
                       {' '}

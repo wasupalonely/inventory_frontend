@@ -62,6 +62,7 @@ export default function Page(): React.JSX.Element {
       password: '',
       role: '',
     },
+    mode: 'onChange'
   });
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
@@ -436,7 +437,17 @@ export default function Page(): React.JSX.Element {
                 fullWidth
                 error={Boolean(errors.firstName)}
                 helperText={errors.firstName ? errors.firstName.message : ''}
-                inputProps={{ maxLength: 50 }}
+                inputProps={{ maxLength: 50,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  },
+                  onKeyPress: (event) => {
+                    if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                      event.preventDefault();
+                    }
+                  }
+                 }}
                 required
               />
             )}
@@ -452,7 +463,17 @@ export default function Page(): React.JSX.Element {
                 fullWidth
                 error={Boolean(errors.middleName)}
                 helperText={errors.middleName?.message}
-                inputProps={{ maxLength: 50 }}
+                inputProps={{ maxLength: 50,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  },
+                  onKeyPress: (event) => {
+                    if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                      event.preventDefault();
+                    }
+                  }
+                 }}
               />
             )}
           />
@@ -468,7 +489,17 @@ export default function Page(): React.JSX.Element {
                 fullWidth
                 error={Boolean(errors.lastName)}
                 helperText={errors.lastName?.message}
-                inputProps={{ maxLength: 50 }}
+                inputProps={{ maxLength: 50,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  },
+                  onKeyPress: (event) => {
+                    if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                      event.preventDefault();
+                    }
+                  }
+                 }}
                 required
               />
             )}
@@ -484,7 +515,17 @@ export default function Page(): React.JSX.Element {
                 fullWidth
                 error={Boolean(errors.secondLastName)}
                 helperText={errors.secondLastName?.message}
-                inputProps={{ maxLength: 50 }}
+                inputProps={{ maxLength: 50,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  },
+                  onKeyPress: (event) => {
+                    if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                      event.preventDefault();
+                    }
+                  }
+                 }}
               />
             )}
           />
@@ -506,7 +547,12 @@ export default function Page(): React.JSX.Element {
                 fullWidth
                 error={Boolean(errors.email)}
                 helperText={errors.email?.message}
-                inputProps={{ maxLength: 255 }}
+                inputProps={{ maxLength: 255,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                 }}
                 required
               />
             )}
@@ -529,7 +575,12 @@ export default function Page(): React.JSX.Element {
                 fullWidth
                 error={Boolean(errors.phoneNumber)}
                 helperText={errors.phoneNumber?.message}
-                inputProps={{ maxLength: 10 }}
+                inputProps={{ maxLength: 10,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                 }}
                 onKeyPress={(event) => {
                   if (!/[0-9]/.test(event.key)) {
                     event.preventDefault();
@@ -574,6 +625,10 @@ export default function Page(): React.JSX.Element {
                 helperText={error?.message}
                 inputProps={{
                   maxLength: 20,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  },
                   readOnly: editingUser,
                 }}
                 required={!editingUser}
