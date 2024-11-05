@@ -183,7 +183,12 @@ export function SignInForm(): React.JSX.Element {
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Correo electrónico</InputLabel>
-                <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255 }}/>
+                <OutlinedInput {...field} label="Correo Electronico" type="email" inputProps={{ maxLength: 255,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                 }}/>
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -213,7 +218,12 @@ export function SignInForm(): React.JSX.Element {
                   }
                   label="Contraseña"
                   type={showPassword ? 'text' : 'password'}
-                  inputProps={{ maxLength: 20 }}
+                  inputProps={{ maxLength: 20,
+                    onInput: (event) => {
+                      const input = event.target as HTMLInputElement;
+                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                    }
+                   }}
                 />
                 {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
               </FormControl>

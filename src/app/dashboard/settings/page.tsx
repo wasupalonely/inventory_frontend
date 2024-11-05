@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography';
 
 import { config } from '@/config';
 import { Notifications } from '@/components/dashboard/settings/notifications';
-import { UpdatePasswordForm } from '@/components/auth/update-password-form';
 
 export const metadata: Metadata = { title: config.site.name }; 
 
@@ -15,8 +14,7 @@ export default function Page(): React.JSX.Element {
       <div>
         <Typography variant="h4">Configuración</Typography>
       </div>
-      <Notifications />
-      <UpdatePasswordForm />
+      <Notifications/>
     </Stack>
   );
 }

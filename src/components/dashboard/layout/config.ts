@@ -23,6 +23,12 @@ export const navItems: NavItemConfig[] = [
     roles: ['admin', 'owner', 'viewer']
   },
   { 
+    key: 'categories', 
+    title: 'Categorías', 
+    href: paths.dashboard.categories, 
+    icon: 'scroll',
+  },
+  { 
     key: 'inventory', 
     title: 'Inventario', 
     href: paths.dashboard.integrations, 
