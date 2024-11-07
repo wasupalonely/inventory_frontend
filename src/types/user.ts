@@ -1,11 +1,20 @@
-import { SupermarketSignUpParams } from "@/lib/auth/client";
+import { type SupermarketSignUpParams } from '@/lib/auth/client';
 
 export interface User {
-  id: string;
-  name?: string;
+  id: number;
   avatar?: string;
-  email?: string;
-  ownedSupermarket?: SupermarketSignUpParams | null;  // Supermercado que posee el usuario (puede ser null si no tiene)
+  email: string;
+  ownedSupermarket?: SupermarketSignUpParams;
 
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  secondLastName?: string;
+  phoneNumber: string;
+  isConfirmed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  role: 'owner' | 'cashier' | 'admin' | 'viewer';
+  supermarket?: SupermarketSignUpParams;
   [key: string]: unknown;
 }

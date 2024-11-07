@@ -38,6 +38,7 @@ export interface RegisterResponse {
 }
 
 export interface SupermarketSignUpParams {
+  id?: number;
   name: string;
   address: {
     neighborhood: string;
@@ -177,7 +178,7 @@ class AuthClient {
       }
       localStorage.setItem('custom-auth-token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('userId', userId);
+      localStorage.setItem('userId', userId.toString());
       
       
 
