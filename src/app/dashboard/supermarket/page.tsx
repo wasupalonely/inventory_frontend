@@ -14,6 +14,7 @@ import { Gps as GpsIcon } from '@phosphor-icons/react/dist/ssr/Gps';
 import { Info as InfoIcon } from '@phosphor-icons/react/dist/ssr/Info';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 const Container = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -141,6 +142,7 @@ const SupermarketDetails = () => {
             setSnackbarMessage('Información del supermercado actualizada exitosamente');
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
+            setDialogOpen(false);
         } catch (updateError: unknown) {
             setSnackbarMessage('Error al actualizar el supermercado. Intente nuevamente.');
             setSnackbarSeverity('error');
@@ -252,9 +254,6 @@ const SupermarketDetails = () => {
         setFormData(supermarket);
     };
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-
         // Definir las claves válidas de Address
         const addressKeys: (keyof Address)[] = [
             'neighborhood',
@@ -265,22 +264,39 @@ const SupermarketDetails = () => {
             'additionalInfo'
         ];
 
-        if (name === 'name') {
-            setFormData(prevData => ({
-                ...prevData!,
-                name: value
-            }));
-        } else if (addressKeys.includes(name as keyof Address)) {
-            setFormData(prevData => ({
-                ...prevData!,
-                address: {
-                    ...prevData?.address,
-                    [name as keyof Address]: value
-                }
-            }));
-        }
-    };
+        const validInputPattern = /^[a-zA-Z0-9\s]*$/;
 
+
+        const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+            const { name, value } = event.target;
+        
+            const validNamePattern = /^[a-zA-Z0-9\s]*$/;
+        
+            if (name !== 'locationType' && name !== 'name' && !validInputPattern.test(value)) {
+                return; 
+            }
+        
+            if ((name === 'locationType' || name === 'name') || value.length <= 10) {
+                if (name === 'name') {
+                    if (!validNamePattern.test(value) || value.length > 30) {
+                        return; 
+                    }
+                    setFormData(prevData => ({
+                        ...prevData!,
+                        name: value
+                    }));
+                } else if (addressKeys.includes(name as keyof Address)) {
+                    setFormData(prevData => ({
+                        ...prevData!,
+                        address: {
+                            ...prevData?.address,
+                            [name as keyof Address]: value
+                        }
+                    }));
+                }
+            }
+        };
+        
     const translateLocationType = (locationType: string | undefined): string => {
       const translations: Record<string, string> = {
           "avenue": "Avenida",
@@ -392,14 +408,21 @@ const SupermarketDetails = () => {
                                         },
                                           startAdornment: <IconButton><GpsIcon  /></IconButton>}}
                                     />
-                                    <CustomTextField
+                                    <FormControl fullWidth>
+                                    <InputLabel>Tipo de ubicación</InputLabel>
+                                    <Select
                                         label="Tipo de ubicación"
                                         name="locationType"
-                                        value={translateLocationType(formData.address?.locationType || '')}
-                                        onChange={handleInputChange}
-                                        fullWidth
-                                        InputProps={{startAdornment: <IconButton><SignpostIcon /></IconButton>}}
-                                    />
+                                        value={formData.address?.locationType || ''}
+                                        onChange={(event) => {handleInputChange(event as React.ChangeEvent<HTMLInputElement>)}}  // Cambié el tipo de evento aquí
+                                    >
+                                         {['avenue', 'avenue_street', 'avenue_road', 'street', 'road', 'circunvalar', 'diagonal', 'block', 'transversal', 'way'].map((type) => (
+                                        <MenuItem key={type} value={type}>
+                                            {translateLocationType(type)}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    </FormControl>
                                     <CustomTextField
                                         label="Número de calle"
                                         name="streetNumber"

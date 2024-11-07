@@ -401,9 +401,15 @@ export default function Page(): React.JSX.Element {
                 onInput: (event) => {
                   const input = event.target as HTMLInputElement;
                   input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                },
+                onKeyPress: (event) => {
+                  if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                    event.preventDefault();
+                  }
                 }
                }}
               sx={{ marginTop: '5px' }}
+              required
             />
           )}
         />
