@@ -160,7 +160,12 @@ export function UpdatePasswordForm(): React.JSX.Element {
                       }
                       label="Nueva contraseña"
                       type={showNewPassword ? 'text' : 'password'} // Cambia según el estado de visibilidad
-                      inputProps={{ maxLength: 20 }}
+                      inputProps={{ maxLength: 20,
+                        onInput: (event) => {
+                          const input = event.target as HTMLInputElement;
+                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                        }
+                       }}
                     />
                     {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
                   </FormControl>
@@ -192,7 +197,12 @@ export function UpdatePasswordForm(): React.JSX.Element {
                       }
                       label="Confirmar contraseña"
                       type={showConfirmPassword ? 'text' : 'password'} // Cambia según el estado de visibilidad
-                      inputProps={{ maxLength: 20 }}
+                      inputProps={{ maxLength: 20,
+                        onInput: (event) => {
+                          const input = event.target as HTMLInputElement;
+                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                        }
+                       }}
                     />
                     {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
                   </FormControl>

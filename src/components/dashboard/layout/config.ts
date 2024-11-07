@@ -40,7 +40,13 @@ export const navItems: NavItemConfig[] = [
     title: 'Historial de Ventas', 
     href: paths.dashboard.sales_history, 
     icon: 'chart-bar',
-    roles: ['admin', 'owner']
+    roles: ['admin', 'owner'],
+  }, 
+  {
+    key: 'categories', 
+    title: 'Categorías', 
+    href: paths.dashboard.categories, 
+    icon: 'scroll',
   },
   { 
     key: 'account', 

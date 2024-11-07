@@ -186,12 +186,7 @@ class AuthClient {
     } catch (error) {
       return { error: 'Error de red. Inténtalo de nuevo.' };
     }
-  }
-  
-  
-  
-  
-  
+  }    
 
   async resetPassword(params: ResetPasswordParams): Promise<{ error?: string | null }> {
     try {

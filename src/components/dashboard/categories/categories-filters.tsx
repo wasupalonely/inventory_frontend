@@ -6,17 +6,17 @@ import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/di
 
 type OnSearchFunction = (searchValue: string) => void;
   
-interface CustomersFiltersProps {
+interface CategoriesFiltersProps {
   onSearch: OnSearchFunction;
 }
 
-export function CustomersFilters({ onSearch }: CustomersFiltersProps) {
+export function CategoriesFilters({ onSearch }: CategoriesFiltersProps) {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput
         defaultValue=""
         fullWidth
-        placeholder="Buscar usuario"
+        placeholder="Buscar categoría"
         onChange={(e) => { 
           onSearch(e.target.value);
         }}

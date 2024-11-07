@@ -18,9 +18,13 @@ import { Logo } from '@/components/core/logo';
 
 import { navItems } from './config';
 import { navIcons } from './nav-icons';
+import { filterNavItemsByRole } from '@/lib/filter-nav-items-by-role';
+import { useUser } from '@/hooks/use-user';
 
 export function SideNav(): React.JSX.Element {
+  const { user } = useUser();
   const pathname = usePathname();
+  const filteredNavItems = filterNavItemsByRole(navItems, user?.role || 'viewer');
 
   return (
     <Box
@@ -57,7 +61,7 @@ export function SideNav(): React.JSX.Element {
       </Stack>
       <Divider sx={{ borderColor: 'var(--mui-palette-neutral-700)' }} />
       <Box component="nav" sx={{ flex: '1 1 auto', p: '12px' }}>
-        {renderNavItems({ pathname, items: navItems })}
+        {renderNavItems({ pathname, items: filteredNavItems })}
       </Box>
     </Box>
   );

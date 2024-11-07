@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useRouter} from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Grid, InputAdornment, MenuItem, Select, TextField, Checkbox, FormControlLabel} from '@mui/material';
+import { Grid, InputAdornment, MenuItem, Select, TextField} from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -195,7 +195,12 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               render={({ field }) => (
                 <FormControl error={Boolean(errors.name)}>
                   <InputLabel>Nombre del supermercado</InputLabel>
-                  <OutlinedInput {...field} label="Nombre del supermercado" inputProps={{ maxLength: 255 }} />
+                  <OutlinedInput {...field} label="Nombre del supermercado" inputProps={{ maxLength: 255,
+                    onInput: (event) => {
+                      const input = event.target as HTMLInputElement;
+                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                    }
+                   }} />
                   {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
                 </FormControl>
               )}
@@ -207,7 +212,12 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               render={({ field }) => (
                 <FormControl error={Boolean(errors.address?.neighborhood)}>
                   <InputLabel>Barrio</InputLabel>
-                  <OutlinedInput {...field} label="Barrio" inputProps={{ maxLength: 255 }} />
+                  <OutlinedInput {...field} label="Barrio" inputProps={{ maxLength: 255,
+                    onInput: (event) => {
+                      const input = event.target as HTMLInputElement;
+                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                    }
+                   }} />
                   {errors.address?.neighborhood ? <FormHelperText>{errors.address.neighborhood.message}</FormHelperText> : null}
                 </FormControl>
               )}
@@ -244,7 +254,12 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                     <TextField
                       {...field}
                       label="Número de la calle"
-                      inputProps={{ maxLength: 20 }}
+                      inputProps={{ maxLength: 20,
+                        onInput: (event) => {
+                          const input = event.target as HTMLInputElement;
+                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                        }
+                       }}
                       error={Boolean(errors.address?.streetNumber)}
                       helperText={errors.address?.streetNumber?.message}
                       fullWidth
@@ -263,7 +278,11 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                       InputProps={{
                         startAdornment: <InputAdornment position="start">#</InputAdornment>,
                       }}
-                      inputProps={{ maxLength: 20 }}
+                      inputProps={{ maxLength: 20,
+                        onInput: (event) => {
+                        const input = event.target as HTMLInputElement;
+                        input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                      } }}
                       error={Boolean(errors.address?.intersectionNumber)}
                       helperText={errors.address?.intersectionNumber?.message}
                       fullWidth
@@ -281,7 +300,12 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                       InputProps={{
                         startAdornment: <InputAdornment position="start">-</InputAdornment>,
                       }}
-                      inputProps={{ maxLength: 20 }}
+                      inputProps={{ maxLength: 20,
+                        onInput: (event) => {
+                          const input = event.target as HTMLInputElement;
+                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                        }
+                       }}
                       label="Número de edificio"
                       error={Boolean(errors.address?.buildingNumber)}
                       helperText={errors.address?.buildingNumber?.message}
@@ -297,7 +321,12 @@ export function SupermarketSignUpForm(): React.JSX.Element {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  inputProps={{ maxLength: 255 }}
+                  inputProps={{ maxLength: 255,
+                    onInput: (event) => {
+                      const input = event.target as HTMLInputElement;
+                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                    }
+                   }}
                   label="Información adicional"
                   error={Boolean(errors.address?.additionalInfo)}
                   helperText={errors.address?.additionalInfo?.message}
