@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, IconButton, DialogActions, Pagination, Snackbar, Alert } from '@mui/material';
 import { API_URL } from '@/config';
 import { User } from '@/types/user';
+import { DownloadSimple } from '@phosphor-icons/react';
 
 interface Sale {
   id: number;
@@ -63,8 +64,8 @@ export function SalesHistory(): React.JSX.Element {
       });
 
       if (response.ok) {
-        const salesData = await response.json();
-        const sortedSales = salesData.sort((a: Sale, b: Sale) => {
+        const salesData: Sale[] = await response.json() as Sale[]; // Especifica el tipo `Sale[]`
+        const sortedSales = salesData.sort((a, b) => {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         setSales(sortedSales);
@@ -76,11 +77,11 @@ export function SalesHistory(): React.JSX.Element {
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
       }
-    } catch (error) {
-      setSnackbarMessage('Error al cargar el historial de ventas');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
+      } catch (fetchError) { // Renombra `error` para evitar conflicto
+        setSnackbarMessage('Error al cargar el historial de ventas');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
   };
 
   useEffect(() => {
@@ -109,8 +110,8 @@ export function SalesHistory(): React.JSX.Element {
 
       if (response.ok) {
         const blob = await response.blob();
-        const pdfUrl = URL.createObjectURL(blob);
-        setPdfUrl(pdfUrl);
+        const newPdfUrl = URL.createObjectURL(blob); // Renombrado para evitar conflicto
+        setPdfUrl(newPdfUrl);
         setDialogOpen(true);
         setSnackbarMessage('Factura cargada correctamente');
         setSnackbarSeverity('success');
@@ -120,11 +121,11 @@ export function SalesHistory(): React.JSX.Element {
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
       }
-    } catch (error) {
-      setSnackbarMessage('Error al cargar la factura');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
+      } catch (fetchError) { // Renombra `error` para evitar conflicto
+        setSnackbarMessage('Error al cargar la factura');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
   };
 
   const closeDialog = () => {
@@ -134,7 +135,7 @@ export function SalesHistory(): React.JSX.Element {
 
   return (
     <Card>
-      <CardHeader title="Historial de Ventas" subheader="Todas las ventas realizadas" />
+      <CardHeader title="Todas las ventas realizadas"/>
       <CardContent>
         <TableContainer component={Paper}>
           <Table>
@@ -173,12 +174,30 @@ export function SalesHistory(): React.JSX.Element {
       <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="md" fullWidth>
         <DialogTitle>
           Ver Factura
+          
+          <IconButton
+      component="a"
+      href={pdfUrl || '#'}
+      download="Factura_Venta.pdf"
+      aria-label="Descargar PDF"
+      sx={{
+        position: 'absolute',
+        right: { xs: 48, md: 72 }, // Espacio ajustado para que no se superponga con el botón de cerrar
+        top: 8,
+        width: { xs: 32, md: 48 },
+        height: { xs: 32, md: 48 },
+      }}
+    >
+      <DownloadSimple size={24} />
+    </IconButton>
+
           <IconButton
             aria-label="close"
             onClick={closeDialog}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
           </IconButton>
+          
         </DialogTitle>
         <DialogContent>
           {pdfUrl && (

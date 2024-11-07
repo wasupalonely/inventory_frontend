@@ -31,6 +31,7 @@ interface Product {
     id: number;
     name: string;
   };
+  image: File | undefined;
 }
 
 interface Inventory {
@@ -46,11 +47,17 @@ interface SaleProduct {
   totalPrice: number;
 }
 
+interface SaleResponse {
+  id: number;
+
+}
+
 
 export function SalesForm(): React.JSX.Element {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [products, setProducts] = useState<Inventory[]>([]);
+  const [productImages, setProductImages] = useState<Record<number, string>>({});
   const [productQuantities, setProductQuantities] = useState<SaleProduct[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [availableStock, setAvailableStock] = useState<number>(0);
@@ -78,8 +85,15 @@ export function SalesForm(): React.JSX.Element {
       if (response.ok) {
         const data: Inventory[] = await response.json();
         setProducts(data);
-      } else {
-        throw new Error('Error al cargar productos');
+        const imageUrls: Record<number, string> = {};
+        data.forEach((inventory) => {
+          if (inventory.product.image instanceof File) {
+            imageUrls[inventory.product.id] = URL.createObjectURL(inventory.product.image);
+          } else if (typeof inventory.product.image === 'string') {
+            imageUrls[inventory.product.id] = inventory.product.image; // Usar URL almacenada si ya es una cadena
+          }
+        });
+        setProductImages(imageUrls);
       }
     } catch {
       setSnackbarMessage('Error al cargar productos');
@@ -89,7 +103,7 @@ export function SalesForm(): React.JSX.Element {
   };
 
   // Manejar selección del producto
-  const handleProductChange = (event: SelectChangeEvent<string>) => {
+  const handleProductChange = (event: SelectChangeEvent) => {
     const productId = Number(event.target.value);
     const selectedInventory = products.find(item => item.product.id === productId);
     if (selectedInventory) {
@@ -219,15 +233,15 @@ const handleRemoveProduct = (index: number) => {
     return;
   }
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user: User = JSON.parse(localStorage.getItem('user') || '{}') as User;
       const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id;
 
       const saleData = {
         userId: user.id,
         supermarketId,
-        productQuantities: productQuantities.map(({ productId, quantity }) => ({
+        productQuantities: productQuantities.map(({ productId, quantity: itemQuantity }) => ({
           productId,
-          quantity,
+          quantity: itemQuantity,
         })),
       };
 
@@ -248,8 +262,9 @@ const handleRemoveProduct = (index: number) => {
       setSnackbarSeverity('success');
       setProductQuantities([]);
 
-      const sale = await response.json(); // Obtener el objeto de venta creado
-    const saleId = sale.id; // Asegúrate de que la respuesta contiene `id` de la venta creada
+      const sale = (await response.json()) as SaleResponse;
+      const saleId = sale.id; // Ahora TypeScript reconoce `id` de `sale` como seguro
+
 
     // Llamar al endpoint para obtener el PDF de la factura
     const invoiceResponse = await fetch(`${API_URL}/sales/${saleId}/invoice`, {
@@ -261,21 +276,21 @@ const handleRemoveProduct = (index: number) => {
 
     if (invoiceResponse.ok) {
       const blob = await invoiceResponse.blob();
-      const pdfUrl = URL.createObjectURL(blob);
-      setPdfUrl(pdfUrl);
+      const newPdfUrl = URL.createObjectURL(blob); // Renombrado para evitar conflicto
+      setPdfUrl(newPdfUrl);
       setDialogOpen(true);
       setSnackbarMessage('Venta realizada con éxito');
       setSnackbarSeverity('success');
     } else {
       throw new Error('Error al obtener la factura');
     }
-  } catch (error) {
-    setSnackbarMessage('Error al realizar la venta');
-    setSnackbarSeverity('error');
-    console.error(error);
-  } finally {
-    setSnackbarOpen(true);
-  }
+    } catch (error) {
+      setSnackbarMessage('Error al realizar la venta');
+      setSnackbarSeverity('error');
+    } finally {
+      setSnackbarOpen(true);
+    }
+    
 };
 
   useEffect(() => {
@@ -335,59 +350,104 @@ const handleRemoveProduct = (index: number) => {
 
           {/* Mostrar información del producto seleccionado */}
           {selectedProduct && (
-            <Grid item xs={12}>
-              <Card variant="outlined" sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6">{selectedProduct.name}</Typography>
-                <Typography>Descripción: {selectedProduct.description}</Typography>
-                <Typography>Precio Unitario: ${selectedProduct.price}</Typography>
-                <Typography>Stock Disponible: {availableStock}</Typography>
-                <Box
+  <Grid item xs={12}>
+    <Card variant="outlined" sx={{ p: 2, mb: 2, display: 'flex', alignItems: 'center' }}>
+      <Box
         sx={{
-          width: 100,
-          height: 100,
-          border: '1px dashed gray',
+          width: 120,
+          height: 80,
+          mr: 2, // Espacio a la derecha de la imagen
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          mt: 2
+          overflow: 'hidden',
+          border: productImages[selectedProduct.id] ? 'none' : '1px solid #ccc', // Sin borde si hay imagen
+          backgroundColor: productImages[selectedProduct.id] ? 'transparent' : '#f9f9f9', // Fondo transparente si hay imagen
+          borderRadius: 1,
         }}
       >
+        {productImages[selectedProduct.id] ? (
+          <img
+            src={productImages[selectedProduct.id]}
+            alt={selectedProduct.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            Sin imagen
+          </Typography>
+        )}
       </Box>
-              </Card>
-            </Grid>
-          )}
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography variant="h6">{selectedProduct.name}</Typography>
+        <Typography>Descripción: {selectedProduct.description}</Typography>
+        <Typography>Precio Unitario: ${selectedProduct.price}</Typography>
+        <Typography>Stock Disponible: {availableStock}</Typography>
+      </Box>
+    </Card>
+  </Grid>
+)}
+
 
           {/* Lista de productos añadidos */}
-          {productQuantities.map((item, index) => (
-            <Grid item xs={12} key={index}>
-              <Card variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
-                <div>
-                  <Typography variant="h6">{item.productName}</Typography>
-                  <Typography>Cantidad: {item.quantity}</Typography>
-                  <Typography>Precio Total: ${item.totalPrice.toFixed(2)}</Typography>
-                </div>
-                <Box
+{productQuantities.map((item, index) => (
+  <Grid item xs={12} key={index}>
+    <Card variant="outlined" sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+      {/* Imagen del producto */}
+      <Box
         sx={{
           width: 70,
           height: 70,
-          border: '1px dashed gray',
+          mr: 2, // Espacio entre la imagen y los detalles
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          ml: 2
+          overflow: 'hidden',
+          border: productImages[item.productId] ? 'none' : '1px dashed gray',
+          backgroundColor: productImages[item.productId] ? 'transparent' : '#f9f9f9',
         }}
       >
+        {productImages[item.productId] ? (
+          <img
+            src={productImages[item.productId]}
+            alt={item.productName}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            Sin imagen
+          </Typography>
+        )}
       </Box>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleRemoveProduct(index)}
-                  startIcon={<TrashIcon />}
-                >
-                  Eliminar
-                </Button>
-              </Card>
-            </Grid>
+
+      {/* Detalles del producto */}
+      <div style={{ flexGrow: 1 }}>
+        <Typography variant="h6">{item.productName}</Typography>
+        <Typography>Cantidad: {item.quantity}</Typography>
+        <Typography>Precio Total: ${item.totalPrice.toFixed()}</Typography>
+      </div>
+
+      {/* Botón de eliminar */}
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => { handleRemoveProduct(index); }}
+        startIcon={<TrashIcon />}
+      >
+        Eliminar
+      </Button>
+    </Card>
+  </Grid>
           ))}
         </Grid>
 
@@ -405,18 +465,33 @@ const handleRemoveProduct = (index: number) => {
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
+        onClose={() => { setSnackbarOpen(false); }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity}>
+        <Alert onClose={() => { setSnackbarOpen(false); }} severity={snackbarSeverity}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
 
-{/* Diálogo de confirmación con vista previa del PDF */}
-<Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
+      {/* Diálogo de confirmación con vista previa del PDF */}
+    <Dialog open={dialogOpen} onClose={() => { setDialogOpen(false); }} maxWidth="md" fullWidth>
         <DialogTitle>
           <Typography variant="h6">Se realizó su venta exitosamente</Typography>
+          <IconButton
+            component="a"
+            href={pdfUrl || '#'} // Enlace al PDF generado
+            download="Factura_Venta.pdf" // Nombre del archivo descargado
+            aria-label="Descargar PDF"
+            sx={{
+              position: 'absolute',
+              right: { xs: 8, md: 48 }, // Ajusta la distancia desde la derecha en pantallas pequeñas y grandes
+              top: 8,
+              width: { xs: 32, md: 48 }, // Tamaño responsive del botón
+              height: { xs: 32, md: 48 },
+            }} // Posición ajustada
+          >
+            <DownloadSimple size={24} />
+          </IconButton>
           <IconButton
             aria-label="close"
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -429,7 +504,7 @@ const handleRemoveProduct = (index: number) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} color="primary">
+          <Button onClick={() => { setDialogOpen(false); }} color="primary">
             Cerrar
           </Button>
         </DialogActions>
