@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -10,7 +11,7 @@ import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 //import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
 import { Plus as PlusIcon  } from '@phosphor-icons/react/dist/ssr/Plus';
 //import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
-import { CompaniesFilters } from '@/components/dashboard/integrations/integrations-filters';
+import { CompaniesFilters } from '@/components/dashboard/inventory/integrations-filters';
 import { useForm, Controller } from 'react-hook-form';
 import { Select, MenuItem, FormControl, InputLabel, Snackbar, Alert, Box, TextField, Dialog, DialogActions, DialogContent, DialogTitle, DialogContentText } from '@mui/material';
 import { API_URL } from '@/config';
@@ -24,6 +25,7 @@ interface Product {
     id: number;
     name: string;
   };
+  image: File | undefined;
 }
 interface Category {
   id: number;
@@ -45,6 +47,8 @@ export default function Page(): React.JSX.Element {
   const [openProduct, setOpenProduct] = React.useState(false);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [products, setProducts] = React.useState<Inventory[]>([]); // Define el tipo para products
+  const [productImages, setProductImages] = useState<Record<number, string>>({}); // Para almacenar URLs temporales de imágenes
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
@@ -60,6 +64,7 @@ export default function Page(): React.JSX.Element {
       price: '',
       categoryId: '',
       stock: '',
+      image: undefined,
     },
   });
   const filteredProducts = products.filter((inventory) =>
@@ -94,6 +99,7 @@ const handleOpenProduct = () => {
 };
 
 const handleCloseProduct = () => {
+  setPreviewImage(null);
   setOpenProduct(false);
   reset();
 };
@@ -114,6 +120,8 @@ const handleCloseEditProduct = () => {
   setOpenEditProduct(false);
   reset();
 };
+
+
 
 React.useEffect(() => {
   fetchCategories();
@@ -170,10 +178,21 @@ const fetchProducts = async () => {
     if (response.ok) {
       const data: Inventory[] = await response.json();
       setProducts(data);
-      
+      // Crear URLs de imágenes para cada producto si la imagen es de tipo `File`
+      const imageUrls: Record<number, string> = {};
+      data.forEach((inventory) => {
+        if (inventory.product.image instanceof File) {
+          imageUrls[inventory.product.id] = URL.createObjectURL(inventory.product.image);
+        } else if (typeof inventory.product.image === 'string') {
+          imageUrls[inventory.product.id] = inventory.product.image; // Usar URL almacenada si ya es una cadena
+        }
+      });
+      setProductImages(imageUrls);
     }
-  } catch (error) {
-    // Manejo de errores omitido
+  } catch {
+    setSnackbarMessage('Error al cargar productos');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
   }
 };
 
@@ -238,32 +257,35 @@ const fetchProducts = async () => {
         setSnackbarOpen(true);
       }
   };
-  
-  // Función para añadir producto
-
+  // añadir productos
   const onSubmitProduct = async (data: {
     name: string;
     description: string;
-    price: string; // Cambiar a string porque proviene del formulario
+    price: string;
     categoryId: string;
-    stock: string; // Cambiar a string porque proviene del formulario
+    stock: string;
+    image: File | undefined; 
   }) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
-    const user: User = JSON.parse(localStorage.getItem('user') || '{}'); // Tipificar como User
+  
+    const user: User = JSON.parse(localStorage.getItem('user') || '{}');
     const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id;
   
     if (!supermarketId) {
       return;
     }
   
-    const productData = {
-      name: data.name,
-      description: data.description,
-      price: Number(data.price), // Convertir a number
-      categoryId: Number(data.categoryId), // Convertir a number
-      supermarketId: Number(supermarketId),
-    };
+    // Preparar datos en FormData para el producto
+    const productData = new FormData();
+    productData.append('name', data.name);
+    productData.append('description', data.description);
+    productData.append('price', data.price);
+    productData.append('categoryId', data.categoryId);
+    productData.append('supermarketId', supermarketId.toString());
+    if (data.image) {
+      productData.append('image', data.image);
+    }
   
     try {
       const token = localStorage.getItem('custom-auth-token');
@@ -271,22 +293,33 @@ const fetchProducts = async () => {
         return;
       }
   
+      // Enviar solicitud POST a `/products` con FormData
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(productData),
+        body: productData,
       });
-
+  
+      // Verificar la respuesta del backend
       const product: Product = await response.json();
-
+  
+      if (!response.ok) {
+        const errorMessage =
+          product && typeof product === 'object' && 'message' in product 
+            ? String(product.message) // Convertir a cadena de texto
+            : 'Unknown error';
+        throw new Error(`Error al crear el producto: ${errorMessage}`);
+      }
+      
+  
       const inventoryData = {
         productId: product.id,
         supermarketId: Number(supermarketId),
-        stock: data.stock ? Number(data.stock) : 1, //se tiene que capturar del inventario
-      }
+        stock: Number(data.stock),
+      };
+  
       const responseInventory = await fetch(`${API_URL}/inventory/add-stock`, {
         method: 'POST',
         headers: {
@@ -294,31 +327,29 @@ const fetchProducts = async () => {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(inventoryData),
-        
       });
   
-      if (response.ok && responseInventory.ok) {
-
-        handleCloseProduct();
-        fetchProducts();
-        setSnackbarMessage('Producto añadido con éxito');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-        
-      } else {
-        setSnackbarMessage('Hubo un problema al crear el producto');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
-        
+      const inventoryResponse = (await responseInventory.json()) as { message?: string };
+  
+      if (!responseInventory.ok) {
+        throw new Error(`Error al agregar stock al inventario: ${inventoryResponse.message || 'Unknown error'}`);
       }
-      } catch (error) {
-        setSnackbarMessage('Error al conectar con el servidor');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
-      } finally {
-        setIsSubmitting(false);
-      }
+  
+      handleCloseProduct();
+      fetchProducts();
+      setSnackbarMessage('Producto añadido con éxito');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+  
+    } catch (error) {
+      setSnackbarMessage('Error al conectar con el servidor');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+  
   
   // Función para eliminar producto
   const handleDeleteProduct = (productId: number) => { 
@@ -431,6 +462,8 @@ const handleSnackbarClose = () => {
   setSnackbarOpen(false);
 };
 
+
+
     return (
   <Stack spacing={3}>
     <Grid container spacing={3}>
@@ -488,24 +521,42 @@ const handleSnackbarClose = () => {
                 }}
               >
 
-                {/* Cuadro pequeño en la parte superior derecha */}
-      <Box 
-        sx={{ 
-          position: 'absolute', 
-      top: 16, // Espaciado desde el borde superior
-      right: 16, // Espaciado desde el borde derecho
-      border: '1px solid #ccc', 
-      padding: 2, // Aumentar el padding para hacer el cuadro más grande
-      borderRadius: 1, // Bordes redondeados
-      backgroundColor: '#f9f9f9', // Color de fondo del cuadro
-      width: '120px', // Ancho fijo del cuadro
-      height: '60px', // Altura fija del cuadro, puedes ajustarla según tus necesidades
-      display: 'flex', // Usar flexbox para centrar el contenido
-      alignItems: 'center', // Centrar verticalmente
-      justifyContent: 'center', // Centrar horizontalmente
-        }}
-      >
-    </Box>    
+                 {/* Cuadro de imagen del producto */}
+                 <Box
+  sx={{
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: '120px',
+    height: '80px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    border: productImages[inventory.product.id] ? 'none' : '1px solid #ccc', // Sin borde si hay imagen
+    backgroundColor: productImages[inventory.product.id] ? 'transparent' : '#f9f9f9', // Fondo transparente si hay imagen
+    borderRadius: 1,
+  }}
+>
+  {productImages[inventory.product.id] ? (
+    <img
+      src={productImages[inventory.product.id]}
+      alt={inventory.product.name}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'center',
+      }}
+    />
+  ) : (
+    <Typography variant="body2" color="text.secondary">
+      Sin imagen
+    </Typography>
+  )}
+</Box>
+
+   
             {/* Nombre del producto truncado en una sola línea */}
             <Typography
               variant="h6"
@@ -709,6 +760,50 @@ const handleSnackbarClose = () => {
                 </Select>
                 {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
               </FormControl>
+            )}
+          />
+
+          {/* Controlador de subida de imagen */}
+          <Controller
+            name="image"
+            control={control}
+            render={({ field, fieldState }) => (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files ? e.target.files[0] : null;
+                    field.onChange(file); // Set file as value
+                    if (file) {
+                      setPreviewImage(URL.createObjectURL(file)); // Crear URL para vista previa
+                    } else {
+                      setPreviewImage(null); // Reset preview if no file
+                    }
+                  }}
+                  style={{ display: 'none' }} // Ocultar el input de archivo
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload">
+                  <Button variant="contained" color="primary" component="span">
+                    Subir imagen
+                  </Button>
+                </label>
+                {fieldState.error && (
+                  <Typography color="error">{fieldState.error.message}</Typography>
+                )}
+
+                {/* Vista previa de la imagen */}
+                {previewImage && (
+                  <Box mt={2} display="flex" justifyContent="center">
+                    <img
+                      src={previewImage}
+                      alt="Vista previa"
+                      style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }}
+                    />
+                  </Box>
+                )}
+              </>
             )}
           />
         </Stack>
@@ -945,11 +1040,187 @@ const handleSnackbarClose = () => {
         </DialogActions>
       </Dialog>
 
-    <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-      <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-        {snackbarMessage}
-      </Alert>
-    </Snackbar> 
-  </Stack>
-    );
-  }
+  {/* Modal para añadir categoría */}
+  <Dialog open={openCategory}
+   onClose={handleCloseCategory}
+   maxWidth="md" // Cambia el ancho máximo, puedes probar con "lg" también
+  fullWidth // Esto permite que el modal use el ancho máximo definido
+  sx={{ '& .MuiDialog-paper': { width: '400px', maxWidth: '100%' } }} // Personaliza el ancho
+   >
+    <DialogTitle>Añadir Categoria</DialogTitle>
+    <DialogContent>
+      <Stack spacing={2}>
+        <Controller
+          name="name"
+          control={control}
+          rules={{ required: 'El nombre es obligatorio' }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              label="Nombre"
+              fullWidth
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error ? fieldState.error.message : ''}
+              inputProps={{ maxLength: 50 }}
+              sx={{ marginTop: '5px' }}
+            />
+          )}
+        />
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <TextField {...field} label="Descripción"
+            fullWidth
+            multiline
+            rows={3}
+            inputProps={{ maxLength: 200 }}
+             />
+          )}
+        />
+      </Stack>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleCloseCategory} color="inherit">
+        Cancelar
+      </Button>
+      <Button onClick={handleSubmit(onSubmitCategory)} variant="contained">
+        Guardar
+      </Button>
+    </DialogActions>
+  </Dialog>
+
+  {/* Modal para editar producto */}
+<Dialog open={openEditProduct} 
+onClose={handleCloseEditProduct}
+  maxWidth="md" // Cambia el ancho máximo, puedes probar con "lg" también
+  fullWidth // Esto permite que el modal use el ancho máximo definido
+  sx={{ '& .MuiDialog-paper': { width: '400px', maxWidth: '100%' } }}
+>
+  <DialogTitle>Editar Producto</DialogTitle>
+  <DialogContent>
+    <Stack spacing={2}>
+      <Controller
+        name="name"
+        control={control}
+        rules={{ required: 'El nombre es obligatorio' }}
+        render={({ field, fieldState }) => (
+          <TextField
+            {...field}
+            label="Nombre"
+            fullWidth
+            error={Boolean(fieldState.error)}
+            helperText={fieldState.error ? fieldState.error.message : ''}
+            inputProps={{ maxLength: 50 }}
+            sx={{ marginTop: '5px' }}
+          />
+        )}
+      />
+      <Controller
+        name="description"
+        control={control}
+        render={({ field }) => (
+          <TextField {...field}
+          label="Descripción"
+          fullWidth
+          multiline
+          rows={3}
+          inputProps={{ maxLength: 30 }} />
+        )}
+      />
+      <Controller
+        name="price"
+        control={control}
+        rules={{
+          required: 'El precio es obligatorio',
+          validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
+        }}
+        render={({ field, fieldState }) => (
+          <TextField
+            {...field}
+            label="Precio"
+            fullWidth
+            type="text"
+            error={Boolean(fieldState.error)}
+            helperText={fieldState.error ? fieldState.error.message : ''}
+            inputProps={{
+              maxLength: 9,
+            }}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^[0-9]*\.?[0-9]{0,2}$/.test(value) || value === "") {
+                field.onChange(value);
+              }
+            }}
+          />
+        )}
+      /> 
+
+          <Controller
+            name="stock"
+            control={control}
+            rules={{
+              validate: (value) =>
+                value === "" || /^[0-9]*\.?[0-9]$/.test(value) || "Solo se permiten números y hasta dos decimales",
+            }}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                label="Stock"
+                fullWidth
+                type="text"
+                error={Boolean(fieldState.error)}
+                helperText={fieldState.error ? fieldState.error.message : ""}
+                inputProps={{
+                  maxLength: 9, // Limita el número total de caracteres
+                }}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Permitir solo números, hasta dos decimales, o vacío
+                  if (/^[0-9]*\.?[0-9]$/.test(value) || value === "") {
+                    field.onChange(value); // Solo actualiza el valor si cumple la condición
+                  }
+                }}
+              />
+            )}
+          /> 
+
+      <Controller
+        name="categoryId"
+        control={control}
+        rules={{ required: 'Debes seleccionar una categoría' }}
+        render={({ field, fieldState }) => (
+          <FormControl fullWidth error={Boolean(fieldState.error)}>
+            <InputLabel id="category-select-label">Categoría</InputLabel>
+            <Select {...field} label="Categoría" id="category-select">
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+            {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
+          </FormControl>
+        )}
+      />
+    </Stack>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCloseEditProduct} color="inherit">
+      Cancelar
+    </Button>
+    <Button onClick={handleSubmit(onSubmitEditProduct)} variant="contained">
+      Guardar
+    </Button>
+  </DialogActions>
+</Dialog>
+
+<Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+      
+</Stack>
+  );
+}

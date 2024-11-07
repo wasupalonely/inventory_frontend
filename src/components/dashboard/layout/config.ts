@@ -22,7 +22,7 @@ export const navItems: NavItemConfig[] = [
     icon: 'users',
     roles: ['admin', 'owner', 'viewer']
   },
-  { 
+  {
     key: 'categories', 
     title: 'Categorías', 
     href: paths.dashboard.categories, 
@@ -31,9 +31,23 @@ export const navItems: NavItemConfig[] = [
   { 
     key: 'inventory', 
     title: 'Inventario', 
-    href: paths.dashboard.integrations, 
+    href: paths.dashboard.inventory, 
     icon: 'box',
   },
+    { 
+    key: 'sales', 
+    title: 'Ventas', 
+    href: paths.dashboard.sales, 
+    icon: 'chart-bar',
+    roles: ['admin', 'owner']
+  },
+  { 
+    key: 'sales-history', 
+    title: 'Historial de Ventas', 
+    href: paths.dashboard.sales_history, 
+    icon: 'history',
+    roles: ['admin', 'owner'],
+  }, 
   { 
     key: 'account', 
     title: 'Cuenta', 
