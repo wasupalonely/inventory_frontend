@@ -45,7 +45,21 @@
     const [isPending, setIsPending] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState<boolean>();
     const [showNewPassword, setShowNewPassword] = React.useState<boolean>();
-    const [showConfirmPassword, setShowConfirmPassword] = React.useState<boolean>()
+    const [showConfirmPassword, setShowConfirmPassword] = React.useState<boolean>();
+    const [isSaveDisabled, setIsSaveDisabled] = React.useState(true);
+
+    const checkIfAllFieldsFilled = () => {
+      const isFormValid =
+        userData.firstName.trim() && userData.lastName.trim() && userData.phoneNumber.trim();
+      // Deshabilitamos el botón si no se han rellenado los campos obligatorios o si no hay cambios
+      setIsSaveDisabled(!(isFormValid && hasChanges()));
+    };
+    
+    const [errors, setErrors] = React.useState({
+      firstName: false,
+      lastName: false,
+      phoneNumber: false,
+    });
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = event.target;
@@ -53,39 +67,65 @@
         ...prevData,
         [name]: value,
       }));
+
+      const newErrors = {
+        ...errors,
+        [name]: value.trim() === '' && (name === 'firstName' || name === 'lastName' || name === 'phoneNumber'),
+      };
+      setErrors(newErrors);
+
+      checkIfAllFieldsFilled();  // Validar si todos los campos están llenos
     };
+    
 
     const hasChanges = () => {
       return JSON.stringify(userData) !== JSON.stringify(originalData);
     };
 
+    const validateForm = () => {
+      const newErrors = {
+        firstName: !userData.firstName.trim(),
+        lastName: !userData.lastName.trim(),
+        phoneNumber: !userData.phoneNumber.trim(),
+      };
+      setErrors(newErrors);
+    
+      return !Object.values(newErrors).includes(true); // Si no hay errores, devolvemos true
+    };
+    
     const toggleEditMode = async () => {
       if (isEditing) {
         if (hasChanges()) {
-          try {
-            const response = await fetch(`${API_URL}/users/${user?.id}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('custom-auth-token')}`,
-              },
-              body: JSON.stringify(userData),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.text();
-              throw new Error(
-                `Error al actualizar los datos: ${response.status} ${response.statusText} - ${errorData}`
-              );
+          if (validateForm()) {  // Verificamos si la validación del formulario es exitosa
+            try {
+              const response = await fetch(`${API_URL}/users/${user?.id}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${localStorage.getItem('custom-auth-token')}`,
+                },
+                body: JSON.stringify(userData),
+              });
+    
+              if (!response.ok) {
+                const errorData = await response.json(); // Verifica el formato de respuesta de error
+                throw new Error(
+                  `Error al actualizar la contraseña: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+                );
+              }
+    
+              setAlertMessage('Datos actualizados exitosamente');
+              setAlertType('success');
+              setOriginalData(userData); // Actualizamos los datos originales
+            } catch (error) {
+              setAlertMessage('Error al actualizar los datos');
+              setAlertType('error');
+            } finally {
+              setIsAlertOpen(true);
             }
-
-            setAlertMessage('Datos actualizados exitosamente');
-            setAlertType('success');
-            setOriginalData(userData); // Actualizamos los datos originales
-          } catch (error) {
-            setAlertMessage('Error al actualizar los datos');
+          } else {
+            setAlertMessage('Por favor, completa los campos obligatorios');
             setAlertType('error');
-          } finally {
             setIsAlertOpen(true);
           }
         } else {
@@ -107,8 +147,31 @@
       setPasswordValues({ password: '', newPassword: '', confirmPassword: '' });
     };
 
+    const handlePasswordDialogOpen = () => {
+      setIsPasswordDialogOpen(true);
+    };
+  
+
     const handlePasswordChange = React.useCallback(async () => {
       setIsPending(true); // Iniciamos el proceso de carga
+
+      // 1. Comprobar si las contraseñas NO coinciden
+      if (passwordValues.newPassword !== passwordValues.confirmPassword) {
+        setAlertMessage('Las contraseñas no coinciden');
+        setAlertType('error');
+        setIsAlertOpen(true);
+        setIsPending(false);
+        return;
+      }
+      
+      // 2. Comprobar si la contraseña nueva es igual a la actual (en frontend)
+      if (passwordValues.newPassword === passwordValues.password) {
+        setAlertMessage('La nueva contraseña no puede ser la misma que la anterior');
+        setAlertType('error');
+        setIsAlertOpen(true);
+        setIsPending(false);
+        return;
+      }
     
       if (!user?.id) {
         setAlertMessage('No se pudo obtener el ID del usuario.');
@@ -118,14 +181,14 @@
         return;
       }
     
-      // 1. Comparamos la contraseña antigua con la que ingresó el usuario
-      const { error: compareError, message } = await authClient.comparePasswordByUserId({
+      // 3. Verificar la contraseña actual con el backend
+      const response = await authClient.comparePasswordByUserId({
         userId: user.id.toString(),
         password: passwordValues.password, // Contraseña actual
       });
-    
+      const { error: compareError, message } = response;
+      
       if (compareError) {
-        // 2. Si hay error en la comparación, mostramos mensaje
         setAlertMessage('Contraseña antigua incorrecta');
         setAlertType('error');
         setIsAlertOpen(true);
@@ -133,37 +196,37 @@
         return;
       }
     
-      // 3. Validamos si la nueva contraseña es igual a la antigua
-      if (message) {
+      // 4. Validamos si la nueva contraseña es igual a la antigua
+      if (message === true) {
         setAlertMessage('La nueva contraseña no puede ser la misma que la anterior');
         setAlertType('error');
         setIsAlertOpen(true);
         setIsPending(false);
         return;
       }
-    
-      // 4. Si todo está bien, intentamos actualizar la contraseña
-      const { error: updateError } = await authClient.updatePassword({
-        password: passwordValues.newPassword, // Nueva contraseña
-        token: localStorage.getItem('custom-auth-token') as string, // Token de autenticación
+      
+      // 5. Si todo está bien, intentamos actualizar la contraseña
+      const { error: updateError } = await authClient.updatePasswordAccount({
+        password: passwordValues.newPassword,
+        user: { id: user.id.toString() },
       });
     
       if (updateError) {
-        // 5. Si la nueva contraseña no cumple con los requisitos, mostramos el error
+        // 6. Si la nueva contraseña no cumple con los requisitos, mostramos el error
         setAlertMessage('La contraseña debe tener entre 9 y 20 caracteres, incluir mayúsculas, números y caracteres especiales.');
         setAlertType('error');
         setIsAlertOpen(true);
       } else {
-        // 6. Contraseña actualizada con éxito
+        // 7. Contraseña actualizada con éxito
         setAlertMessage('Contraseña cambiada exitosamente');
         setAlertType('success');
+        setPasswordValues({ password: '', newPassword: '', confirmPassword: '' });
         handlePasswordDialogClose();
       }
     
       setIsAlertOpen(true);
       setIsPending(false);
-    }, [user?.id, passwordValues, setIsAlertOpen, setAlertMessage, setIsPending]);
-    
+    }, [user?.id, passwordValues, setIsAlertOpen, setAlertMessage, setIsPending]);        
 
     const togglePasswordVisibility = (): void => {
       setShowPassword(!showPassword);
@@ -184,14 +247,18 @@
           subheader="Información de perfil"
           title="Perfil"
           action={
-            <>
-              <Button onClick={toggleEditMode} variant="contained" color="primary">
-                {isEditing ? 'Guardar' : 'Editar'}
+            <Grid container spacing={1} justifyContent="flex-end" sx={{ pr: 2 }}>
+              <Grid xs={12} sm={8.5}>
+              <Button onClick={toggleEditMode} variant="contained" color="primary" fullWidth disabled={isEditing && isSaveDisabled}>
+                  {isEditing ? 'Guardar' : 'Editar'}
+                </Button>
+              </Grid>
+              {/* <Grid xs={12} sm={8.5}>
+              <Button onClick={handlePasswordDialogOpen} variant="outlined" color="primary" fullWidth disabled={isPending}>
+                {isPending ? <CircularProgress size={24} /> : 'Cambiar Contraseña'}
               </Button>
-              <Button onClick={() => {setIsPasswordDialogOpen(true)}} variant="outlined" color="secondary" sx={{ ml: 2 }}>
-                Cambiar Contraseña
-              </Button>
-            </>
+              </Grid> */}
+            </Grid>
           }
         />
         <Divider />
@@ -244,16 +311,32 @@
           <CardContent>
             <Grid container spacing={3}>
               <Grid md={6} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Primer nombre</InputLabel>
-                  <OutlinedInput
-                    label="Primer nombre"
-                    name="firstName"
-                    value={userData.firstName}
-                    onChange={handleInputChange}
-                  />
-                </FormControl>
+              <TextField
+                fullWidth
+                required
+                label="Primer nombre"
+                name="firstName"
+                value={userData.firstName}
+                onChange={handleInputChange}
+                error={errors.firstName}
+                helperText={errors.firstName ? 'Este campo es obligatorio' : ''}
+                sx={{ backgroundColor: '#f0f0f0' }}
+                inputProps={{
+                    maxLength: 50,
+                    required: true,
+                    onInput: (event) => {
+                      const input = event.target as HTMLInputElement;
+                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                    },
+                    onKeyPress: (event) => {
+                      if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                        event.preventDefault();
+                      }
+                    },
+                  }} 
+              />
               </Grid>
+              
               <Grid md={6} xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Segundo nombre</InputLabel>
@@ -262,19 +345,44 @@
                     name="middleName"
                     value={userData.middleName}
                     onChange={handleInputChange}
+                    sx={{ backgroundColor: '#f0f0f0' }}
+                    inputProps={{ maxLength: 50,
+                      onInput: (event) => {
+                        const input = event.target as HTMLInputElement;
+                        input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                      },
+                      onKeyPress: (event) => {
+                        if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                          event.preventDefault();
+                        }
+                      }
+                     }}
                   />
                 </FormControl>
               </Grid>
               <Grid md={6} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Primer Apellido</InputLabel>
-                  <OutlinedInput
-                    label="Primer apellido"
-                    name="lastName"
-                    value={userData.lastName}
-                    onChange={handleInputChange}
-                  />
-                </FormControl>
+              <TextField
+                fullWidth
+                required
+                label="Primer Apellido"
+                name="lastName"
+                value={userData.lastName}
+                onChange={handleInputChange}
+                error={errors.lastName}
+                helperText={errors.lastName ? 'Este campo es obligatorio' : ''}
+                sx={{ backgroundColor: '#f0f0f0' }}
+                    inputProps={{ maxLength: 50,
+                      onInput: (event) => {
+                        const input = event.target as HTMLInputElement;
+                        input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                      },
+                      onKeyPress: (event) => {
+                        if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                          event.preventDefault();
+                        }
+                      }
+                     }}
+              />
               </Grid>
               <Grid md={6} xs={12}>
                 <FormControl fullWidth>
@@ -284,20 +392,45 @@
                     name="secondLastName"
                     value={userData.secondLastName}
                     onChange={handleInputChange}
+                    sx={{ backgroundColor: '#f0f0f0' }}
+                    inputProps={{ maxLength: 50,
+                      onInput: (event) => {
+                        const input = event.target as HTMLInputElement;
+                        input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                      },
+                      onKeyPress: (event) => {
+                        if (!/^[A-Za-zÀ-ÿ\s]$/.test(event.key)) {
+                          event.preventDefault();
+                        }
+                      }
+                     }}
                   />
                 </FormControl>
               </Grid>
               <Grid md={6} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Número de celular</InputLabel>
-                  <OutlinedInput
-                    label="Número de celular"
-                    name="phoneNumber"
-                    type="tel"
-                    value={userData.phoneNumber}
-                    onChange={handleInputChange}
-                  />
-                </FormControl>
+              <TextField
+                fullWidth
+                required
+                label="Número de celular"
+                name="phoneNumber"
+                type="tel"
+                value={userData.phoneNumber}
+                onChange={handleInputChange}
+                error={errors.phoneNumber}
+                helperText={errors.phoneNumber ? 'Este campo es obligatorio' : ''}
+                sx={{ backgroundColor: '#f0f0f0' }}
+                    inputProps={{ maxLength: 10,
+                      onInput: (event) => {
+                        const input = event.target as HTMLInputElement;
+                        input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                      }
+                     }}
+                    onKeyPress={(event) => {
+                      if (!/[0-9]/.test(event.key)) {
+                        event.preventDefault();
+                      }
+                    }}
+              />
               </Grid>
             </Grid>
           </CardContent>
@@ -330,7 +463,7 @@
                     </button>
                   ),
                 }}
-                name="password"
+                name="newPassword"
                 label="Nueva Contraseña"
                 type={showNewPassword ? 'text' : 'password'}
                 fullWidth
@@ -356,7 +489,7 @@
               />
             </DialogContent>
             <DialogActions>
-              <Button onClick={handlePasswordDialogClose} color="error">
+              <Button onClick={handlePasswordDialogClose} color="inherit">
                 Cancelar
               </Button>
               <Button onClick={handlePasswordChange} color="primary" disabled={isPending}>
@@ -364,7 +497,7 @@
               </Button>
             </DialogActions>
           </Dialog>
-        <Snackbar open={isAlertOpen} autoHideDuration={3000} onClose={handleCloseAlert}>
+        <Snackbar open={isAlertOpen} autoHideDuration={3000} onClose={handleCloseAlert} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
           <Alert onClose={handleCloseAlert} severity={alertType} sx={{ width: '100%' }}>
             {alertMessage}
           </Alert>

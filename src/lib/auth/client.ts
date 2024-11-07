@@ -68,6 +68,17 @@ export interface UpdatePasswordParams {
   token: string;
 }
 
+export interface UpdatePasswordAccountParams {
+  password: string;
+  userId: string;
+}
+
+export interface UploadImageParams {
+  profileImage: File;
+  token: string;
+  userId: string;
+}
+
 // Define el tipo para la respuesta del login
 interface LoginResponse {
   user: User;
@@ -231,6 +242,58 @@ class AuthClient {
       return { error: null };
     } catch (err) {
       return { error: 'Fallo al actualizar la contraseña' };
+    }
+  }
+
+  async updatePasswordAccount(params: { password: string; user: { id: string } }): Promise<{ error?: string | null }> {
+    const { password, user } = params;
+  
+    try {
+      const response = await fetch(`${API_URL}/users/update-password/${user?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+  
+      const data = (await response.json()) as SimpleMessageResponse;
+  
+      if (!response.ok) {
+        return { error: data.message || 'Error actualizando contraseña' };
+      }
+  
+      return { error: null };
+    } catch (err) {
+      return { error: 'Fallo al actualizar la contraseña' };
+    }
+  }
+  
+  async uploadImage(params: UploadImageParams): Promise<{ error?: string | null }> {
+    const { profileImage, token, userId } = params;
+  
+    const formData = new FormData();
+    formData.append('image', profileImage);
+  
+    try {
+      const response = await fetch(`${API_URL}/users/${userId}/profile-image`, {
+        method: 'PATCH', // Cambiamos a PATCH
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+  
+      const data = await response.json() as unknown as { message?: string };
+
+      if (!response.ok) {
+        return { error: data.message || 'Error al subir la imagen' };
+      }
+
+  
+      return { error: null };
+    } catch (err) {
+      return { error: 'Fallo al subir la imagen' };
     }
   }
 

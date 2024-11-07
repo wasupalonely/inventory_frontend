@@ -146,9 +146,11 @@ export function CategoriesTable({
                         startIcon={<PencilIcon />}onClick={() => handleEdit(row)}>
                         Editar
                       </Button>
+                      {user?.role !== 'cashier' && (
                       <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
                         Eliminar
                       </Button>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>

@@ -1,8 +1,9 @@
-import { type SupermarketSignUpParams } from '@/lib/auth/client';
+import { type SupermarketSignUpParams, UploadImageParams } from '@/lib/auth/client';
+
 
 export interface User {
   id: number;
-  avatar?: string;
+  profileImage?: UploadImageParams;
   email: string;
   ownedSupermarket?: SupermarketSignUpParams;
 

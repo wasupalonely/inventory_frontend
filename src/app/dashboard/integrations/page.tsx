@@ -53,7 +53,7 @@ export default function Page(): React.JSX.Element {
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [productIdToDelete, setProductIdToDelete] = React.useState<number | null>(null);
 
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, formState: { isValid } } = useForm({
     defaultValues: {
       name: '',
       description: '',
@@ -224,7 +224,7 @@ const fetchProducts = async () => {
       if (response.ok) {
         handleCloseCategory();
         fetchCategories();
-        setSnackbarMessage('Categoria creado con éxito');
+        setSnackbarMessage('Categoría creada con éxito');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
       } else {
@@ -605,6 +605,7 @@ const handleSnackbarClose = () => {
                   }
                 }}
                 sx={{ marginTop: '5px' }}
+                required
               />
             )}
           />
@@ -655,6 +656,7 @@ const handleSnackbarClose = () => {
                     field.onChange(value); // Solo actualiza el valor si cumple la condición
                   }
                 }}
+                required
               />
             )}
           /> 
@@ -717,7 +719,7 @@ const handleSnackbarClose = () => {
         <Button onClick={handleCloseProduct} color="inherit">
           Cancelar
         </Button>
-        <Button onClick={handleSubmit(onSubmitProduct)} variant="contained">
+        <Button onClick={handleSubmit(onSubmitProduct)} variant="contained" disabled={!isValid}>
           Guardar
         </Button>
       </DialogActions>
@@ -753,6 +755,7 @@ const handleSnackbarClose = () => {
                   }
                 }}
                 sx={{ marginTop: '5px' }}
+                required
               />
             )}
           />
@@ -813,6 +816,7 @@ const handleSnackbarClose = () => {
                 }
               }}
               sx={{ marginTop: '5px' }}
+              required
             />
           )}
         />
@@ -861,6 +865,7 @@ const handleSnackbarClose = () => {
                   field.onChange(value);
                 }
               }}
+              required
             />
           )}
         /> 
