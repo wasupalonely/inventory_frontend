@@ -5,8 +5,10 @@ import { House, Scroll } from '@phosphor-icons/react';
 import { BoxArrowUp } from '@phosphor-icons/react/dist/ssr';
 import { GearSix as GearSixIcon } from '@phosphor-icons/react/dist/ssr/GearSix';
 import { ShoppingCart as ShoppingCartIcon } from '@phosphor-icons/react/dist/ssr/ShoppingCart';
+import { ChartBar } from '@phosphor-icons/react';
 
 export const navIcons = {
+  'chart-bar': ChartBar,
   'gear-six': GearSixIcon,
   box: BoxArrowUp,
   house: House,

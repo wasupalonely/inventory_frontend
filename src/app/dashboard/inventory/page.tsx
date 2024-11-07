@@ -11,7 +11,7 @@ import { Snackbar, Alert, Box } from '@mui/material';
 //import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
 import { Plus as PlusIcon  } from '@phosphor-icons/react/dist/ssr/Plus';
 //import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
-import { CompaniesFilters } from '@/components/dashboard/integrations/integrations-filters';
+import { CompaniesFilters } from '@/components/dashboard/inventory/integrations-filters';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -630,7 +630,7 @@ const handleSnackbarClose = () => {
               error={Boolean(fieldState.error)}
               helperText={fieldState.error ? fieldState.error.message : ''}
               inputProps={{
-                maxLength: 10, // Limita el número total de caracteres
+                maxLength: 9, // Limita el número total de caracteres
               }}
               onChange={(e) => {
                 const value = e.target.value;
@@ -660,7 +660,7 @@ const handleSnackbarClose = () => {
                 error={Boolean(fieldState.error)}
                 helperText={fieldState.error ? fieldState.error.message : ""}
                 inputProps={{
-                  maxLength: 10, // Limita el número total de caracteres
+                  maxLength: 9, // Limita el número total de caracteres
                 }}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -809,7 +809,7 @@ onClose={handleCloseEditProduct}
             error={Boolean(fieldState.error)}
             helperText={fieldState.error ? fieldState.error.message : ''}
             inputProps={{
-              maxLength: 10,
+              maxLength: 9,
             }}
             onChange={(e) => {
               const value = e.target.value;
@@ -837,7 +837,7 @@ onClose={handleCloseEditProduct}
                 error={Boolean(fieldState.error)}
                 helperText={fieldState.error ? fieldState.error.message : ""}
                 inputProps={{
-                  maxLength: 10, // Limita el número total de caracteres
+                  maxLength: 9, // Limita el número total de caracteres
                 }}
                 onChange={(e) => {
                   const value = e.target.value;
