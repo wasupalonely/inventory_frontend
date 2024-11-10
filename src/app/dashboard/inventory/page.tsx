@@ -15,6 +15,7 @@ import { CompaniesFilters } from '@/components/dashboard/inventory/integrations-
 import { useForm, Controller } from 'react-hook-form';
 import { Select, MenuItem, FormControl, InputLabel, Snackbar, Alert, Box, TextField, Dialog, DialogActions, DialogContent, DialogTitle, DialogContentText } from '@mui/material';
 import { API_URL } from '@/config';
+import { useUser } from '@/hooks/use-user';
 
 interface Product {
   id: number;
@@ -56,6 +57,7 @@ export default function Page(): React.JSX.Element {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [productIdToDelete, setProductIdToDelete] = React.useState<number | null>(null);
+  const { user } = useUser();
 
   const { control, handleSubmit, reset, formState: { isValid } } = useForm({
     defaultValues: {
@@ -132,8 +134,8 @@ React.useEffect(() => {
 const fetchCategories = async () => {
   try {
     const token = localStorage.getItem('custom-auth-token');
-    const user: User = JSON.parse(localStorage.getItem('user') || '{}'); // Obtenemos el usuario
-    const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id; // Obtenemos el supermarketId del usuario
+    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}'); // Obtenemos el usuario
+    const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id; // Obtenemos el supermarketId del usuario
 
     if (!supermarketId) {
       return;
@@ -160,8 +162,8 @@ const fetchCategories = async () => {
 const fetchProducts = async () => {
   try {
     const token = localStorage.getItem('custom-auth-token');
-    const user: User = JSON.parse(localStorage.getItem('user') || '{}');
-    const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id;
+    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+    const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
 
     if (!supermarketId) {
       return;
@@ -212,8 +214,8 @@ const fetchProducts = async () => {
   
   // Función para añadir categoría
   const onSubmitCategory = async (data: CategoryFormData) => {
-    const user: User = JSON.parse(localStorage.getItem('user') || '{}'); // Tipificar como User
-    const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id;
+    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}'); // Tipificar como User
+    const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
   
     if (!supermarketId) {
       return;
@@ -269,8 +271,8 @@ const fetchProducts = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
   
-    const user: User = JSON.parse(localStorage.getItem('user') || '{}');
-    const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id;
+    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+    const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
   
     if (!supermarketId) {
       return;
@@ -416,8 +418,8 @@ const fetchProducts = async () => {
   
     try {
       const token = localStorage.getItem('custom-auth-token');
-      const user: User = JSON.parse(localStorage.getItem('user') || '{}');
-      const supermarketId = user.ownedSupermarket?.id || user.supermarket?.id;
+      const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+      const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
       if (!token) {
         return;
       }
@@ -479,6 +481,7 @@ const handleSnackbarClose = () => {
 
       <Grid item xs={12} md={4}>
         {/* Botones en columna */}
+        {user?.role !== 'viewer' &&(
         <Stack spacing={2}>
           <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenCategory}>
             Añadir Categoria
@@ -487,6 +490,7 @@ const handleSnackbarClose = () => {
             Añadir Producto
           </Button>
         </Stack>
+        )}
       </Grid>
     </Grid>
 
@@ -503,118 +507,124 @@ const handleSnackbarClose = () => {
       filteredProducts.map((inventory) => (
         
         <Grid item xs={12} md={6} lg={4} key={inventory.product.id}>
-          <Stack
-                spacing={1}
-                sx={{
-                  border: '1px solid #ccc',
-                  borderRadius: '8px', // Bordes redondeados
-                  padding: 2,
-                  minHeight: '300px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Sombra para dar profundidad
-                  transition: 'transform 0.3s ease', // Efecto de elevación al pasar el ratón
-                  '&:hover': {
-                    transform: 'scale(1.02)', // Zoom ligero al pasar el ratón
-                  },
-                  position: 'relative',
-                }}
-              >
-
-                 {/* Cuadro de imagen del producto */}
-                 <Box
-  sx={{
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: '120px',
-    height: '80px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    border: productImages[inventory.product.id] ? 'none' : '1px solid #ccc', // Sin borde si hay imagen
-    backgroundColor: productImages[inventory.product.id] ? 'transparent' : '#f9f9f9', // Fondo transparente si hay imagen
-    borderRadius: 1,
-  }}
->
-  {productImages[inventory.product.id] ? (
-    <img
-      src={productImages[inventory.product.id]}
-      alt={inventory.product.name}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        objectPosition: 'center',
+  <Stack
+    spacing={1}
+    sx={{
+      border: '1px solid #ccc',
+      borderRadius: '8px',
+      padding: 2,
+      minHeight: '300px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+      transition: 'transform 0.3s ease',
+      '&:hover': {
+        transform: 'scale(1.02)',
+      },
+      position: 'relative',
+    }}
+  >
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        width: '120px',
+        height: '80px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        border: productImages[inventory.product.id] ? 'none' : '1px solid #ccc',
+        backgroundColor: productImages[inventory.product.id] ? 'transparent' : '#f9f9f9',
+        borderRadius: 1,
       }}
-    />
-  ) : (
-    <Typography variant="body2" color="text.secondary">
-      Sin imagen
+    >
+      {productImages[inventory.product.id] ? (
+        <img
+          src={productImages[inventory.product.id]}
+          alt={inventory.product.name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+        />
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          Sin imagen
+        </Typography>
+      )}
+    </Box>
+
+    <Typography
+      variant="h6"
+      sx={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {inventory.product.name}
     </Typography>
-  )}
-</Box>
 
-   
-            {/* Nombre del producto truncado en una sola línea */}
-            <Typography
-              variant="h6"
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {inventory.product.name}
-            </Typography>
+    <Typography
+      variant="body1"
+      sx={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {inventory.product.description}
+    </Typography>
 
-            {/* Descripción con truncado en múltiples líneas */}
-            <Typography
-              variant="body1"
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              
-              {inventory.product.description}
-            </Typography>
+    <Typography variant="body2">Precio: ${inventory.product.price}</Typography>
+    <Typography variant="body2">Stock: {inventory.stock}</Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      Categoría: {inventory.product.category?.name || 'Categoría no encontrada'}
+    </Typography>
 
-            <Typography variant="body2">Precio: ${inventory.product.price}</Typography>
-            <Typography variant="body2">Stock: {inventory.stock}</Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Categoría: {inventory.product.category?.name || 'Categoría no encontrada'}
-            </Typography>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => {
-                handleOpenEditProduct(inventory.product, inventory)
-              }}
-              startIcon={<PencilIcon />}
-            >
-              Editar
-            </Button>
+    {/* Reserva el espacio de los botones si el rol es viewer */}
+    {user?.role === 'viewer' ? (
+      <Box sx={{ height: '80px' }} /> // Espacio reservado para mantener el diseño
+    ) : (
+      <>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => {
+            handleOpenEditProduct(inventory.product, inventory);
+          }}
+          startIcon={<PencilIcon />}
+        >
+          Editar
+        </Button>
+        {user?.role !== 'cashier' && (
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => {
+          handleDeleteProduct(inventory.product.id);
+        }}
+        startIcon={<TrashIcon />}
+      >
+        Eliminar
+      </Button>
+    )}
+  </>
+)}
+  </Stack>
+</Grid>
 
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => {handleDeleteProduct(inventory.product.id)}}
-              startIcon={<TrashIcon />}
-            >
-              Eliminar
-            </Button>
-          </Stack>
-        </Grid>
       ))
     ) : (
       /* Mensaje cuando no hay productos filtrados disponibles */
