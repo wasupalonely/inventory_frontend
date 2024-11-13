@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Button, Snackbar, Alert } from '@mui/material';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -17,19 +18,11 @@ import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { useSelection } from '@/hooks/use-selection';
 import { useUser } from '@/hooks/use-user';
 
-export interface Customer {
-  name: any;
+export interface Categories {
   id: number;
+  name: string;
+  description: string;
   supermarketId: number;
-  ownedSupermarket: object;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  secondLastName?: string;
-  email: string;
-  phoneNumber: string;
-  password?: string;
-  role: 'admin' | 'viewer' | 'cashier';
 }
 
 interface SuccessMessageProps {
@@ -38,14 +31,14 @@ interface SuccessMessageProps {
   onClose: () => void;
 }
 
-interface CustomersTableProps {
+interface CategoriesTableProps {
   count?: number;
   page?: number;
-  rows?: Customer[];
+  rows?: Categories[];
   rowsPerPage?: number;
   onPageChange?: (event: unknown, newPage: number) => void;
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onEdit?: (user?: Customer) => void;
+  onEdit?: (user?: Categories) => void;
   onDelete?: (userId: number) => Promise<void>;
 }
 
@@ -59,7 +52,7 @@ export function SuccessMessage({ open, message, onClose }: SuccessMessageProps) 
   );
 }
 
-export function CustomersTable({
+export function CategoriesTable({
   count = 0,
   rows = [],
   page = 0,
@@ -76,13 +69,15 @@ export function CustomersTable({
   onDelete = async () => {
     /* No implementation needed */
   },
-}: CustomersTableProps): React.JSX.Element {
+}: CategoriesTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
-    return rows.map((customer) => customer.id);
+    return rows.map((categories) => categories.id);
   }, [rows]);
 
   const { user } = useUser();
-  const { selected } = useSelection(rowIds);
+  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
+  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
+  const selectedAll = rows.length > 0 && selected?.size === rows.length;
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const [alertOpen, setAlertOpen] = React.useState(false);
 
@@ -91,18 +86,12 @@ export function CustomersTable({
     setSuccessMessage(null);
   };
 
-  const handleEdit = async (row: Customer): Promise<void> => {
+  const handleEdit = async (row: Categories): Promise<void> => {
     onEdit(row);
   };
 
   const handleDelete = async (userId: number): Promise<void> => {
     await onDelete(userId);
-  };
-
-  const roleTranslations: Record<string, string> = {
-    admin: 'Administrador',
-    viewer: 'Observador',
-    cashier: 'Cajero',
   };
 
   return (
@@ -112,13 +101,21 @@ export function CustomersTable({
         <Table sx={{ minWidth: '800px' }}>
           <TableHead>
             <TableRow>
-              <TableCell>Primer Nombre</TableCell>
-              <TableCell>Segundo Nombre</TableCell>
-              <TableCell>Primer Apellido</TableCell>
-              <TableCell>Segundo Apellido</TableCell>
-              <TableCell>Correo electrónico</TableCell>
-              <TableCell>Número de celular</TableCell>
-              <TableCell>Rol</TableCell>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={selectedAll}
+                  indeterminate={selectedSome}
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      selectAll();
+                    } else {
+                      deselectAll();
+                    }
+                  }}
+                />
+              </TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell style={{ width: '70%' }}>Descripción</TableCell>
               {user?.role !== 'viewer' && <TableCell>Acciones</TableCell>}
             </TableRow>
           </TableHead>
@@ -128,13 +125,20 @@ export function CustomersTable({
 
               return (
                 <TableRow hover key={row.id} selected={isSelected}>
-                  <TableCell>{row.firstName}</TableCell>
-                  <TableCell>{row.middleName}</TableCell>
-                  <TableCell>{row.lastName}</TableCell>
-                  <TableCell>{row.secondLastName}</TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.phoneNumber}</TableCell>
-                  <TableCell>{roleTranslations[row.role]}</TableCell>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isSelected}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          selectOne(row.id);
+                        } else {
+                          deselectOne(row.id);
+                        }
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.description}</TableCell>
                   {user?.role !== 'viewer' && (
                     <TableCell>
                       {' '}
@@ -142,9 +146,11 @@ export function CustomersTable({
                         startIcon={<PencilIcon />}onClick={() => handleEdit(row)}>
                         Editar
                       </Button>
+                      {user?.role !== 'cashier' && (
                       <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
                         Eliminar
                       </Button>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>

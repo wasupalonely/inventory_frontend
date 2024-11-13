@@ -4,21 +4,22 @@ import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 
+// Define el tipo para la función onSearch
 type OnSearchFunction = (searchValue: string) => void;
-  
-interface CustomersFiltersProps {
-  onSearch: OnSearchFunction;
+
+interface CompaniesFiltersProps {
+  onSearch: OnSearchFunction; // Utiliza el tipo definido aquí
 }
 
-export function CustomersFilters({ onSearch }: CustomersFiltersProps) {
+export function CompaniesFilters({ onSearch }: CompaniesFiltersProps) {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput
         defaultValue=""
         fullWidth
-        placeholder="Buscar usuario"
+        placeholder="Buscar"
         onChange={(e) => { 
-          onSearch(e.target.value);
+          onSearch(e.target.value); // Actualiza el valor de búsqueda 
         }}
         startAdornment={
           <InputAdornment position="start">

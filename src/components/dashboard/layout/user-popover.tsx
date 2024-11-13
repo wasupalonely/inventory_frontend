@@ -8,7 +8,7 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
-import { GearSix as GearSixIcon } from '@phosphor-icons/react/dist/ssr/GearSix';
+// import { GearSix as GearSixIcon } from '@phosphor-icons/react/dist/ssr/GearSix';
 import { SignOut as SignOutIcon } from '@phosphor-icons/react/dist/ssr/SignOut';
 import { User as UserIcon } from '@phosphor-icons/react/dist/ssr/User';
 
@@ -24,7 +24,7 @@ export interface UserPopoverProps {
 }
 
 export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): React.JSX.Element {
-  const { checkSession } = useUser();
+  const { checkSession, user } = useUser();
 
   const router = useRouter();
 
@@ -39,6 +39,8 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
 
       // Refresh the auth state
       await checkSession?.();
+
+      
 
       // UserProvider, for this case, will not refresh the router and we need to do it manually
       router.refresh();
@@ -57,24 +59,24 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       slotProps={{ paper: { sx: { width: '240px' } } }}
     >
       <Box sx={{ p: '16px 20px ' }}>
-        <Typography variant="subtitle1">Primer Nombre Primer Apellido</Typography>
+        <Typography variant="subtitle1">{user?.firstName} {user?.lastName}</Typography>
         <Typography color="text.secondary" variant="body2">
-          Correo electrónico
+          {user?.email}
         </Typography>
       </Box>
       <Divider />
       <MenuList disablePadding sx={{ p: '8px', '& .MuiMenuItem-root': { borderRadius: 1 } }}>
-        <MenuItem component={RouterLink} href={paths.dashboard.settings} onClick={onClose}>
+        {/* <MenuItem component={RouterLink} href={paths.dashboard.settings} onClick={onClose}>
           <ListItemIcon>
             <GearSixIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
           Configuración
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem component={RouterLink} href={paths.dashboard.account} onClick={onClose}>
           <ListItemIcon>
             <UserIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
-          Perfl
+          Perfil
         </MenuItem>
         <MenuItem onClick={handleSignOut}>
           <ListItemIcon>

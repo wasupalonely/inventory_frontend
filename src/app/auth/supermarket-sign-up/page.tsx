@@ -9,6 +9,7 @@ import { SupermarketSignUpForm } from '@/components/auth/supermarket-sign-up-for
 export const metadata: Metadata = { title: config.site.name };
 
 export default function Page(): React.JSX.Element {
+
   return (
     <Layout>
       <AuthGuard>

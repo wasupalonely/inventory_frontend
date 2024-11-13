@@ -13,8 +13,12 @@ export const paths = {
     overview: '/dashboard',
     account: '/dashboard/account',
     customers: '/dashboard/customers',
-    integrations: '/dashboard/integrations',
+    inventory: '/dashboard/inventory',
+    sales: '/dashboard/sales',
+    sales_history: '/dashboard/sales-history',
     settings: '/dashboard/settings',
+    supermarket: '/dashboard/supermarket',
+    categories: '/dashboard/categories',
   },
   errors: { notFound: '/errors/not-found' },
 } as const;

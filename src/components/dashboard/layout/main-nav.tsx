@@ -10,16 +10,18 @@ import Tooltip from '@mui/material/Tooltip';
 import { Bell as BellIcon } from '@phosphor-icons/react/dist/ssr/Bell';
 import { List as ListIcon } from '@phosphor-icons/react/dist/ssr/List';
 import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
-
 import { usePopover } from '@/hooks/use-popover';
-
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
 
 export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
-
   const userPopover = usePopover<HTMLDivElement>();
+
+  // Obtener la URL de la imagen del perfil desde localStorage
+  const [avatarUrl, setAvatarUrl] = React.useState<string>(
+    localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
+  );
 
   return (
     <React.Fragment>
@@ -64,7 +66,7 @@ export function MainNav(): React.JSX.Element {
             <Avatar
               onClick={userPopover.handleOpen}
               ref={userPopover.anchorRef}
-              src="/assets/"
+              src={avatarUrl}
               sx={{ cursor: 'pointer' }}
             />
           </Stack>
