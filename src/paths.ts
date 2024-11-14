@@ -20,8 +20,8 @@ export const paths = {
     supermarket: '/dashboard/supermarket',
     categories: '/dashboard/categories',
     predictions: '/dashboard/predictions',
-    predictionDetails: '/dashboard/predictions-details/1'
-    /* predictionDetails: (id: string) => `/dashboard/prediction-details/${id}`, */
+    predictionDetails: '/dashboard/predictions-details/1',
+    reports: '/dashboard/reports',
   },
   errors: { notFound: '/errors/not-found' },
 } as const;

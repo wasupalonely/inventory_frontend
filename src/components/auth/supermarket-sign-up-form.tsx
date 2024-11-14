@@ -96,6 +96,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
     mode: 'onChange',
   });
 
+  //Endpoint
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
@@ -106,7 +107,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
       if (!token) {
         setError('root', { type: 'server', message: 'No se encontró el token de autorización' });
         setIsPending(false);
-        return;
       }
   
       if (!ownerId) {
