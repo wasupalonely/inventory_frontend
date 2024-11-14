@@ -160,7 +160,7 @@ useEffect(() => {
             setSnackbarOpen(true);
             setDialogOpen(false);
         } catch (updateError: unknown) {
-            setSnackbarMessage('Error al actualizar el supermercado. Intente nuevamente.');
+            setSnackbarMessage('Error al actualizar el supermercado. Intente de nuevo.');
             setSnackbarSeverity('error');
             setSnackbarOpen(true);
         }
