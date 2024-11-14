@@ -47,12 +47,27 @@ export const navItems: NavItemConfig[] = [
     title: 'Historial de Ventas', 
     href: paths.dashboard.sales_history, 
     icon: 'history',
+    roles: ['admin', 'owner'],
+  },
+  { 
+    key: 'predictions', 
+    title: 'Predicciones', 
+    href: paths.dashboard.predictions, 
+    icon: 'line-segments',
+    roles: ['admin', 'owner'],
   }, 
   { 
     key: 'account', 
     title: 'Cuenta', 
     href: paths.dashboard.account, 
     icon: 'user',
+  },
+  { 
+    key: 'settings', 
+    title: 'Configuración', 
+    href: paths.dashboard.settings, 
+    icon: 'gear-six',
+    roles: ['admin', 'owner']
   },
   { 
     key: 'reports', 
