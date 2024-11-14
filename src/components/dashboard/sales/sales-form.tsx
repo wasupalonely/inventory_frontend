@@ -21,6 +21,7 @@ import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
 import { Plus, DownloadSimple } from '@phosphor-icons/react';
 import { User } from '@/types/user';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   id: number;
@@ -65,6 +66,17 @@ export function SalesForm(): React.JSX.Element {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const router = useRouter();
+
+  const allowedRoles = ['admin', 'owner', 'cashier'];
+
+  useEffect(() => {
+    // Verifica el rol del usuario y redirige si no es uno de los permitidos
+    const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!allowedRoles.includes(storedUser.role)) {
+      router.replace('errors/not-found'); // Redirige a una página de acceso no autorizado
+    }
+  }, [router]);
 
   // Cargar productos desde el backend
   const fetchProducts = async () => {
