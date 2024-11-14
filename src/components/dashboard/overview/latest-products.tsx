@@ -23,13 +23,17 @@ export interface LatestProductsProps {
 }
 
 export function LatestProducts({ products = [], sx }: LatestProductsProps): React.JSX.Element {
+  const handleViewAllClick = () => {
+    window.location.href = '/dashboard/inventory';
+  };
+
   return (
     <Card sx={sx}>
       <CardHeader title="Últimos productos" />
       <Divider />
       <List>
-        {products.map((product, index) => (
-          <ListItem divider={index < products.length - 1} key={product.id}>
+        {products.slice(-5).map((product, index) => (
+          <ListItem divider={index < Math.min(products.length, 5) - 1} key={product.id}>
             <ListItemAvatar>
               {product.image ? (
                 <Box component="img" src={product.image} sx={{ borderRadius: 1, height: '48px', width: '48px' }} />
@@ -63,6 +67,7 @@ export function LatestProducts({ products = [], sx }: LatestProductsProps): Reac
           endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />}
           size="small"
           variant="text"
+          onClick={handleViewAllClick}
         >
           Ver todo
         </Button>
@@ -70,3 +75,4 @@ export function LatestProducts({ products = [], sx }: LatestProductsProps): Reac
     </Card>
   );
 }
+
