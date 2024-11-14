@@ -57,6 +57,13 @@ export const navItems: NavItemConfig[] = [
     roles: ['admin', 'owner'],
   }, 
   { 
+    key: 'reports', 
+    title: 'Reportes', 
+    href: paths.dashboard.reports, 
+    icon: 'article',
+    roles: ['admin', 'owner']
+  },
+  { 
     key: 'account', 
     title: 'Cuenta', 
     href: paths.dashboard.account, 
@@ -67,13 +74,6 @@ export const navItems: NavItemConfig[] = [
     title: 'Configuración', 
     href: paths.dashboard.settings, 
     icon: 'gear-six',
-    roles: ['admin', 'owner']
-  },
-  { 
-    key: 'reports', 
-    title: 'Reportes', 
-    href: paths.dashboard.reports, 
-    icon: 'article',
     roles: ['admin', 'owner']
   },
 ];

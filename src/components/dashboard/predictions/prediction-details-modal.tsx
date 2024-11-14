@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, Button, CircularProgress, Typography } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Typography } from '@mui/material';
 import type { PredictionsParams } from '@/lib/auth/client';
 import { authClient } from '@/lib/auth/client';
 
@@ -59,28 +59,40 @@ const PredictionDetailsModal: React.FC<PredictionDetailsModalProps> = ({ open, p
         : date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
     };
 
+    const translateResult = (result: string) => {
+      const translations: Record<string, string> = {
+        "Fresh": "Fresca",
+        "Half-fresh": "Semi Fresca",
+        "Spoiled": "Estropeada",
+      };
+      
+      return translations[result] || result; // Devuelve el valor original si no hay traducción
+    };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Detalles de Predicción</DialogTitle>
-      <DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : errorPreDet ? (
-          <Typography color="error">{errorPreDet}</Typography>
-        ) : predictionDetails ? (
-          <div>
-            <img src={imageUrl} alt="Prediction" width="100%" />
-            <Typography variant="h6">Resultado: {predictionDetails.result}</Typography>
-            <Typography>Fecha: {formatDate(predictionDetails.createdAt)}</Typography>
-            <Typography>Hora: {formatDate(predictionDetails.updatedAt)}</Typography>
-            {/* Agrega más detalles según los campos disponibles */}
-          </div>
-        ) : (
-          <Typography>No se encontraron detalles para esta predicción.</Typography>
-        )}
-      </DialogContent>
-      <Button onClick={onClose}>Cerrar</Button>
-    </Dialog>
+    <Dialog open={open} onClose={onClose} maxWidth="md">
+  <DialogTitle>Detalles de Predicción</DialogTitle>
+  <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+    {loading ? (
+      <CircularProgress />
+    ) : errorPreDet ? (
+      <Typography color="error">{errorPreDet}</Typography>
+    ) : predictionDetails ? (
+      <div style={{ textAlign: 'center' }}>
+        <img src={imageUrl} alt="Prediction" width="60%" />
+        <Typography variant="h6">Resultado: {translateResult(predictionDetails.result)}</Typography>
+        <Typography>Fecha: {formatDate(predictionDetails.createdAt)}</Typography>
+        <Typography>Hora: {formatTime(predictionDetails.updatedAt)}</Typography>
+      </div>
+    ) : (
+      <Typography>No se encontraron detalles para esta predicción.</Typography>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={onClose}>Cerrar</Button>
+  </DialogActions>
+</Dialog>
+
   );
 };
 

@@ -27,7 +27,15 @@ const formatTime = (dateString: string | null | undefined) => {
     : date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 };
 
-
+const translateResult = (result: string) => {
+  const translations: Record<string, string> = {
+    "Fresh": "Fresca",
+    "Half-fresh": "Semi Fresca",
+    "Spoiled": "Estropeada",
+  };
+  
+  return translations[result] || result; // Devuelve el valor original si no hay traducción
+};
 
 interface SuccessMessageProps {
   open: boolean;
@@ -127,7 +135,7 @@ const handleCloseModal = () => {
                     <TableCell>
                       <img src={row.image instanceof File ? URL.createObjectURL(row.image) : row.image} width={50} height={50} alt="" />
                     </TableCell>
-                    <TableCell>{row.result}</TableCell>
+                    <TableCell>{translateResult(row.result)}</TableCell>
                     <TableCell>{formatDate(new Date(row.createdAt).toString())}</TableCell>
                     <TableCell>{formatTime(new Date(row.updatedAt).toString())}</TableCell>
                     <TableCell>
