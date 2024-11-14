@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -12,22 +12,106 @@ import type { SxProps } from '@mui/material/styles';
 import { ArrowClockwise as ArrowClockwiseIcon } from '@phosphor-icons/react/dist/ssr/ArrowClockwise';
 import { ArrowRight as ArrowRightIcon } from '@phosphor-icons/react/dist/ssr/ArrowRight';
 import type { ApexOptions } from 'apexcharts';
+import { API_URL } from '@/config';
 
 import { Chart } from '@/components/core/chart';
+import { User } from '@/types/user';
 
-export interface SalesProps {
-  chartSeries: { name: string; data: number[] }[];
-  sx?: SxProps;
+interface SalesData {
+  thisYear: number[];
+  lastYear: number[];
 }
 
-export function Sales({ chartSeries, sx }: SalesProps): React.JSX.Element {
+export interface SalesProps {
+  sx?: SxProps;
+  chartSeries: { name: string; data: number[] }[];
+}
+
+export function Sales({ sx }: SalesProps): React.JSX.Element {
+  const [chartSeries, setChartSeries] = useState<{ name: string; data: number[] }[]>([]);
   const chartOptions = useChartOptions();
+  const [supermarketId, setSupermarketId] = useState<string | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+
+  const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string): void => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
+  const handleSyncClick = () => {
+    if (supermarketId) {
+      setSnackbarMessage('Sincronizando...');
+      setSnackbarSeverity('info');
+      setSnackbarOpen(true);
+      fetchChartData(); 
+    }
+  };
+
+  const fetchChartData = async () => {
+    try {
+      const token = localStorage.getItem('custom-auth-token');
+      const url = `${API_URL}/sales/chart-data/${supermarketId}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorDetail = await response.text();
+        throw new Error(`Error en la respuesta de red (${response.status}): ${errorDetail}`);
+      }
+
+      const salesData: SalesData = await response.json();
+      if (salesData.thisYear && salesData.lastYear) {
+        setChartSeries([
+          { name: 'Este Año', data: salesData.thisYear },
+          { name: 'Año Pasado', data: salesData.lastYear },
+        ]);
+      }
+    } catch (error) {
+      setSnackbarMessage('Error al cargar los datos del gráfico');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    const user: User = JSON.parse(localStorage.getItem('user') || '{}');
+    const salesSupermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
+
+    if (salesSupermarketId) {
+      setSupermarketId(salesSupermarketId);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (supermarketId) {
+      fetchChartData(); // Cargar los datos cuando se obtiene el ID del supermercado
+    }
+  }, [supermarketId]);
 
   return (
     <Card sx={sx}>
       <CardHeader
         action={
-          <Button color="inherit" size="small" startIcon={<ArrowClockwiseIcon fontSize="var(--icon-fontSize-md)" />}>
+          <Button
+            color="inherit"
+            size="small"
+            startIcon={<ArrowClockwiseIcon fontSize="var(--icon-fontSize-md)" />}
+            onClick={handleSyncClick} // Agregar el evento para sincronizar
+          >
             Sincronizar
           </Button>
         }
@@ -38,7 +122,11 @@ export function Sales({ chartSeries, sx }: SalesProps): React.JSX.Element {
       </CardContent>
       <Divider />
       <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button color="inherit" endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />} size="small">
+        <Button
+          color="inherit"
+          endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />}
+          size="small"
+        >
           Descripción general
         </Button>
       </CardActions>
