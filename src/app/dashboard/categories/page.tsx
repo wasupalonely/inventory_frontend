@@ -470,7 +470,7 @@ export default function Page(): React.JSX.Element {
                   });
             
                   if (!response.ok) {
-                    showErrorMessage('Error al eliminar la categoría');
+                    showSnackbar('Esta categoría está asignada a un producto, elimina primero el producto', 'error');
                     return;
                   }
             

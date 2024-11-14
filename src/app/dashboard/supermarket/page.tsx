@@ -346,8 +346,8 @@ const SupermarketDetails = () => {
                                         <Typography variant="body2"><strong>Información adicional:</strong> {supermarket.address.additionalInfo}</Typography>
                                     </Box>
                                 </Stack>
-                                {userRole === 'owner' && (
-                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                    {(userRole === 'admin' || userRole === 'owner') && (
                                         <Button
                                             startIcon={<PencilIcon />}
                                             color="primary"
@@ -361,6 +361,8 @@ const SupermarketDetails = () => {
                                         >
                                             Editar
                                         </Button>
+                                    )}                                    
+                                    {(userRole !== 'admin' && userRole !== 'viewer') && (
                                         <Button
                                             startIcon={<TrashIcon />}
                                             color="error"
@@ -374,8 +376,8 @@ const SupermarketDetails = () => {
                                         >
                                             Eliminar
                                         </Button>
-                                    </Box>
-                                )}
+                                    )}
+                                </Box>
                                 <Divider sx={{ my: 3 }} />
                             </>
                         )}

@@ -47,6 +47,13 @@ export const navItems: NavItemConfig[] = [
     href: paths.dashboard.sales_history, 
     icon: 'history',
     roles: ['admin', 'owner'],
+  },
+  { 
+    key: 'predictions', 
+    title: 'Predicciones', 
+    href: paths.dashboard.predictions, 
+    icon: 'line-segments',
+    roles: ['admin', 'owner'],
   }, 
   { 
     key: 'account', 
@@ -54,11 +61,11 @@ export const navItems: NavItemConfig[] = [
     href: paths.dashboard.account, 
     icon: 'user',
   },
-  // { 
-  //   key: 'settings', 
-  //   title: 'Configuración', 
-  //   href: paths.dashboard.settings, 
-  //   icon: 'gear-six',
-  //   roles: ['admin', 'owner']
-  // },
+  { 
+    key: 'settings', 
+    title: 'Configuración', 
+    href: paths.dashboard.settings, 
+    icon: 'gear-six',
+    roles: ['admin', 'owner']
+  },
 ];

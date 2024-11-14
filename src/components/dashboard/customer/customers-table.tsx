@@ -123,33 +123,38 @@ export function CustomersTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => {
-              const isSelected = selected?.has(row.id);
-
-              return (
-                <TableRow hover key={row.id} selected={isSelected}>
-                  <TableCell>{row.firstName}</TableCell>
-                  <TableCell>{row.middleName}</TableCell>
-                  <TableCell>{row.lastName}</TableCell>
-                  <TableCell>{row.secondLastName}</TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.phoneNumber}</TableCell>
-                  <TableCell>{roleTranslations[row.role]}</TableCell>
-                  {user?.role !== 'viewer' && (
-                    <TableCell>
-                      {' '}
-                      <Button
-                        startIcon={<PencilIcon />}onClick={() => handleEdit(row)}>
-                        Editar
-                      </Button>
-                      <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
-                        Eliminar
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })}
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={user?.role !== 'viewer' ? 8 : 7} align="center">
+                  No hay usuarios disponibles
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((row) => {
+                const isSelected = selected?.has(row.id);
+                return (
+                  <TableRow hover key={row.id} selected={isSelected}>
+                    <TableCell>{row.firstName}</TableCell>
+                    <TableCell>{row.middleName}</TableCell>
+                    <TableCell>{row.lastName}</TableCell>
+                    <TableCell>{row.secondLastName}</TableCell>
+                    <TableCell>{row.email}</TableCell>
+                    <TableCell>{row.phoneNumber}</TableCell>
+                    <TableCell>{roleTranslations[row.role]}</TableCell>
+                    {user?.role !== 'viewer' && (
+                      <TableCell>
+                        <Button startIcon={<PencilIcon />} onClick={() => handleEdit(row)}>
+                          Editar
+                        </Button>
+                        <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
+                          Eliminar
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Box>

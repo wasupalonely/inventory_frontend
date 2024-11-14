@@ -19,6 +19,9 @@ export const paths = {
     settings: '/dashboard/settings',
     supermarket: '/dashboard/supermarket',
     categories: '/dashboard/categories',
+    predictions: '/dashboard/predictions',
+    predictionDetails: '/dashboard/predictions-details/1'
+    /* predictionDetails: (id: string) => `/dashboard/prediction-details/${id}`, */
   },
   errors: { notFound: '/errors/not-found' },
 } as const;
