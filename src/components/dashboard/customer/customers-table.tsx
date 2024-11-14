@@ -4,7 +4,6 @@ import * as React from 'react';
 import { Button, Snackbar, Alert } from '@mui/material';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -83,9 +82,7 @@ export function CustomersTable({
   }, [rows]);
 
   const { user } = useUser();
-  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
-  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
-  const selectedAll = rows.length > 0 && selected?.size === rows.length;
+  const { selected } = useSelection(rowIds);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const [alertOpen, setAlertOpen] = React.useState(false);
 
@@ -115,19 +112,6 @@ export function CustomersTable({
         <Table sx={{ minWidth: '800px' }}>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  checked={selectedAll}
-                  indeterminate={selectedSome}
-                  onChange={(event) => {
-                    if (event.target.checked) {
-                      selectAll();
-                    } else {
-                      deselectAll();
-                    }
-                  }}
-                />
-              </TableCell>
               <TableCell>Primer Nombre</TableCell>
               <TableCell>Segundo Nombre</TableCell>
               <TableCell>Primer Apellido</TableCell>
@@ -144,18 +128,6 @@ export function CustomersTable({
 
               return (
                 <TableRow hover key={row.id} selected={isSelected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={(event) => {
-                        if (event.target.checked) {
-                          selectOne(row.id);
-                        } else {
-                          deselectOne(row.id);
-                        }
-                      }}
-                    />
-                  </TableCell>
                   <TableCell>{row.firstName}</TableCell>
                   <TableCell>{row.middleName}</TableCell>
                   <TableCell>{row.lastName}</TableCell>
