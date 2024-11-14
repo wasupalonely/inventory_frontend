@@ -9,6 +9,7 @@ import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { useRouter } from 'next/navigation';
 import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { jsPDF } from 'jspdf';
@@ -30,6 +31,7 @@ import { useUser } from '@/hooks/use-user';
 
 export default function Page(): React.JSX.Element {
   const { user: currentUser } = useUser();
+  const router = useRouter();
   const [user, setUser] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -44,6 +46,15 @@ export default function Page(): React.JSX.Element {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [isPending] = React.useState<boolean>(false);
+
+  const allowedRoles = ['admin', 'owner', 'viewer'];
+
+  useEffect(() => {
+    // Verifica el rol del usuario y redirige si no es uno de los permitidos
+    if (currentUser && !allowedRoles.includes(currentUser.role)) {
+      router.replace('errors/not-found'); // Redirige a una página de acceso no autorizado
+    }
+  }, [currentUser, router]);
 
   const {
     control,

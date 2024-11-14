@@ -14,6 +14,8 @@ import { Gps as GpsIcon } from '@phosphor-icons/react/dist/ssr/Gps';
 import { Info as InfoIcon } from '@phosphor-icons/react/dist/ssr/Info';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 const Container = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -82,6 +84,20 @@ const SupermarketDetails = () => {
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success'); // Tipo de alerta
     const [dialogOpen, setDialogOpen] = useState(false);
     const maxRetries = 3;
+
+    const router = useRouter();
+// Verificar si el usuario tiene uno de los roles permitidos
+useEffect(() => {
+    const storedUser: StoredUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const role = storedUser.role;
+
+    // Redirige si el rol no está en la lista permitida
+    if (!['owner', 'admin', 'viewer'].includes(role || '')) {
+      router.replace('errors/not-found'); // Reemplaza con la página de acceso restringido
+    } else {
+      setUserRole(role ?? null); // Asigna directamente sin una variable extra
+    }
+  }, [router]);
 
     const fetchSupermarketDetails = async (supermarketId: string): Promise<Supermarket> => {
         const token = localStorage.getItem('custom-auth-token');

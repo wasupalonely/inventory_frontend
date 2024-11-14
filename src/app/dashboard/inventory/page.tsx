@@ -259,35 +259,40 @@ const fetchProducts = async () => {
         setSnackbarOpen(true);
       }
   };
-  // añadir productos
-  const onSubmitProduct = async (data: {
-    name: string;
-    description: string;
-    price: string;
-    categoryId: string;
-    stock: string;
-    image: File | undefined; 
-  }) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-  
-    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
-    const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
-  
-    if (!supermarketId) {
-      return;
-    }
-  
-    // Preparar datos en FormData para el producto
-    const productData = new FormData();
-    productData.append('name', data.name);
-    productData.append('description', data.description);
-    productData.append('price', data.price);
+ // Función para añadir productos
+ const onSubmitProduct = async (data: {
+  name: string;
+  description: string;
+  price: string;
+  categoryId?: string;
+  stock: string;
+  image: File | undefined; 
+}) => {
+  if (isSubmitting) return;
+  setIsSubmitting(true);
+
+  const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+  const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
+
+  if (!supermarketId) {
+    return;
+  }
+
+  // Preparar datos en FormData para el producto
+  const productData = new FormData();
+  productData.append('name', data.name);
+  productData.append('description', data.description);
+  productData.append('price', data.price);
+  productData.append('supermarketId', supermarketId.toString());
+
+  // Enviar categoryId con el valor de "Sin Categoría" si no se selecciona otra
+  if (data.categoryId && data.categoryId !== "") {
     productData.append('categoryId', data.categoryId);
-    productData.append('supermarketId', supermarketId.toString());
-    if (data.image) {
-      productData.append('image', data.image);
-    }
+  }
+
+  if (data.image) {
+    productData.append('image', data.image);
+  }
   
     try {
       const token = localStorage.getItem('custom-auth-token');
@@ -400,7 +405,7 @@ const fetchProducts = async () => {
     name: string;
     description: string;
     price: string;
-    categoryId: string;
+    categoryId?: string;
     stock: string;
     
   }) => {
@@ -590,7 +595,7 @@ const handleSnackbarClose = () => {
         whiteSpace: 'nowrap',
       }}
     >
-      Categoría: {inventory.product.category?.name || 'Categoría no encontrada'}
+      Categoría: {inventory.product.category?.name || 'Sin Categoría'}
     </Typography>
 
     {/* Reserva el espacio de los botones si el rol es viewer */}
@@ -754,24 +759,32 @@ const handleSnackbarClose = () => {
               )}
             />
 
-          <Controller
-            name="categoryId"
-            control={control}
-            rules={{ required: 'Debes seleccionar una categoría' }}
-            render={({ field, fieldState }) => (
-              <FormControl fullWidth error={Boolean(fieldState.error)}>
-                <InputLabel id="category-select-label">Categoría</InputLabel>
-                <Select {...field} label="Categoría" id="category-select">
-                  {categories.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
-              </FormControl>
-            )}
-          />
+<Controller
+  name="categoryId"
+  control={control}
+  render={({ field, fieldState }) => (
+    <FormControl fullWidth error={Boolean(fieldState.error)}>
+      <InputLabel id="category-select-label">Categoría</InputLabel>
+      <Select
+        {...field}
+        label="Categoría"
+        id="category-select"
+        value={field.value || ""} // Mantiene el valor como una cadena vacía si no se selecciona ninguna categoría
+
+      >
+        <MenuItem value="">
+          <em>Sin Categoría</em> {/* Permite seleccionar "Sin Categoría" manualmente */}
+        </MenuItem>
+        {categories.map((category) => (
+          <MenuItem key={category.id} value={category.id}>
+            {category.name}
+          </MenuItem>
+        ))}
+      </Select>
+      {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
+    </FormControl>
+  )}
+/>
 
           {/* Controlador de subida de imagen */}
           <Controller
@@ -1006,7 +1019,6 @@ const handleSnackbarClose = () => {
         <Controller
           name="categoryId"
           control={control}
-          rules={{ required: 'Debes seleccionar una categoría' }}
           render={({ field, fieldState }) => (
             <FormControl fullWidth error={Boolean(fieldState.error)}>
               <InputLabel id="category-select-label">Categoría</InputLabel>
