@@ -25,7 +25,6 @@ export interface UserPopoverProps {
 
 export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): React.JSX.Element {
   const { checkSession, user } = useUser();
-
   const router = useRouter();
 
   const handleSignOut = React.useCallback(async (): Promise<void> => {

@@ -36,8 +36,11 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
   const userPopover = usePopover<HTMLDivElement>();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const user: User = JSON.parse(localStorage.getItem('user') || '{}');
   const [avatarUrl, setAvatarUrl] = React.useState<string>(
-    localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
+    typeof user?.profileImage === 'string'
+      ? user.profileImage
+      : localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
   );
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -59,8 +62,8 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
     const fetchNotifications = async () => {
       try {
         const token = localStorage.getItem('custom-auth-token'); // Obtén el token
-        const user: User = JSON.parse(localStorage.getItem('user') || '{}');
-        const supermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
+        const userMain: User = JSON.parse(localStorage.getItem('user') || '{}');
+        const supermarketId = userMain?.supermarket?.id?.toString() || userMain?.ownedSupermarket?.id?.toString();
 
         const response = await fetch(`${API_URL}/notifications/supermarket/${supermarketId}`, {
           method: 'GET', // Método de la solicitud
