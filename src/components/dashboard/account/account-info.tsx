@@ -13,9 +13,11 @@ import { authClient } from '@/lib/auth/client';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useUser } from '@/hooks/use-user';
+import { useRouter } from 'next/navigation';
 
 export function AccountInfo(): React.JSX.Element {
   const { user } = useUser();
+  const router = useRouter();  
   const [profileImage, setprofileImage] = React.useState<File | null>(null);
   const [alertMessage, setAlertMessage] = React.useState<string | null>(null);
   const [alertType, setAlertType] = React.useState<'success' | 'error'>('success');
@@ -47,7 +49,7 @@ export function AccountInfo(): React.JSX.Element {
       setAlertMessage('Por favor, selecciona una imagen.');
       setAlertType('error');
       setIsAlertOpen(true);
-      return;
+      return false;
     }
   
     const token = localStorage.getItem('custom-auth-token') as string;
@@ -56,7 +58,7 @@ export function AccountInfo(): React.JSX.Element {
       setAlertMessage('No se pudo obtener el ID del usuario.');
       setAlertType('error');
       setIsAlertOpen(true);
-      return;
+      return false;
     }
   
     const { error } = await authClient.uploadImage({ profileImage, token, userId: String(user.id) });
@@ -64,6 +66,7 @@ export function AccountInfo(): React.JSX.Element {
     if (error) {
       setAlertMessage(error);
       setAlertType('error');
+      return false;
     } else {
       setAlertMessage('Imagen subida exitosamente');
       setAlertType('success');
@@ -71,9 +74,8 @@ export function AccountInfo(): React.JSX.Element {
   
       // Guardar la imagen subida en localStorage
       localStorage.setItem('avatarUrl', avatarUrl);
+      return true;
     }
-  
-    setIsAlertOpen(true);
   };  
 
   const handleCloseAlert = () => {
@@ -115,7 +117,16 @@ export function AccountInfo(): React.JSX.Element {
         <Button fullWidth variant="text" onClick={handleButtonClick}>
           Seleccionar imagen
         </Button>
-        <Button fullWidth variant="text" onClick={handleImageUpload}>
+        <Button
+          fullWidth
+          variant="text"
+          onClick={async () => {
+            const isUploaded = await handleImageUpload();
+            if (isUploaded) {
+              window.location.reload(); // Recargar la página después de subir la imagen
+            }
+          }}
+        >
           Subir imagen
         </Button>
       </CardActions>
