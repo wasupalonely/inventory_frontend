@@ -10,7 +10,7 @@ interface CategoriesFiltersProps {
   onSearch: OnSearchFunction;
 }
 
-export function CategoriesFilters({ onSearch }: CategoriesFiltersProps) {
+export function CategoriesFilters({ onSearch }: CategoriesFiltersProps): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput

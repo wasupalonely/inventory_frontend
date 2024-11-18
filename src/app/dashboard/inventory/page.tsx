@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -73,7 +73,7 @@ export default function Page(): React.JSX.Element {
     inventory.product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-const handleOpenCategory = () => {
+const handleOpenCategory = (): void => {
   setOpenCategory(true);
   reset({ 
     name: '',
@@ -81,7 +81,7 @@ const handleOpenCategory = () => {
   });
 };
 
-const handleCloseCategory = () => {
+const handleCloseCategory = (): void => {
   setOpenCategory(false);
   reset({
     name: '',
@@ -89,7 +89,7 @@ const handleCloseCategory = () => {
   });
 };
 
-const handleOpenProduct = () => {
+const handleOpenProduct = (): void => {
   setOpenProduct(true);
     reset({
       name: '',
@@ -100,13 +100,13 @@ const handleOpenProduct = () => {
     });
 };
 
-const handleCloseProduct = () => {
+const handleCloseProduct = (): void => {
   setPreviewImage(null);
   setOpenProduct(false);
   reset();
 };
 
-const handleOpenEditProduct = (product: Product, inventory: Inventory) => {
+const handleOpenEditProduct = (product: Product, inventory: Inventory): void => {
   setProductToEdit(product);
   reset({
     name: product.name || '', // Asegúrate de manejar el caso donde product.name pueda ser undefined
@@ -118,20 +118,13 @@ const handleOpenEditProduct = (product: Product, inventory: Inventory) => {
   setOpenEditProduct(true);
 };
 
-const handleCloseEditProduct = () => {
+const handleCloseEditProduct = (): void => {
   setOpenEditProduct(false);
   reset();
 };
 
-
-
-React.useEffect(() => {
-  fetchCategories();
-  fetchProducts();
-}, []);
-
 // Cargar categorías solo del supermercado del usuario
-const fetchCategories = async () => {
+const fetchCategories = useCallback(async (): Promise<void> => {
   try {
     const token = localStorage.getItem('custom-auth-token');
     const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}'); // Obtenemos el usuario
@@ -156,10 +149,10 @@ const fetchCategories = async () => {
   } catch (error) {
     // Manejo de errores omitido
   }
-};
+}, []);
 
 // Cargar productos solo del supermercado del usuario
-const fetchProducts = async () => {
+const fetchProducts = useCallback(async (): Promise<void> => {
   try {
     const token = localStorage.getItem('custom-auth-token');
     const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -196,7 +189,12 @@ const fetchProducts = async () => {
     setSnackbarSeverity('error');
     setSnackbarOpen(true);
   }
-};
+}, []);
+
+React.useEffect(() => {
+  fetchCategories();
+  fetchProducts();
+}, [fetchCategories, fetchProducts]);
 
   interface Supermarket {
     id: number;
@@ -213,7 +211,7 @@ const fetchProducts = async () => {
   }
   
   // Función para añadir categoría
-  const onSubmitCategory = async (data: CategoryFormData) => {
+  const onSubmitCategory = async (data: CategoryFormData): Promise<void> => {
     const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}'); // Tipificar como User
     const supermarketId = currentUser.ownedSupermarket?.id || currentUser.supermarket?.id;
   
@@ -267,7 +265,7 @@ const fetchProducts = async () => {
   categoryId?: string;
   stock: string;
   image: File | undefined; 
-}) => {
+}): Promise<void> => {
   if (isSubmitting) return;
   setIsSubmitting(true);
 
@@ -359,12 +357,12 @@ const fetchProducts = async () => {
   
   
   // Función para eliminar producto
-  const handleDeleteProduct = (productId: number) => { 
+  const handleDeleteProduct = (productId: number): void => { 
     setProductIdToDelete(productId);
     setOpenDeleteDialog(true);
   };
 
-  const confirmDeleteProduct = async () => { 
+  const confirmDeleteProduct = async (): Promise<void> => { 
     if (productIdToDelete) { 
       const token = localStorage.getItem('custom-auth-token'); 
       if (!token) { 
@@ -408,7 +406,7 @@ const fetchProducts = async () => {
     categoryId?: string;
     stock: string;
     
-  }) => {
+  }): Promise<void> => {
     if (!productToEdit) return; 
   
     const productData = {
@@ -465,7 +463,7 @@ const fetchProducts = async () => {
         }
 };
 
-const handleSnackbarClose = () => {
+const handleSnackbarClose = (): void => {
   setSnackbarOpen(false);
 };
 
@@ -783,7 +781,7 @@ const handleSnackbarClose = () => {
           </MenuItem>
         ))}
       </Select>
-      {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
+      {typeof fieldState.error?.message === 'string' && (<Typography color="error">{fieldState.error.message}</Typography>)}
     </FormControl>
   )}
 />
@@ -814,12 +812,10 @@ const handleSnackbarClose = () => {
                     Subir imagen
                   </Button>
                 </label>
-                {fieldState.error && (
-                  <Typography color="error">{fieldState.error.message}</Typography>
-                )}
+                {typeof fieldState.error?.message === 'string' && (<Typography color="error">{fieldState.error.message}</Typography>)}
 
                 {/* Vista previa de la imagen */}
-                {previewImage && (
+                {typeof previewImage === 'string' && (
                   <Box mt={2} display="flex" justifyContent="center">
                     <img
                       src={previewImage}
@@ -1034,7 +1030,7 @@ const handleSnackbarClose = () => {
                   </MenuItem>
                 ))}
               </Select>
-              {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
+              {typeof fieldState.error?.message === 'string' && <Typography color="error">{fieldState.error.message}</Typography>}
             </FormControl>
           )}
         />
@@ -1226,7 +1222,7 @@ onClose={handleCloseEditProduct}
                 </MenuItem>
               ))}
             </Select>
-            {fieldState.error && <Typography color="error">{fieldState.error.message}</Typography>}
+            {typeof fieldState.error?.message === 'string' && <Typography color="error">{fieldState.error.message}</Typography>}
           </FormControl>
         )}
       />

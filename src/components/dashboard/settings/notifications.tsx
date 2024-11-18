@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import {Snackbar, Alert, Select, MenuItem, InputLabel, FormControl, SelectChangeEvent } from '@mui/material';
+import {Snackbar, Alert, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import type {SelectChangeEvent} from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
@@ -11,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 import { API_URL } from '@/config';
 import { useEffect, useState } from 'react';
 
@@ -45,7 +46,7 @@ export function Notifications(): React.JSX.Element {
   };  
 
   useEffect(() => {
-    const fetchCronStatus = async () => {
+    const fetchCronStatus = async (): Promise<void> => {
       const user: User = JSON.parse(localStorage.getItem('user') || '{}');
       const supermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
 
@@ -77,7 +78,7 @@ export function Notifications(): React.JSX.Element {
     fetchCronStatus();
   }, []);
 
-  const enableCron = async (supermarketId: string, enableFrequency: string) => {
+  const enableCron = async (supermarketId: string, enableFrequency: string): Promise<void> => {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const response = await fetch(`${API_URL}/supermarket/${supermarketId}/enable-cron`, {
@@ -100,7 +101,7 @@ export function Notifications(): React.JSX.Element {
     }
   };
 
-  const disableCron = async (supermarketId: string, disableFrequency: string) => {
+  const disableCron = async (supermarketId: string, disableFrequency: string): Promise<void> => {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const response = await fetch(`${API_URL}/supermarket/${supermarketId}/disable-cron`, {
@@ -123,7 +124,7 @@ export function Notifications(): React.JSX.Element {
     }
   };
 
-  const handleSwitchChange = async () => {
+  const handleSwitchChange = async (): Promise<void> => {
     const user: User = JSON.parse(localStorage.getItem('user') || '{}');
     const supermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
 

@@ -145,7 +145,7 @@ class AuthClient {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
-      const data = await response.json();
+      // const data = await response.json();
     
 
       // Si el registro es exitoso, puedes manejar la respuesta aquí

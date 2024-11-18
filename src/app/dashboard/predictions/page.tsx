@@ -13,8 +13,7 @@ import { API_URL } from '@/config';
 import { PredictionsFilters } from '@/components/dashboard/predictions/predictions-filters';
 import { PredictionsTable } from '@/components/dashboard/predictions/predictions-table';
 import type { PredictionsParams } from '@/lib/auth/client';
-import { useUser } from '@/hooks/use-user';
-import  { User } from '@/types/user';
+import type  { User } from '@/types/user';
 
 
 export default function Page(): React.JSX.Element {
@@ -76,7 +75,7 @@ export default function Page(): React.JSX.Element {
 
   useEffect(() => {
     fetchPredictions();
-  }, []);
+  }, [fetchPredictions]);
 
   const handleExportExcel = (): void => {
     if (predictions.length === 0) {

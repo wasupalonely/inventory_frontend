@@ -11,7 +11,7 @@ interface CompaniesFiltersProps {
   onSearch: OnSearchFunction; // Utiliza el tipo definido aquí
 }
 
-export function CompaniesFilters({ onSearch }: CompaniesFiltersProps) {
+export function CompaniesFilters({ onSearch }: CompaniesFiltersProps): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput

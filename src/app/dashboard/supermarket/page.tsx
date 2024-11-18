@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import {Card, CardContent, Typography, Alert, Button, TextField, Stack, Box, Divider, CardHeader, IconButton, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions} from '@mui/material';
+import {Card, CardContent, Typography, Alert, Button, TextField, Stack, Box, Divider, CardHeader, IconButton, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
 import { FloppyDisk as FloppyDiskIcon  } from '@phosphor-icons/react/dist/ssr/FloppyDisk';
@@ -14,7 +14,6 @@ import { Gps as GpsIcon } from '@phosphor-icons/react/dist/ssr/Gps';
 import { Info as InfoIcon } from '@phosphor-icons/react/dist/ssr/Info';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
 
@@ -72,9 +71,9 @@ interface StoredUser {
     role?: string;
   }
 
-const SupermarketDetails = () => {
+function SupermarketDetails(): React.JSX.Element {
     const [supermarket, setSupermarket] = useState<Supermarket | null>(null);
-    const [, setLoading] = useState(true);
+    const [loading , setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Supermarket | null>(null);
@@ -119,7 +118,7 @@ useEffect(() => {
         return (await response.json()) as Supermarket;
     };    
 
-    const updateSupermarketDetails = async () => {
+    const updateSupermarketDetails = async (): Promise<void> => {
         const token = localStorage.getItem('custom-auth-token');
         const supermarketId = supermarket?.id;
 
@@ -166,11 +165,11 @@ useEffect(() => {
         }
     };
 
-    const handleDeleteClick = () => {
+    const handleDeleteClick = (): void => {
         setDialogOpen(true);
     };
     
-    const deleteSupermarket = async () => {
+    const deleteSupermarket = async (): Promise<void> => {
         const token = localStorage.getItem('custom-auth-token');
         const supermarketId = supermarket?.id;
     
@@ -221,7 +220,7 @@ useEffect(() => {
     };    
     
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchData = async (): Promise<void> => {
             let retryCount = 0;
 
             while (retryCount < maxRetries) {
@@ -260,12 +259,12 @@ useEffect(() => {
         fetchData();
     }, []);
 
-    const handleEditClick = () => {
+    const handleEditClick = (): void => {
         setIsEditing(true);
         setFormData(supermarket);
     };
 
-    const handleCancelClick = () => {
+    const handleCancelClick = (): void => {
         setIsEditing(false);
         setFormData(supermarket);
     };
@@ -283,7 +282,7 @@ useEffect(() => {
         const validInputPattern = /^[a-zA-Z0-9\s]*$/;
 
 
-        const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
             const { name, value } = event.target;
         
             const validNamePattern = /^[a-zA-Z0-9\s]*$/;
@@ -336,7 +335,7 @@ useEffect(() => {
                     <CardHeader title={supermarket?.name} />
                     <Divider />
                     <CardContent>
-                        {error && <Alert severity="error">{error}</Alert>}
+                        {typeof error === 'string' && <Alert severity="error">{error}</Alert>}
                         {supermarket && (
                             <>
                                 <Typography variant="h6" sx={{ mb: 2 }}>

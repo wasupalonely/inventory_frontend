@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, FormControlLabel, Button, Grid, Typography, CircularProgress, Box, Paper, Snackbar } from '@mui/material';
 import { API_URL } from '@/config';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 
 interface ReportOption {
   label: string;
@@ -32,12 +32,12 @@ export default function ReportPage(): React.JSX.Element {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  const showSnackbar = (message: string) => {
+  const showSnackbar = (message: string): void => {
     setSnackbarMessage(message);
     setOpenSnackbar(true);
   };
 
-  const handleCloseSnackbar = () => {
+  const handleCloseSnackbar = (): void => {
     setOpenSnackbar(false);
   };
 

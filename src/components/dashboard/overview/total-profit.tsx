@@ -7,7 +7,7 @@ import type { SxProps } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { Receipt as ReceiptIcon } from '@phosphor-icons/react/dist/ssr/Receipt';
 import axios from 'axios';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 import { API_URL } from '@/config';
 
 export interface TotalProfitProps {

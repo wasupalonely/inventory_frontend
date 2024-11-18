@@ -49,7 +49,7 @@ interface CustomersTableProps {
   onDelete?: (userId: number) => Promise<void>;
 }
 
-export function SuccessMessage({ open, message, onClose }: SuccessMessageProps) {
+export function SuccessMessage({ open, message, onClose }: SuccessMessageProps): React.JSX.Element {
   return (
     <Snackbar open={open} autoHideDuration={4000} onClose={onClose}>
       <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>

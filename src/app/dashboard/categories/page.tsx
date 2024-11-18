@@ -435,8 +435,8 @@ export default function Page(): React.JSX.Element {
           </Button>
         </Stack>
       </Modal>
-      {successMessage && <Typography sx={{ color: 'green' }}>{successMessage}</Typography>}
-      {errorMessage && <Typography sx={{ color: 'red' }}>{errorMessage}</Typography>}
+      {successMessage ? <Typography sx={{ color: 'green' }}>{successMessage}</Typography> : null}
+      {errorMessage ? <Typography sx={{ color: 'red' }}>{errorMessage}</Typography> : null}
       <Dialog
         open={Boolean (dialogOpen)}
         onClose={() => {

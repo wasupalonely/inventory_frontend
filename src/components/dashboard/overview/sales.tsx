@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -15,7 +15,7 @@ import type { ApexOptions } from 'apexcharts';
 import { API_URL } from '@/config';
 
 import { Chart } from '@/components/core/chart';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 
 interface SalesData {
   thisYear: number[];
@@ -35,18 +35,7 @@ export function Sales({ sx }: SalesProps): React.JSX.Element {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
 
-  const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string): void => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
-  };
-
-  const handleSyncClick = () => {
+  const handleSyncClick = (): void => {
     if (supermarketId) {
       setSnackbarMessage('Sincronizando...');
       setSnackbarSeverity('info');
@@ -55,7 +44,7 @@ export function Sales({ sx }: SalesProps): React.JSX.Element {
     }
   };
 
-  const fetchChartData = async () => {
+  const fetchChartData = useCallback(async (): Promise<void> => {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const url = `${API_URL}/sales/chart-data/${supermarketId}`;
@@ -85,7 +74,13 @@ export function Sales({ sx }: SalesProps): React.JSX.Element {
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
-  };
+  }, [supermarketId]);
+
+  useEffect(() => {
+    if (supermarketId) {
+      fetchChartData(); // Cargar los datos cuando se obtiene el ID del supermercado
+    }
+  }, [supermarketId, fetchChartData]);
 
   useEffect(() => {
     const user: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -96,11 +91,6 @@ export function Sales({ sx }: SalesProps): React.JSX.Element {
     }
   }, []);
 
-  useEffect(() => {
-    if (supermarketId) {
-      fetchChartData(); // Cargar los datos cuando se obtiene el ID del supermercado
-    }
-  }, [supermarketId]);
 
   return (
     <Card sx={sx}>

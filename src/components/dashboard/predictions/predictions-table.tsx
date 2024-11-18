@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelection } from '@/hooks/use-selection';
 import PredictionDetailsModal from '@/components/dashboard/predictions/prediction-details-modal';
 
-const formatDate = (dateString: string | null | undefined) => {
+const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) {
     return "Fecha no disponible";
   }
@@ -17,7 +17,7 @@ const formatDate = (dateString: string | null | undefined) => {
     : date.toLocaleDateString("es-ES", { year: "numeric", month: "2-digit", day: "2-digit" });
 };
 
-const formatTime = (dateString: string | null | undefined) => {
+const formatTime = (dateString: string | null | undefined): string => {
   if (!dateString) {
     return "Hora no disponible";
   }
@@ -27,7 +27,7 @@ const formatTime = (dateString: string | null | undefined) => {
     : date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 };
 
-const translateResult = (result: string) => {
+const translateResult = (result: string): string => {
   const translations: Record<string, string> = {
     "Fresh": "Fresca",
     "Half-fresh": "Semi Fresca",
@@ -52,7 +52,7 @@ interface PredictionsTableProps {
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function SuccessMessage({ open, message, onClose }: SuccessMessageProps) {
+export function SuccessMessage({ open, message, onClose }: SuccessMessageProps): React.JSX.Element {
   return (
     <Snackbar open={open} autoHideDuration={4000} onClose={onClose}>
       <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>
@@ -94,14 +94,14 @@ export function PredictionsTable({
     }
   }, [predictionIdFromUrl]);
 
-  const handleViewDetails = (id: number) => {
+  const handleViewDetails = (id: number): void => {
   // Actualiza la URL sin recargar la página
   router.replace(`/dashboard/predictions?predictionId=${id}`);
   setSelectedPrediction(id);
   setModalOpen(true);
 };
 
-const handleCloseModal = () => {
+const handleCloseModal = (): void => {
   setModalOpen(false);
   setSelectedPrediction(null);
   // Vuelve a la URL anterior sin recargar la página
@@ -162,9 +162,7 @@ const handleCloseModal = () => {
         />
       </Card>
       <SuccessMessage open={alertOpen} message={successMessage || ''} onClose={handleCloseAlert} />
-      {selectedPrediction && (
-        <PredictionDetailsModal open={modalOpen} predictionId={selectedPrediction} onClose={handleCloseModal} />
-      )}
+      {selectedPrediction && (<PredictionDetailsModal open={modalOpen} predictionId={selectedPrediction} onClose={handleCloseModal} />)}
     </>
   );
 }

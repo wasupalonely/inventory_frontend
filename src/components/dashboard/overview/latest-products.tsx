@@ -23,7 +23,7 @@ export interface LatestProductsProps {
 }
 
 export function LatestProducts({ products = [], sx }: LatestProductsProps): React.JSX.Element {
-  const handleViewAllClick = () => {
+  const handleViewAllClick = (): void => {
     window.location.href = '/dashboard/inventory';
   };
 

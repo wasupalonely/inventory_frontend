@@ -9,20 +9,20 @@ interface PredictionDetailsModalProps {
   onClose: () => void;
 }
 
-const PredictionDetailsModal: React.FC<PredictionDetailsModalProps> = ({ open, predictionId, onClose }) => {
+function PredictionDetailsModal({ open, predictionId, onClose }: PredictionDetailsModalProps): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [predictionDetails, setPredictionDetails] = useState<PredictionsParams | null>(null);
-  const [errorPreDet, setError] = useState<string | null>(null);
+  const [errorPreDet, setErrorPreDet] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPredictionDetails = async () => {
+    const fetchPredictionDetails = async (): Promise<void> => {
       setLoading(true);
-      setError(null);
+      setErrorPreDet(null);
 
       const { data, error } = await authClient.getPredictionById(predictionId);
 
       if (error) {
-        setError(error);
+        setErrorPreDet(error);
       } else {
         setPredictionDetails(data || null);
       }
@@ -39,7 +39,7 @@ const PredictionDetailsModal: React.FC<PredictionDetailsModalProps> = ({ open, p
     ? URL.createObjectURL(predictionDetails.image)
     : predictionDetails?.image;
 
-    const formatDate = (dateString: string | null | undefined) => {
+    const formatDate = (dateString: string | null | undefined): string => {
       if (!dateString) {
         return "Fecha no disponible";
       }
@@ -49,7 +49,7 @@ const PredictionDetailsModal: React.FC<PredictionDetailsModalProps> = ({ open, p
         : date.toLocaleDateString("es-ES", { year: "numeric", month: "2-digit", day: "2-digit" });
     };
     
-    const formatTime = (dateString: string | null | undefined) => {
+    const formatTime = (dateString: string | null | undefined): string => {
       if (!dateString) {
         return "Hora no disponible";
       }
@@ -59,7 +59,7 @@ const PredictionDetailsModal: React.FC<PredictionDetailsModalProps> = ({ open, p
         : date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
     };
 
-    const translateResult = (result: string) => {
+    const translateResult = (result: string): string => {
       const translations: Record<string, string> = {
         "Fresh": "Fresca",
         "Half-fresh": "Semi Fresca",

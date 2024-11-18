@@ -47,12 +47,10 @@ export default function Page(): React.JSX.Element {
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [isPending] = React.useState<boolean>(false);
 
-  const allowedRoles = ['admin', 'owner', 'viewer'];
-
   useEffect(() => {
-    // Verifica el rol del usuario y redirige si no es uno de los permitidos
+    const allowedRoles = ['admin', 'owner', 'viewer'];
     if (currentUser && !allowedRoles.includes(currentUser.role)) {
-      router.replace('errors/not-found'); // Redirige a una página de acceso no autorizado
+      router.replace('errors/not-found');
     }
   }, [currentUser, router]);
 
@@ -667,7 +665,7 @@ export default function Page(): React.JSX.Element {
                   <MenuItem value="viewer">Observador</MenuItem>
                   <MenuItem value="cashier">Cajero</MenuItem>
                 </Select>
-                {errors.role?.message && (<FormHelperText error>{errors.role.message}</FormHelperText>)}
+                {typeof errors.role?.message === 'string' ? (<FormHelperText error>{errors.role.message}</FormHelperText>) : null}
               </FormControl>
             )}
           />
@@ -676,8 +674,8 @@ export default function Page(): React.JSX.Element {
           </Button>
         </Stack>
       </Modal>
-      {successMessage && <Typography sx={{ color: 'green' }}>{successMessage}</Typography>}
-      {errorMessage && <Typography sx={{ color: 'red' }}>{errorMessage}</Typography>}
+      {typeof successMessage === 'string' && (<Typography sx={{ color: 'green' }}>{successMessage}</Typography>)}
+      {typeof errorMessage === 'string' && (<Typography sx={{ color: 'red' }}>{errorMessage}</Typography>)}
       <Dialog
         open={Boolean (dialogOpen)}
         onClose={() => {

@@ -22,7 +22,7 @@ import { usePopover } from '@/hooks/use-popover';
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
 import type { PredictionsParams } from '@/lib/auth/client';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 import { API_URL } from '@/config';
 import { useState } from 'react';
 import { Alert, Snackbar } from '@mui/material';
@@ -37,7 +37,7 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
   const userPopover = usePopover<HTMLDivElement>();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const user: User = JSON.parse(localStorage.getItem('user') || '{}');
-  const [avatarUrl, setAvatarUrl] = React.useState<string>(
+  const [avatarUrl] = React.useState<string>(
     typeof user?.profileImage === 'string'
       ? user.profileImage
       : localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
@@ -59,7 +59,7 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
 
 
   React.useEffect(() => {
-    const fetchNotifications = async () => {
+    const fetchNotifications = async (): Promise<void> => {
       try {
         const token = localStorage.getItem('custom-auth-token'); // Obtén el token
         const userMain: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -86,11 +86,11 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
     fetchNotifications();
   }, []); // Dependencias vacías para ejecutar solo una vez al montar el componente
 
-  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationClose = () => {
+  const handleNotificationClose = (): void => {
     setAnchorEl(null);
   };
 

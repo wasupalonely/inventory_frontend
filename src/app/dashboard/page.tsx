@@ -14,7 +14,7 @@ export default function Page(): React.JSX.Element {
   const [products, setProducts] = React.useState<Product[]>([]);
 
   React.useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProducts = async (): Promise<void> => {
       const { error, data } = await dashboardClient.getLatestProducts();
       if (error) {
         return;
