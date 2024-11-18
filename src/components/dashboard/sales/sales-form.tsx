@@ -27,7 +27,7 @@ interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
+  unitCost: number;
   category?: {
     id: number;
     name: string;
@@ -165,7 +165,7 @@ const handleAddProduct = () => {
       updatedQuantities[existingProductIndex] = {
         ...existingProduct,
         quantity: newQuantity,
-        totalPrice: newQuantity * selectedProduct.price // Calcular el precio total basado en la cantidad total
+        totalPrice: newQuantity * selectedProduct.unitCost // Calcular el precio total basado en la cantidad total
       };
       return updatedQuantities;
     }
@@ -177,7 +177,7 @@ const handleAddProduct = () => {
         productId: selectedProduct.id,
         quantity: quantityValue,
         productName: selectedProduct.name,
-        totalPrice: quantityValue * selectedProduct.price,
+        totalPrice: quantityValue * selectedProduct.unitCost,
       },
     ];
   });
@@ -398,7 +398,7 @@ const handleRemoveProduct = (index: number) => {
       <Box sx={{ flexGrow: 1 }}>
         <Typography variant="h6">{selectedProduct.name}</Typography>
         <Typography>Descripción: {selectedProduct.description}</Typography>
-        <Typography>Precio Unitario: ${selectedProduct.price}</Typography>
+        <Typography>Precio Unitario: ${selectedProduct.unitCost}</Typography>
         <Typography>Stock Disponible: {availableStock}</Typography>
       </Box>
     </Card>
