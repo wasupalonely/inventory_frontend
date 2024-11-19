@@ -165,63 +165,57 @@ const updateSupermarketDetails = async (): Promise<void> => {
     }
 };
 
-const handleDeleteClick = (): void => {
-    setDialogOpen(true);
-};
-
-const deleteSupermarket = async (): Promise<void> => {
-    const token = localStorage.getItem('custom-auth-token');
-    const supermarketId = supermarket?.id;
-
-    if (!supermarketId) {
-        setError("ID del supermercado no disponible. No se puede eliminar.");
-        return;
-    }
-
-    const url = `${API_URL}/supermarket/${supermarketId}`;
-
-    try {
-        const response = await fetch(url, {
-            method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            const errorDetail = await response.text();
-            throw new Error(`Error al eliminar el supermercado: ${errorDetail}`);
+    const handleDeleteClick = () => {
+        setDialogOpen(true);
+    };
+    
+    const deleteSupermarket = async () => {
+        const token = localStorage.getItem('custom-auth-token');
+        const supermarketId = supermarket?.id;
+    
+        if (!supermarketId) {
+            setError("ID del supermercado no disponible. No se puede eliminar.");
+            return;
         }
-
-        // Mostrar Snackbar de éxito
-        setDeleteSuccess(true);
-        setSnackbarMessage('Supermercado eliminado exitosamente');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-
-        // Limpiar formulario después de eliminar
-        setSupermarket(null); // Limpiar estado del supermercado
-        setFormData(null); // Limpiar formulario
-
-        // Redirigir después de un breve retraso para que el usuario vea el mensaje
-        setTimeout(() => {
-            window.location.href = '/supermarket-sign-up';
-        }, 2000);
-
-    } catch (deleteError: unknown) {    
-        setDeleteSuccess(false);
-        setSnackbarMessage('Error al eliminar el supermercado. Intente nuevamente.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
-    } finally {
-        setDialogOpen(false); // Cerrar el diálogo después de eliminar
-    }
-};    
-
-useEffect(() => {
-    const fetchData = async (): Promise<void> => {
-        let retryCount = 0;
+    
+        const url = `${API_URL}/supermarket/${supermarketId}`;
+    
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+        
+            if (!response.ok) {
+                const errorDetail = await response.text();
+                throw new Error(`Error al eliminar el supermercado: ${errorDetail}`);
+            }
+        
+            // Mostrar Snackbar de éxito
+            setDeleteSuccess(true);
+            setSnackbarMessage('Supermercado eliminado exitosamente');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+        
+            
+            window.location.href = '/auth/supermarket-sign-up';
+        
+        } catch (deleteError: unknown) {
+            setDeleteSuccess(false);
+            setSnackbarMessage('Error al eliminar el supermercado. Intente nuevamente.');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        } finally {
+            setDialogOpen(false); // Cerrar el diálogo después de eliminar
+        }
+    };    
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            let retryCount = 0;
 
         while (retryCount < maxRetries) {
             try {
@@ -329,40 +323,40 @@ const translateLocationType = (locationType: string | undefined): string => {
   return translations[locationType || ""] || locationType || "";
 };
 
-return (
-    <Container>
-            <StyledCard>
-                <CardHeader title={supermarket?.name} />
-                <Divider />
-                <CardContent>
-                    {typeof error === 'string' && <Alert severity="error">{error}</Alert>}
-                    {supermarket && (
-                        <>
-                            <Typography variant="h6" sx={{ mb: 2 }}>
-                                <strong>Dirección:</strong>
-                            </Typography>
-                            <Stack spacing={2}>
-                                <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
-                                    <Typography variant="body2"><strong>Barrio:</strong> {supermarket.address.neighborhood}</Typography>
-                                </Box>
-                                <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
-                                    <Typography variant="body2"><strong>Tipo de ubicación:</strong> {translateLocationType(supermarket.address.locationType)}</Typography>
-                                </Box>
-                                <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
-                                    <Typography variant="body2"><strong>Número de calle:</strong> {supermarket.address.streetNumber}</Typography>
-                                </Box>
-                                <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
-                                    <Typography variant="body2"><strong>Número de intersección:</strong> {supermarket.address.intersectionNumber}</Typography>
-                                </Box>
-                                <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
-                                    <Typography variant="body2"><strong>Número de edificio:</strong> {supermarket.address.buildingNumber}</Typography>
-                                </Box>
-                                <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
-                                    <Typography variant="body2"><strong>Información adicional:</strong> {supermarket.address.additionalInfo}</Typography>
-                                </Box>
-                            </Stack>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                                {(userRole === 'admin' || userRole === 'owner') && (
+    return (
+        <Container>
+                <StyledCard>
+                    <CardHeader title={supermarket?.name} />
+                    <Divider />
+                    <CardContent>
+                        {error && <Alert severity="error">{error}</Alert>}
+                        {supermarket && (
+                            <>
+                                <Typography variant="h6" sx={{ mb: 2 }}>
+                                    <strong>Dirección:</strong>
+                                </Typography>
+                                <Stack spacing={2}>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Barrio:</strong> {supermarket.address.neighborhood}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Tipo de ubicación:</strong> {translateLocationType(supermarket.address.locationType)}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Número de calle:</strong> {supermarket.address.streetNumber}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Número de intersección:</strong> {supermarket.address.intersectionNumber}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Número de edificio:</strong> {supermarket.address.buildingNumber}</Typography>
+                                    </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Información adicional:</strong> {supermarket.address.additionalInfo}</Typography>
+                                    </Box>
+                                </Stack>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                {(userRole && (userRole.toLowerCase() === 'admin' || userRole.toLowerCase() === 'owner')) && (
                                     <Button
                                         startIcon={<PencilIcon />}
                                         color="primary"
@@ -377,197 +371,217 @@ return (
                                         Editar
                                     </Button>
                                 )}                                    
-                                {(userRole !== 'admin' && userRole !== 'viewer') && (
-                                    <Button
-                                        startIcon={<TrashIcon />}
-                                        color="error"
-                                        size="small"
-                                        onClick={handleDeleteClick}
-                                        sx={{
-                                            fontSize: '0.875rem',
-                                            padding: '4px 8px',
-                                            textTransform: 'none'
-                                        }}
+                                    {(userRole !== 'admin' && userRole !== 'viewer') && (
+                                        <Button
+                                            startIcon={<TrashIcon />}
+                                            color="error"
+                                            size="small"
+                                            onClick={handleDeleteClick}
+                                            sx={{
+                                                fontSize: '0.875rem',
+                                                padding: '4px 8px',
+                                                textTransform: 'none'
+                                            }}
+                                        >
+                                            Eliminar
+                                        </Button>
+                                    )}
+                                </Box>
+                                <Divider sx={{ my: 3 }} />
+                            </>
+                        )}
+                        {isEditing && formData && (
+                            <>
+                                <SectionTitle variant="h5">Editar Supermercado</SectionTitle>
+                                <CustomTextField
+                                    label="Nombre"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    fullWidth
+                                    InputProps={{onInput: (event) => {
+                                      const input = event.target as HTMLInputElement;
+                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                    },
+                                    startAdornment: <IconButton><UserFocusIcon /></IconButton>}}
+                                />
+                                <SectionTitle variant="h6">Dirección</SectionTitle>
+                                <Stack spacing={2}>
+                                    <CustomTextField
+                                        label="Barrio"
+                                        name="neighborhood"
+                                        value={formData.address?.neighborhood || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                          startAdornment: <IconButton><GpsIcon  /></IconButton>}}
+                                    />
+                                    <FormControl fullWidth>
+                                    <InputLabel>Tipo de ubicación</InputLabel>
+                                    <Select
+                                        label="Tipo de ubicación"
+                                        name="locationType"
+                                        value={formData.address?.locationType || ''}
+                                        onChange={(event) => {handleInputChange(event as React.ChangeEvent<HTMLInputElement>)}}  // Cambié el tipo de evento aquí
                                     >
-                                        Eliminar
-                                    </Button>
-                                )}
-                            </Box>
-                            <Divider sx={{ my: 3 }} />
-                        </>
-                    )}
-                    {isEditing && formData && (
-                        <>
-                            <SectionTitle variant="h5">Editar Supermercado</SectionTitle>
-                            <CustomTextField
-                                label="Nombre"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                fullWidth
-                                InputProps={{onInput: (event) => {
-                                  const input = event.target as HTMLInputElement;
-                                  input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                },
-                                startAdornment: <IconButton><UserFocusIcon /></IconButton>}}
-                            />
-                            <SectionTitle variant="h6">Dirección</SectionTitle>
-                            <Stack spacing={2}>
-                                <CustomTextField
-                                    label="Barrio"
-                                    name="neighborhood"
-                                    value={formData.address?.neighborhood || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    InputProps={{onInput: (event) => {
-                                      const input = event.target as HTMLInputElement;
-                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                    },
-                                      startAdornment: <IconButton><GpsIcon  /></IconButton>}}
-                                />
-                                <FormControl fullWidth>
-                                <InputLabel>Tipo de ubicación</InputLabel>
-                                <Select
-                                    label="Tipo de ubicación"
-                                    name="locationType"
-                                    value={formData.address?.locationType || ''}
-                                    onChange={(event) => {handleInputChange(event as React.ChangeEvent<HTMLInputElement>)}}  // Cambié el tipo de evento aquí
+                                         {['avenue', 'avenue_street', 'avenue_road', 'street', 'road', 'circunvalar', 'diagonal', 'block', 'transversal', 'way'].map((type) => (
+                                        <MenuItem key={type} value={type}>
+                                            {translateLocationType(type)}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    </FormControl>
+                                    <CustomTextField
+                                        label="Número de calle"
+                                        name="streetNumber"
+                                        value={formData.address?.streetNumber || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                          startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Número de intersección"
+                                        name="intersectionNumber"
+                                        value={formData.address?.intersectionNumber || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><SignpostIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Número de edificio"
+                                        name="buildingNumber"
+                                        value={formData.address?.buildingNumber || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><BuildingIcon /></IconButton>}}
+                                    />
+                                    <CustomTextField
+                                        label="Información adicional"
+                                        name="additionalInfo"
+                                        value={formData.address?.additionalInfo || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{
+                                            onInput: (event) => {
+                                            const input = event.target as HTMLInputElement;
+                                            // Eliminar emojis
+                                            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                            
+                                            // Limitar caracteres (ejemplo: 200 caracteres)
+                                            const maxLength = 200;
+                                            if (input.value.length > maxLength) {
+                                                input.value = input.value.substring(0, maxLength);
+                                            }
+
+                                            // Crear un objeto de evento compatible con el tipo ChangeEvent<HTMLInputElement>
+                                            const syntheticEvent = {
+                                                target: {
+                                                name: 'additionalInfo',
+                                                value: input.value,
+                                                },
+                                            } as React.ChangeEvent<HTMLInputElement>;
+
+                                            // Llamar a handleInputChange con el evento compatible
+                                            handleInputChange(syntheticEvent);
+                                            },
+                                            startAdornment: <IconButton><InfoIcon /></IconButton>,
+                                        }}
+                                    />
+                                </Stack>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                <Button
+                                    startIcon={<FloppyDiskIcon />}
+                                    color="primary"
+                                    onClick={updateSupermarketDetails}
+                                    size="small"
+                                    sx={{
+                                        fontSize: '0.875rem',
+                                        padding: '4px 8px',
+                                        textTransform: 'none',
+                                        ml: 1
+                                    }}
                                 >
-                                      {['avenue', 'avenue_street', 'avenue_road', 'street', 'road', 'circunvalar', 'diagonal', 'block', 'transversal', 'way'].map((type) => (
-                                    <MenuItem key={type} value={type}>
-                                        {translateLocationType(type)}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                </FormControl>
-                                <CustomTextField
-                                    label="Número de calle"
-                                    name="streetNumber"
-                                    value={formData.address?.streetNumber || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    InputProps={{onInput: (event) => {
-                                      const input = event.target as HTMLInputElement;
-                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                    },
-                                      startAdornment: <IconButton><SignpostIcon /></IconButton>}}
-                                />
-                                <CustomTextField
-                                    label="Número de intersección"
-                                    name="intersectionNumber"
-                                    value={formData.address?.intersectionNumber || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    InputProps={{onInput: (event) => {
-                                      const input = event.target as HTMLInputElement;
-                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                    },
-                                    startAdornment: <IconButton><SignpostIcon /></IconButton>}}
-                                />
-                                <CustomTextField
-                                    label="Número de edificio"
-                                    name="buildingNumber"
-                                    value={formData.address?.buildingNumber || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    InputProps={{onInput: (event) => {
-                                      const input = event.target as HTMLInputElement;
-                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                    },
-                                    startAdornment: <IconButton><BuildingIcon /></IconButton>}}
-                                />
-                                <CustomTextField
-                                    label="Información adicional"
-                                    name="additionalInfo"
-                                    value={formData.address?.additionalInfo || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    InputProps={{onInput: (event) => {
-                                      const input = event.target as HTMLInputElement;
-                                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                    },
-                                    startAdornment: <IconButton><InfoIcon /></IconButton>}}
-                                />
-                            </Stack>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                            <Button
-                                startIcon={<FloppyDiskIcon />}
-                                color="primary"
-                                onClick={updateSupermarketDetails}
-                                size="small"
-                                sx={{
-                                    fontSize: '0.875rem',
-                                    padding: '4px 8px',
-                                    textTransform: 'none',
-                                    ml: 1
-                                }}
-                            >
-                                Guardar
-                            </Button>
-                            <Button
-                                startIcon={<XIcon />}
-                                color="error"
-                                onClick={handleCancelClick}
-                                size="small"
-                                sx={{
-                                    fontSize: '0.875rem',
-                                    padding: '4px 8px',
-                                    textTransform: 'none',
-                                    ml: 1
-                                }}
-                            >
-                                Cancelar
-                            </Button>
-                          </Box>
-                        </>
-                    )}
-                </CardContent>
-            </StyledCard>
-        <Dialog
-            open={dialogOpen}
-            onClose={() => {setDialogOpen(false)}}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-        >
-            <DialogTitle id="alert-dialog-title">Confirmar eliminación</DialogTitle>
-            <DialogContent>
-                <Typography>¿Estás seguro de que deseas eliminar este supermercado?</Typography>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => {setDialogOpen(false)}} color="primary">
-                    Cancelar
-                </Button>
-                <Button onClick={deleteSupermarket} color="error">
-                    Eliminar
-                </Button>
-            </DialogActions>
-        </Dialog>
-        <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={3000}
-            onClose={() => {setSnackbarOpen(false)}}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-            <Alert onClose={() => {setSnackbarOpen(false)}} severity={deleteSuccess ? 'success' : 'error'}>
-                {snackbarMessage}
-            </Alert>
-        </Snackbar>
-        <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={3000}
-            onClose={() => {setSnackbarOpen(false)}}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-            <Alert
-                onClose={() => {setSnackbarOpen(false)}}
-                severity={snackbarSeverity}
-                sx={{ width: '100%' }}
+                                    Guardar
+                                </Button>
+                                <Button
+                                    startIcon={<XIcon />}
+                                    color="error"
+                                    onClick={handleCancelClick}
+                                    size="small"
+                                    sx={{
+                                        fontSize: '0.875rem',
+                                        padding: '4px 8px',
+                                        textTransform: 'none',
+                                        ml: 1
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                              </Box>
+                            </>
+                        )}
+                    </CardContent>
+                </StyledCard>
+            <Dialog
+                open={dialogOpen}
+                onClose={() => {setDialogOpen(false)}}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
             >
-                {snackbarMessage}
-            </Alert>
-        </Snackbar>
-    </Container>
-);
+                <DialogTitle id="alert-dialog-title">Confirmar eliminación</DialogTitle>
+                <DialogContent>
+                    <Typography>¿Estás seguro de que deseas eliminar este supermercado?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => {setDialogOpen(false)}} color="primary">
+                        Cancelar
+                    </Button>
+                    <Button onClick={deleteSupermarket} color="error">
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => {setSnackbarOpen(false)}}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert onClose={() => {setSnackbarOpen(false)}} severity={deleteSuccess ? 'success' : 'error'}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => {setSnackbarOpen(false)}}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => {setSnackbarOpen(false)}}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </Container>
+    );
 };
 
 export default SupermarketDetails;
