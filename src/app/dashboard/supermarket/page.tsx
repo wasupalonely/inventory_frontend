@@ -189,28 +189,22 @@ useEffect(() => {
                     'Content-Type': 'application/json',
                 },
             });
-    
+        
             if (!response.ok) {
                 const errorDetail = await response.text();
                 throw new Error(`Error al eliminar el supermercado: ${errorDetail}`);
             }
-    
+        
             // Mostrar Snackbar de éxito
             setDeleteSuccess(true);
             setSnackbarMessage('Supermercado eliminado exitosamente');
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
-    
-            // Limpiar formulario después de eliminar
-            setSupermarket(null); // Limpiar estado del supermercado
-            setFormData(null); // Limpiar formulario
-    
-            // Redirigir después de un breve retraso para que el usuario vea el mensaje
-            setTimeout(() => {
-                window.location.href = '/supermarket-sign-up';
-            }, 2000);
-    
-        } catch (deleteError: unknown) {    
+        
+            
+            window.location.href = '/auth/supermarket-sign-up';
+        
+        } catch (deleteError: unknown) {
             setDeleteSuccess(false);
             setSnackbarMessage('Error al eliminar el supermercado. Intente nuevamente.');
             setSnackbarSeverity('error');
@@ -363,21 +357,21 @@ useEffect(() => {
                                     </Box>
                                 </Stack>
                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                                    {(userRole === 'admin' || userRole === 'owner') && (
-                                        <Button
-                                            startIcon={<PencilIcon />}
-                                            color="primary"
-                                            size="small"
-                                            onClick={handleEditClick}
-                                            sx={{
-                                                fontSize: '0.875rem',
-                                                padding: '4px 8px',
-                                                textTransform: 'none'
-                                            }}
-                                        >
-                                            Editar
-                                        </Button>
-                                    )}                                    
+                                {(userRole && (userRole.toLowerCase() === 'admin' || userRole.toLowerCase() === 'owner')) && (
+                                    <Button
+                                        startIcon={<PencilIcon />}
+                                        color="primary"
+                                        size="small"
+                                        onClick={handleEditClick}
+                                        sx={{
+                                            fontSize: '0.875rem',
+                                            padding: '4px 8px',
+                                            textTransform: 'none'
+                                        }}
+                                    >
+                                        Editar
+                                    </Button>
+                                )}                                    
                                     {(userRole !== 'admin' && userRole !== 'viewer') && (
                                         <Button
                                             startIcon={<TrashIcon />}
@@ -483,11 +477,31 @@ useEffect(() => {
                                         value={formData.address?.additionalInfo || ''}
                                         onChange={handleInputChange}
                                         fullWidth
-                                        InputProps={{onInput: (event) => {
-                                          const input = event.target as HTMLInputElement;
-                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                        },
-                                        startAdornment: <IconButton><InfoIcon /></IconButton>}}
+                                        InputProps={{
+                                            onInput: (event) => {
+                                            const input = event.target as HTMLInputElement;
+                                            // Eliminar emojis
+                                            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                            
+                                            // Limitar caracteres (ejemplo: 200 caracteres)
+                                            const maxLength = 200;
+                                            if (input.value.length > maxLength) {
+                                                input.value = input.value.substring(0, maxLength);
+                                            }
+
+                                            // Crear un objeto de evento compatible con el tipo ChangeEvent<HTMLInputElement>
+                                            const syntheticEvent = {
+                                                target: {
+                                                name: 'additionalInfo',
+                                                value: input.value,
+                                                },
+                                            } as React.ChangeEvent<HTMLInputElement>;
+
+                                            // Llamar a handleInputChange con el evento compatible
+                                            handleInputChange(syntheticEvent);
+                                            },
+                                            startAdornment: <IconButton><InfoIcon /></IconButton>,
+                                        }}
                                     />
                                 </Stack>
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
