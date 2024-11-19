@@ -487,7 +487,6 @@ const translateLocationType = (locationType: string | undefined): string => {
                                             if (input.value.length > maxLength) {
                                                 input.value = input.value.substring(0, maxLength);
                                             }
-
                                             // Crear un objeto de evento compatible con el tipo ChangeEvent<HTMLInputElement>
                                             const syntheticEvent = {
                                                 target: {
@@ -495,7 +494,6 @@ const translateLocationType = (locationType: string | undefined): string => {
                                                 value: input.value,
                                                 },
                                             } as React.ChangeEvent<HTMLInputElement>;
-
                                             // Llamar a handleInputChange con el evento compatible
                                             handleInputChange(syntheticEvent);
                                             },
