@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import {Snackbar, Alert, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
-import type {SelectChangeEvent} from '@mui/material';
+import { Snackbar, Alert, Select, MenuItem, InputLabel, FormControl, Button } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
@@ -18,15 +18,11 @@ import { useEffect, useState } from 'react';
 
 export function Notifications(): React.JSX.Element {
   const [isCronEnabled, setIsCronEnabled] = React.useState(false);
-  const [scheduleFrequency, setScheduleFrequency] = useState<string>(() => {
-    // Obtener el valor de `scheduleFrequency` desde localStorage o usar 'DAILY' como valor por defecto
-    return localStorage.getItem('scheduleFrequency') || 'DAILY';
-  });
+  const [scheduleFrequency, setScheduleFrequency] = useState<string>('DAILY');
+  const [initialFrequency, setInitialFrequency] = useState<string>('DAILY'); // Almacena la frecuencia inicial
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const [isFirstActivation, setIsFirstActivation] = useState<boolean>(false); // Estado para controlar la primera activación del cronjob
-
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -42,8 +38,7 @@ export function Notifications(): React.JSX.Element {
   const handleFrequencyChange = (event: SelectChangeEvent): void => {
     const newFrequency = event.target.value;
     setScheduleFrequency(newFrequency);
-    localStorage.setItem('scheduleFrequency', newFrequency); 
-  };  
+  };
 
   useEffect(() => {
     const fetchCronStatus = async (): Promise<void> => {
@@ -62,11 +57,8 @@ export function Notifications(): React.JSX.Element {
         if (response.ok) {
           const data: { cronjobEnabled: boolean; scheduleFrequency: string } = await response.json();
           setIsCronEnabled(Boolean(data.cronjobEnabled));
-          setScheduleFrequency(data.scheduleFrequency); // Actualiza la frecuencia con el valor obtenido del backend
-          localStorage.setItem('scheduleFrequency', data.scheduleFrequency); // Guarda en localStorage
-          if (data.cronjobEnabled) {
-            setIsFirstActivation(true); // Marca como activado si el cronjob está habilitado
-          }
+          setScheduleFrequency(data.scheduleFrequency);
+          setInitialFrequency(data.scheduleFrequency); // Guarda la frecuencia inicial
         } else {
           showSnackbar('Error al obtener el estado del cronjob', 'error');
         }
@@ -78,7 +70,15 @@ export function Notifications(): React.JSX.Element {
     fetchCronStatus();
   }, []);
 
-  const enableCron = async (supermarketId: string, enableFrequency: string): Promise<void> => {
+  const saveFrequencyChanges = async (): Promise<void> => {
+    const user: User = JSON.parse(localStorage.getItem('user') || '{}');
+    const supermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
+
+    if (!supermarketId) {
+      showSnackbar('ID del supermercado no encontrado', 'error');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('custom-auth-token');
       const response = await fetch(`${API_URL}/supermarket/${supermarketId}/enable-cron`, {
@@ -87,58 +87,70 @@ export function Notifications(): React.JSX.Element {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ scheduleFrequency: enableFrequency }),
+        body: JSON.stringify({ scheduleFrequency }),
       });
-      if (response.ok) {
-        setIsCronEnabled(true);
-        setIsFirstActivation(true); // Marca que el cronjob ha sido activado
-        showSnackbar('Cronjob habilitado correctamente', 'success');
-      } else {
-        showSnackbar('Error al habilitar el cronjob', 'error');
-      }
-    } catch (error) {
-      showSnackbar('Error al habilitar el cronjob', 'error');
-    }
-  };
 
-  const disableCron = async (supermarketId: string, disableFrequency: string): Promise<void> => {
-    try {
-      const token = localStorage.getItem('custom-auth-token');
-      const response = await fetch(`${API_URL}/supermarket/${supermarketId}/disable-cron`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ scheduleFrequency: disableFrequency }),
-      });
       if (response.ok) {
-        setIsCronEnabled(false);
-        setIsFirstActivation(false); // Permite nuevamente seleccionar "Cada minuto" cuando se desactiva el cronjob
-        showSnackbar('Cronjob deshabilitado correctamente', 'success');
+        setInitialFrequency(scheduleFrequency); // Actualiza la frecuencia inicial después de guardar
+        showSnackbar('Frecuencia actualizada correctamente', 'success');
       } else {
-        showSnackbar('Error al deshabilitar el cronjob', 'error');
+        showSnackbar('Error al actualizar la frecuencia', 'error');
       }
     } catch (error) {
-      showSnackbar('Error al deshabilitar el cronjob', 'error');
+      showSnackbar('Error al actualizar la frecuencia', 'error');
     }
   };
 
   const handleSwitchChange = async (): Promise<void> => {
     const user: User = JSON.parse(localStorage.getItem('user') || '{}');
     const supermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
-
+  
     if (!supermarketId) {
-      showSnackbar("ID del supermercado no encontrado", 'error');
+      showSnackbar('ID del supermercado no encontrado', 'error');
       return;
     }
-
-    if (isCronEnabled) {
-      await disableCron(supermarketId, scheduleFrequency);
-    } else {
-      await enableCron(supermarketId, scheduleFrequency);
+  
+    try {
+      const token = localStorage.getItem('custom-auth-token');
+  
+      if (isCronEnabled) {
+        // Desactivar el cronjob
+        const response = await fetch(`${API_URL}/supermarket/${supermarketId}/disable-cron`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (response.ok) {
+          setIsCronEnabled(false);
+          showSnackbar('Predicciones automáticas desactivadas', 'success');
+        } else {
+          showSnackbar('Error al desactivar predicciones automáticas', 'error');
+        }
+      } else {
+        // Activar el cronjob
+        const response = await fetch(`${API_URL}/supermarket/${supermarketId}/enable-cron`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ scheduleFrequency }), // Enviar la frecuencia seleccionada
+        });
+  
+        if (response.ok) {
+          setIsCronEnabled(true);
+          showSnackbar('Predicciones automáticas activadas', 'success');
+        } else {
+          showSnackbar('Error al activar predicciones automáticas', 'error');
+        }
+      }
+    } catch (error) {
+      showSnackbar('Error al cambiar el estado del cronjob', 'error');
     }
-  };
+  };  
 
   return (
     <form onSubmit={(event) => { event.preventDefault(); }}>
@@ -155,24 +167,33 @@ export function Notifications(): React.JSX.Element {
                   label="Predicciones automáticas"
                 />
                 {isCronEnabled && (
-                  <FormControl fullWidth sx={{ mt: 2 }}>
-                    <InputLabel id="frequency-label">Frecuencia</InputLabel>
-                    <Select
-                      labelId="frequency-label"
-                      id="scheduleFrequency"
-                      value={scheduleFrequency}
-                      label="Frecuencia"
-                      onChange={handleFrequencyChange}
-                      disabled={isFirstActivation && scheduleFrequency === 'EVERY_MINUTE'} // Deshabilita "Cada minuto" después de la primera activación
+                  <>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                      <InputLabel id="frequency-label">Frecuencia</InputLabel>
+                      <Select
+                        labelId="frequency-label"
+                        id="scheduleFrequency"
+                        value={scheduleFrequency}
+                        label="Frecuencia"
+                        onChange={handleFrequencyChange}
+                      >
+                        <MenuItem value="DAILY">Diario</MenuItem>
+                        <MenuItem value="TWICE_DAILY">Dos veces al día</MenuItem>
+                        <MenuItem value="WEEKLY">Semanal</MenuItem>
+                        <MenuItem value="TWICE_WEEKLY">Dos veces a la semana</MenuItem>
+                        <MenuItem value="MONTHLY">Mensual</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{ mt: 2 }}
+                      onClick={saveFrequencyChanges}
+                      disabled={scheduleFrequency === initialFrequency} // Deshabilitar si no hay cambios
                     >
-                      <MenuItem value="EVERY_MINUTE" disabled={isFirstActivation}>Cada minuto</MenuItem> {/* Deshabilita la opción después de la primera activación */}
-                      <MenuItem value="DAILY">Diario</MenuItem>
-                      <MenuItem value="TWICE_DAILY">Dos veces al día</MenuItem>
-                      <MenuItem value="WEEKLY">Semanal</MenuItem>
-                      <MenuItem value="TWICE_WEEKLY">Dos veces a la semana</MenuItem>
-                      <MenuItem value="MONTHLY">Mensual</MenuItem>
-                    </Select>
-                  </FormControl>
+                      Guardar cambios
+                    </Button>
+                  </>
                 )}
               </Stack>
             </Grid>

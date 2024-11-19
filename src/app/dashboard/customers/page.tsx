@@ -74,6 +74,16 @@ export default function Page(): React.JSX.Element {
     mode: 'onChange'
   });
 
+ const translatedRole = (result: string): string => {
+    const translations: Record<string, string> = {
+      "admin": 'Administrador',
+      "viewer": 'Observador',
+      "cashier": 'Cajero',
+    };
+  
+    return translations[result] || result;
+  };
+
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
@@ -300,7 +310,7 @@ export default function Page(): React.JSX.Element {
         'Segundo Apellido': userXLSXL.secondLastName || '',
         'Correo Electrónico': userXLSXL.email || '',
         'Número de Celular': userXLSXL.phoneNumber || '',
-        Rol: userXLSXL.role || '',
+        'Rol': translatedRole(userXLSXL.role || ''),
       }))
     );
 
@@ -325,7 +335,7 @@ export default function Page(): React.JSX.Element {
       userPdf.lastName,
       userPdf.email,
       userPdf.phoneNumber,
-      userPdf.role,
+      translatedRole(userPdf.role),
     ]);
 
     doc.autoTable({

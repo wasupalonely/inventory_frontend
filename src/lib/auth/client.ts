@@ -48,6 +48,13 @@ export interface SupermarketSignUpParams {
   }
 }
 
+export interface AuditsParams{
+  id: number;
+  table_name: string;
+  action: string;
+  timestamp: string;
+}
+
 export interface PredictionsParams {
   id: number;
   image: File | undefined;
