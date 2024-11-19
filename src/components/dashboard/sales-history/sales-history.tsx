@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, IconButton, DialogActions, Pagination, Snackbar, Alert } from '@mui/material';
 import { API_URL } from '@/config';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 import { DownloadSimple } from '@phosphor-icons/react';
 
 interface Sale {
@@ -17,7 +17,7 @@ interface Sale {
 const ITEMS_PER_PAGE = 10; // Número máximo de ventas por página
 
 // Función para formatear la fecha
-const formatDate = (dateString: string | null | undefined) => {
+const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) {
       return "Fecha no disponible";
     }
@@ -33,7 +33,6 @@ const formatDate = (dateString: string | null | undefined) => {
 
 export function SalesHistory(): React.JSX.Element {
   const [sales, setSales] = useState<Sale[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,11 +42,11 @@ export function SalesHistory(): React.JSX.Element {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
-  const handleSnackbarClose = () => {
+  const handleSnackbarClose = (): void => {
     setSnackbarOpen(false);
   };
 
-  const fetchSalesHistory = async () => {
+  const fetchSalesHistory = async (): Promise<void> => {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const user: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -94,11 +93,11 @@ export function SalesHistory(): React.JSX.Element {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number): void => {
     setCurrentPage(page);
   };
 
-  const openInvoiceDialog = async (saleId: number) => {
+  const openInvoiceDialog = async (saleId: number): Promise<void> => {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const response = await fetch(`${API_URL}/sales/${saleId}/invoice`, {
@@ -128,7 +127,7 @@ export function SalesHistory(): React.JSX.Element {
       }
   };
 
-  const closeDialog = () => {
+  const closeDialog = (): void => {
     setDialogOpen(false);
     setPdfUrl(null);
   };
@@ -191,25 +190,23 @@ export function SalesHistory(): React.JSX.Element {
       <DownloadSimple size={24} />
     </IconButton>
 
-          <IconButton
-            aria-label="close"
-            onClick={closeDialog}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-          </IconButton>
-          
-        </DialogTitle>
-        <DialogContent>
-          {pdfUrl && (
+    <IconButton
+    aria-label="close"
+    onClick={closeDialog}
+    sx={{ position: 'absolute', right: 8, top: 8 }}
+    />        
+
+    </DialogTitle>
+    <DialogContent>
+    {pdfUrl && (
             <iframe src={pdfUrl} width="100%" height="500px" title="Vista previa de la factura" />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog} color="primary">
-            Cerrar
-          </Button>
-        </DialogActions>
-      </Dialog>
+          )}    </DialogContent>
+    <DialogActions>
+      <Button onClick={closeDialog} color="primary">
+        Cerrar
+      </Button>
+    </DialogActions>
+  </Dialog>
 
       {/* Snackbar para mensajes */}
       <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>

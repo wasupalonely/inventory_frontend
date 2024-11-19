@@ -48,6 +48,13 @@ export interface SupermarketSignUpParams {
   }
 }
 
+export interface AuditsParams{
+  id: number;
+  table_name: string;
+  action: string;
+  timestamp: string;
+}
+
 export interface PredictionsParams {
   id: number;
   image: File | undefined;
@@ -145,7 +152,7 @@ class AuthClient {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
-      const data = await response.json();
+      // const data = await response.json();
     
 
       // Si el registro es exitoso, puedes manejar la respuesta aquí

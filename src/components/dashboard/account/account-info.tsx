@@ -13,11 +13,9 @@ import { authClient } from '@/lib/auth/client';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useUser } from '@/hooks/use-user';
-import { useRouter } from 'next/navigation';
 
 export function AccountInfo(): React.JSX.Element {
   const { user } = useUser();
-  const router = useRouter();  
   const [profileImage, setprofileImage] = React.useState<File | null>(null);
   const [alertMessage, setAlertMessage] = React.useState<string | null>(null);
   const [alertType, setAlertType] = React.useState<'success' | 'error'>('success');
@@ -29,7 +27,7 @@ export function AccountInfo(): React.JSX.Element {
       : localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
   );
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0] || null;
     setprofileImage(file);
 
@@ -40,11 +38,11 @@ export function AccountInfo(): React.JSX.Element {
     }
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = (): void => {
     fileInputRef.current?.click();
   };
 
-  const handleImageUpload = async () => {
+  const handleImageUpload = async (): Promise<boolean> => {
     if (!profileImage) {
       setAlertMessage('Por favor, selecciona una imagen.');
       setAlertType('error');
@@ -67,18 +65,18 @@ export function AccountInfo(): React.JSX.Element {
       setAlertMessage(error);
       setAlertType('error');
       return false;
-    } else {
-      setAlertMessage('Imagen subida exitosamente');
-      setAlertType('success');
-      setprofileImage(null); // Limpiar la imagen seleccionada
-  
-      // Guardar la imagen subida en localStorage
-      localStorage.setItem('avatarUrl', avatarUrl);
-      return true;
     }
+    
+    setAlertMessage('Imagen subida exitosamente');
+    setAlertType('success');
+    setprofileImage(null); // Limpiar la imagen seleccionada
+    
+    // Guardar la imagen subida en localStorage
+    localStorage.setItem('avatarUrl', avatarUrl);
+    return true;
   };  
 
-  const handleCloseAlert = () => {
+  const handleCloseAlert = (): void => {
     setIsAlertOpen(false);
     setAlertMessage(null);
   };

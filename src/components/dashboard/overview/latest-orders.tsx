@@ -6,7 +6,7 @@ import MuiAlert from '@mui/material/Alert';
 import { DownloadSimple } from '@phosphor-icons/react';
 import type { SxProps } from '@mui/material/styles';
 import Link from 'next/link';
-import { User } from '@/types/user';
+import type {User} from '@/types/user'; 
 
 export interface Order {
   id: string;
@@ -30,7 +30,7 @@ export function LatestOrders({ sx }: LatestOrdersProps): React.JSX.Element {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrders = async (): Promise<void> => {
       const token = localStorage.getItem('custom-auth-token');
       const UserOrders: User = JSON.parse(localStorage.getItem('user') || '{}');
       const supermarketId = UserOrders.ownedSupermarket?.id || UserOrders.supermarket?.id;
@@ -61,7 +61,7 @@ export function LatestOrders({ sx }: LatestOrdersProps): React.JSX.Element {
     fetchOrders();
   }, []);
 
-  const fetchInvoice = async (orderId: string) => {
+  const fetchInvoice = async (orderId: string): Promise<void> => {
     const token = localStorage.getItem('custom-auth-token');
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sales/${orderId}/invoice`, {
@@ -86,7 +86,7 @@ export function LatestOrders({ sx }: LatestOrdersProps): React.JSX.Element {
     setSnackbarOpen(true);
   };
 
-  const closeDialog = () => {
+  const closeDialog = (): void => {
     setDialogOpen(false);
     setPdfUrl(null);
   };
@@ -167,7 +167,7 @@ export function LatestOrders({ sx }: LatestOrdersProps): React.JSX.Element {
           <IconButton aria-label="close" onClick={closeDialog} sx={{ position: 'absolute', right: 8, top: 8 }} />
         </DialogTitle>
         <DialogContent>
-          {pdfUrl && <iframe src={pdfUrl} width="100%" height="500px" title="Vista previa de la factura" />}
+        {pdfUrl && typeof pdfUrl === 'string' && pdfUrl.trim() && (<iframe src={pdfUrl} width="100%" height="500px" title="Vista previa de la factura" />)}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog} color="primary">

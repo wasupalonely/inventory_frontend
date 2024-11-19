@@ -1,6 +1,7 @@
 import type { NavItemConfig } from '@/types/nav';
 import { paths } from '@/paths';
 
+
 export const navItems: NavItemConfig[] = [
   { 
     key: 'home', 
@@ -64,9 +65,16 @@ export const navItems: NavItemConfig[] = [
     roles: ['admin', 'owner']
   },
   { 
+    key: 'audits', 
+    title: 'Auditorias', 
+    href: paths.dashboard.audits, 
+    icon: 'book-open-text',
+    roles: ['admin', 'owner']
+  },
+  { 
     key: 'account', 
     title: 'Cuenta', 
-    href: paths.dashboard.account, 
+    href: paths.dashboard.account,
     icon: 'user',
   },
   { 

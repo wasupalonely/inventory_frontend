@@ -10,7 +10,7 @@ interface CustomersFiltersProps {
   onSearch: OnSearchFunction;
 }
 
-export function CustomersFilters({ onSearch }: CustomersFiltersProps) {
+export function CustomersFilters({ onSearch }: CustomersFiltersProps): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput

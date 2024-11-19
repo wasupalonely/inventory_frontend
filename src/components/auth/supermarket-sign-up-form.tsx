@@ -163,7 +163,7 @@ export function SupermarketSignUpForm(): React.JSX.Element {
         }
 
 
-      const updatedUserData = await userResponse.json();
+      // const updatedUserData = await userResponse.json();
 
       // Refrescar la sesión para obtener los datos nuevos
       await checkSession?.(); 

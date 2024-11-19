@@ -22,10 +22,12 @@ import { usePopover } from '@/hooks/use-popover';
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
 import type { PredictionsParams } from '@/lib/auth/client';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 import { API_URL } from '@/config';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Snackbar } from '@mui/material';
+import { useRouter } from 'next/navigation';
+
 
 interface MainNavProps {
   predictions: PredictionsParams[];
@@ -37,7 +39,7 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
   const userPopover = usePopover<HTMLDivElement>();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const user: User = JSON.parse(localStorage.getItem('user') || '{}');
-  const [avatarUrl, setAvatarUrl] = React.useState<string>(
+  const [avatarUrl] = React.useState<string>(
     typeof user?.profileImage === 'string'
       ? user.profileImage
       : localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
@@ -45,6 +47,22 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const router = useRouter();
+
+// Verificar si el usuario tiene uno de los roles permitidos
+useEffect(() => {
+  const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = storedUser.role;
+  
+  // Redirige si el rol no está en la lista permitida
+  if (!['owner', 'admin', 'cashier', 'viewer'].includes(role || '')) {
+    router.replace('errors/not-found'); // Reemplaza con la página de acceso restringido
+  } else {
+    setUserRole(role ?? null); // Asigna directamente sin una variable extra
+  }
+}, [router]);
+
   
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -59,7 +77,7 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
 
 
   React.useEffect(() => {
-    const fetchNotifications = async () => {
+    const fetchNotifications = async (): Promise<void> => {
       try {
         const token = localStorage.getItem('custom-auth-token'); // Obtén el token
         const userMain: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -86,11 +104,11 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
     fetchNotifications();
   }, []); // Dependencias vacías para ejecutar solo una vez al montar el componente
 
-  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationClose = () => {
+  const handleNotificationClose = (): void => {
     setAnchorEl(null);
   };
 
@@ -131,9 +149,11 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
           <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
             <Tooltip title="Notificaciones">
               <Badge badgeContent={predictions.length} color="success">
+              {(userRole !== 'cashier' && userRole !== 'viewer') && (
                 <IconButton onClick={handleNotificationClick}>
                   <BellIcon />
                 </IconButton>
+                )}
               </Badge>
             </Tooltip>
             <Avatar

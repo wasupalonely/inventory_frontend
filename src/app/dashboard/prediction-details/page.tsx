@@ -7,14 +7,14 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = { title: config.site.name }; 
 
-export default function PredictionPage() {
-    return (
-        <Stack spacing={3}>
-          <Grid container spacing={3}>
-            <Grid lg={4} md={6} xs={12}>
-              <PredictionDetails/>
-            </Grid>
-          </Grid>
-        </Stack>
-      );
-    }
+export default function PredictionPage(): React.JSX.Element {
+  return (
+    <Stack spacing={3}>
+      <Grid container spacing={3}>
+        <Grid lg={4} md={6} xs={12}>
+          <PredictionDetails />
+        </Grid>
+      </Grid>
+    </Stack>
+  );
+}

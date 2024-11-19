@@ -48,7 +48,7 @@
     const [showConfirmPassword, setShowConfirmPassword] = React.useState<boolean>();
     const [isSaveDisabled, setIsSaveDisabled] = React.useState(true);
 
-    const checkIfAllFieldsFilled = () => {
+    const checkIfAllFieldsFilled = (): void => {
       const isFormValid =
         userData.firstName.trim() && userData.lastName.trim() && userData.phoneNumber.trim();
       // Deshabilitamos el botón si no se han rellenado los campos obligatorios o si no hay cambios
@@ -61,7 +61,7 @@
       phoneNumber: false,
     });
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
       const { name, value } = event.target;
       setUserData((prevData) => ({
         ...prevData,
@@ -78,11 +78,11 @@
     };
     
 
-    const hasChanges = () => {
+    const hasChanges = (): boolean => {
       return JSON.stringify(userData) !== JSON.stringify(originalData);
     };
 
-    const validateForm = () => {
+    const validateForm = (): boolean => {
       const newErrors = {
         firstName: !userData.firstName.trim(),
         lastName: !userData.lastName.trim(),
@@ -93,7 +93,7 @@
       return !Object.values(newErrors).includes(true); // Si no hay errores, devolvemos true
     };
     
-    const toggleEditMode = async () => {
+    const toggleEditMode = async (): Promise<void> => {
       if (isEditing) {
         if (hasChanges()) {
           if (validateForm()) {  // Verificamos si la validación del formulario es exitosa
@@ -137,22 +137,18 @@
       setIsEditing((prev) => !prev);
     };
 
-    const handleCloseAlert = () => {
+    const handleCloseAlert = (): void => {
       setIsAlertOpen(false);
       setAlertMessage(null);
     };
 
-    const handlePasswordDialogClose = () => {
+    const handlePasswordDialogClose = (): void => {
       setIsPasswordDialogOpen(false);
       setPasswordValues({ password: '', newPassword: '', confirmPassword: '' });
     };
-
-    const handlePasswordDialogOpen = () => {
-      setIsPasswordDialogOpen(true);
-    };
   
 
-    const handlePasswordChange = React.useCallback(async () => {
+    const handlePasswordChange = React.useCallback(async (): Promise<void> => {
       setIsPending(true); // Iniciamos el proceso de carga
 
       // 1. Comprobar si las contraseñas NO coinciden
@@ -249,7 +245,7 @@
           action={
             <Grid container spacing={1} justifyContent="flex-end" sx={{ pr: 2 }}>
               <Grid xs={12} sm={8.5}>
-              <Button onClick={toggleEditMode} variant="contained" color="primary" fullWidth disabled={isEditing && isSaveDisabled}>
+              <Button onClick={toggleEditMode} variant="contained" color="primary" fullWidth disabled={Boolean(isEditing && isSaveDisabled)}>
                   {isEditing ? 'Guardar' : 'Editar'}
                 </Button>
               </Grid>

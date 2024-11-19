@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Typography, CircularProgress, Alert, Stack, Snackbar, Button } from '@mui/material';
 import type { PredictionsParams } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
@@ -20,7 +20,7 @@ export default function PredictionDetails(): React.JSX.Element {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const [errors, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string | null>(null);
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -33,19 +33,13 @@ export default function PredictionDetails(): React.JSX.Element {
     setSnackbarOpen(false);
   };
 
-  useEffect(() => {
-    if (!router.isReady || !predictionId) return;
-  
-    fetchPredictionDetails(predictionId);
-  }, [router.isReady, predictionId]);
-
   // useEffect(() => {
   //   if (predictionId) {
   //   }
   // }, [predictionId]);
 
   useEffect(() => {
-    const fetchPredictions = async () => {
+    const fetchPredictions = async (): Promise<void> => {
       try {
         const response = await fetch(`${API_URL}/predictions`);
         if (!response.ok) {
@@ -56,10 +50,10 @@ export default function PredictionDetails(): React.JSX.Element {
         setPredictions(data);
       } catch (error) {
         if (error instanceof Error) {
-          setError(error.message);
+          setErrors(error.message);
           showSnackbar('Error al cargar las predicciones', 'error');
         } else {
-          setError('Error desconocido');
+          setErrors('Error desconocido');
           showSnackbar('Error desconocido', 'error');
         }
       } finally {
@@ -70,7 +64,7 @@ export default function PredictionDetails(): React.JSX.Element {
     fetchPredictions();
   }, [user]);
 
-  const fetchPredictionDetails = async (id: string) => {
+  const fetchPredictionDetails = useCallback(async (id: string): Promise<void> => {
     try {
       setLoading(true);
       const { data, error } = await authClient.getPredictionById(Number(id));
@@ -80,16 +74,22 @@ export default function PredictionDetails(): React.JSX.Element {
       setSelectedPrediction(data || null);
     } catch (errorPredic) {
       if (errorPredic instanceof Error) {
-        setError(errorPredic.message);
+        setErrors(errorPredic.message);
         showSnackbar('Error al cargar la predicción', 'error');
       } else {
-        setError('Error desconocido');
+        setErrors('Error desconocido');
         showSnackbar('Error desconocido', 'error');
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!router.isReady || !predictionId) return;
+  
+    fetchPredictionDetails(predictionId);
+  }, [router.isReady, predictionId, fetchPredictionDetails]);
 
   if (loading) {
     return <CircularProgress />;

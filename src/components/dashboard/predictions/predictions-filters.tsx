@@ -10,7 +10,7 @@ interface PredictionFiltersProps {
   onSearch: OnSearchFunction;
 }
 
-export function PredictionsFilters({ onSearch }: PredictionFiltersProps) {
+export function PredictionsFilters({ onSearch }: PredictionFiltersProps): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput

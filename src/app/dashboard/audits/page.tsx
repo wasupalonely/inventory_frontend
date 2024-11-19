@@ -10,14 +10,14 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 import { API_URL } from '@/config';
-import { PredictionsFilters } from '@/components/dashboard/predictions/predictions-filters';
-import { PredictionsTable } from '@/components/dashboard/predictions/predictions-table';
-import type { PredictionsParams } from '@/lib/auth/client';
+import { AuditsFilters } from '@/components/dashboard/audits/audits-filters';
+import { AuditsTable } from '@/components/dashboard/audits/audits-table';
+import type { AuditsParams } from '@/lib/auth/client';
 import type  { User } from '@/types/user';
-
+import { translateModule, translateAction, formatDate, formatTime } from '@/components/dashboard/audits/translate'
 
 export default function Page(): React.JSX.Element {
-  const [predictions, setPredictions] = useState<PredictionsParams[]>([]);
+  const [audits, setAudits] = useState<AuditsParams[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -37,22 +37,13 @@ export default function Page(): React.JSX.Element {
     if (reason === 'clickaway') return;
     setSnackbarOpen(false);
   };
-  const translateModule = (result: string): string => {
-    const translations: Record<string, string> = {
-      "Fresh": 'Fresca',
-      "Half-fresh": 'Semi Fresca',
-      "Spoiled": 'Estropeada',
-    };
-  
-    return translations[result] || result;
-  };
 
-  const filteredPredictions = predictions.filter((prediction) => {
-    const translatedName = translateModule(prediction.result || '');
+  const filteredAudits = audits.filter((audit) => {
+    const translatedName = translateModule(audit.table_name || '');
     return translatedName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const fetchPredictions = useCallback(async (): Promise<void> => {
+  const fetchAudits = useCallback(async (): Promise<void> => {
     const userPredic: User = JSON.parse(localStorage.getItem('user') || '{}');
     const supermarketId = userPredic?.supermarket?.id || userPredic?.ownedSupermarket?.id;
     if (!supermarketId) return;
@@ -60,7 +51,7 @@ export default function Page(): React.JSX.Element {
     setLoading(true);
     try {
       const token = localStorage.getItem('custom-auth-token');
-      const response = await fetch(`${API_URL}/predictions/supermarket/${supermarketId}`, {
+      const response = await fetch(`${API_URL}/audit/by-table`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -68,61 +59,70 @@ export default function Page(): React.JSX.Element {
         },
       });
 
-      if (!response.ok) throw new Error('Error al cargar las predicciones');
-      const predictionsData: PredictionsParams[] = await response.json() as PredictionsParams[];
-      const sortedPredictions = predictionsData.sort((a, b) => {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (!response.ok) throw new Error('Error al cargar las auditorías');
+      const auditsData: AuditsParams[] = await response.json() as AuditsParams[];
+      const sortedAudits = auditsData.sort((a, b) => {
+        return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
       });      
-      setPredictions(sortedPredictions);
+      setAudits(sortedAudits);
     } catch (error) {
-      showSnackbar('Error al cargar las predicciones', 'error');
-      setPredictions([]);
+      showSnackbar('Error al cargar las auditorías', 'error');
+      setAudits([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchPredictions();
-  }, [fetchPredictions]);
+    fetchAudits();
+  }, [fetchAudits]);
 
   const handleExportExcel = (): void => {
-    if (predictions.length === 0) {
+    if (audits.length === 0) {
       showSnackbar('No hay datos para exportar', 'error');
       return;
     }
 
-    const worksheet = XLSX.utils.json_to_sheet(
-      predictions.map((prediction) => ({
-        'Resultado': prediction.result || '',
-        'Imagen': prediction.image || '',
-      }))
-    );
+  // Transformar los datos con traducciones
+  const translatedData = audits.map((audit) => ({
+    'Módulo': translateModule(audit.table_name || ''),
+    'Acción': translateAction(audit.action || ''),
+    'Fecha del cambio': formatDate(audit.timestamp || ''),
+    'Hora del cambio': formatTime(audit.timestamp || ''),
+  }));
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Predicciones');
-    XLSX.writeFile(workbook, 'predicciones.xlsx');
-    handleCloseMenu();
-    showSnackbar('Exportado a Excel con éxito', 'success');
-  };
+  const worksheet = XLSX.utils.json_to_sheet(translatedData);
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Auditorías');
+  XLSX.writeFile(workbook, 'auditorias.xlsx');
+  handleCloseMenu();
+  showSnackbar('Exportado a Excel con éxito', 'success');
+};
 
   const handleExportPDF = (): void => {
     // eslint-disable-next-line new-cap -- Utilizamos `new jsPDF()` como una excepción ya que el nombre viene de una biblioteca externa que no sigue esta convención.
     const doc = new jsPDF();
-    doc.text('Lista de Predicciones', 10, 10);
+    doc.text('Lista de Auditorías', 10, 10);
 
-    const columns = ['Categoría', 'Descripción'];
-    const rows = predictions.map((prediction) => [prediction.result, prediction.image]);
+  // Transformar los datos con traducciones
+  const columns = ['Módulo', 'Acción', 'Fecha del cambio', 'Hora del cambio'];
+  const rows = audits.map((audit) => [
+    translateModule(audit.table_name || ''),
+    translateAction(audit.action || ''),
+    formatDate(audit.timestamp || ''),
+    formatTime(audit.timestamp || ''),
+  ]);
 
-    doc.autoTable({
-      head: [columns],
-      body: rows,
-    });
+  doc.autoTable({
+    head: [columns],
+    body: rows,
+  });
 
-    doc.save('predicciones.pdf');
-    handleCloseMenu();
-    showSnackbar('Exportado a PDF con éxito', 'success');
-  };
+  doc.save('auditorias.pdf');
+  handleCloseMenu();
+  showSnackbar('Exportado a PDF con éxito', 'success');
+};
 
   const handleClickMenu = (event: React.MouseEvent<HTMLButtonElement>): void => {
     setAnchorEl(event.currentTarget);
@@ -141,13 +141,13 @@ export default function Page(): React.JSX.Element {
     setPage(0);
   };
 
-  const paginatedPredictions = applyPagination(filteredPredictions, predictions, page, rowsPerPage);
+  const paginatedAudits = applyPagination(filteredAudits, audits, page, rowsPerPage);
 
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={3}>
         <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
-          <Typography variant="h4">Predicciones</Typography>
+          <Typography variant="h4">Auditorías</Typography>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <Button
               color="inherit"
@@ -163,14 +163,14 @@ export default function Page(): React.JSX.Element {
           </Stack>
         </Stack>
       </Stack>
-      <PredictionsFilters onSearch={setSearchTerm} />
+      <AuditsFilters onSearch={setSearchTerm} />
       {loading ? (
         <Typography>Cargando...</Typography>
       ) : (
-        <PredictionsTable
-          count={predictions.length}
+        <AuditsTable
+          count={audits.length}
           page={page}
-          rows={paginatedPredictions}
+          rows={paginatedAudits}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
@@ -190,6 +190,6 @@ export default function Page(): React.JSX.Element {
   );
 }
 
-function applyPagination(rows: PredictionsParams[], _predictions: PredictionsParams[], page: number, rowsPerPage: number): PredictionsParams[] {
+function applyPagination(rows: AuditsParams[], _audits: AuditsParams[], page: number, rowsPerPage: number): AuditsParams[] {
   return rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 }
