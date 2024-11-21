@@ -64,10 +64,14 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
   const [, setErrorMessage] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
-  const { checkSession } = useUser();
+  const { checkSession, user } = useUser();
   const [isPending, setIsPending] = React.useState<boolean>(false);
 
-  
+  React.useEffect(() =>{
+    if (user?.ownedSupermarket) {
+      router.push(paths.dashboard.overview);
+    }
+  }, [user, router]);
 
   const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
@@ -138,6 +142,9 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   
         setSuccessMessage('Supermercado registrado exitosamente.');
         reset();
+
+
+
       // Actualizar la información del usuario
       const userResponse = await fetch(`${API_URL}/users/${ownerId}`, {
         method: 'GET',
@@ -161,10 +168,40 @@ export function SupermarketSignUpForm(): React.JSX.Element {
           setIsPending(false);
           return;
         }
-
-
-      const updatedUserData = await userResponse.json();
-
+        interface UserData {
+          email: string;
+          id: string;
+          role: string;
+        }
+        
+        interface SuperMarket {
+          id: string;
+        }
+        
+        const storedData = localStorage.getItem('user');
+        const updatedUserData: Partial<UserData> = storedData ? JSON.parse(storedData) : {};
+        
+        const storedSuperMarket = localStorage.getItem('superMarket');
+        const superMarket: Partial<SuperMarket> = storedSuperMarket ? JSON.parse(storedSuperMarket) : {};
+        
+        const tokenReload = {
+          email: updatedUserData.email || '', // Usar '' si no hay valor
+          supermarketId: superMarket.id || '', // Usar '' si no hay valor
+          id: updatedUserData.id || '', // Usar '' si no hay valor
+          role: updatedUserData.role || '', // Usar '' si no hay valor
+        };
+      const tokenResponse = await fetch(`${API_URL}/auth/create-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tokenReload),
+      });
+      interface TokenResponse {
+        access_token: string;
+      }
+      const tokenData: TokenResponse = await tokenResponse.json();
+      localStorage.setItem('custom-auth-token', tokenData.access_token);
       // Refrescar la sesión para obtener los datos nuevos
       await checkSession?.(); 
       setTimeout(() => {
