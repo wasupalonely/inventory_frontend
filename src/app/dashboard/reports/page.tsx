@@ -765,7 +765,12 @@ export default function ReportPage(): React.JSX.Element {
           variant="contained"
           color="primary"
           onClick={fetchReports}
-          disabled={loading || selectedReports.length === 0}
+          disabled={
+            loading || 
+            selectedReports.length === 0 || 
+            !startDate || 
+            !endDate // Desactiva si faltan fechas
+          }
         >
           {loading ? <CircularProgress size={24} /> : 'Generar Reportes'}
         </Button>
