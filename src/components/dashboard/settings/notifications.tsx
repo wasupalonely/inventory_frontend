@@ -23,6 +23,7 @@ export function Notifications(): React.JSX.Element {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [isFirstActivation, setIsFirstActivation] = useState(true); // Controla si se permite seleccionar EVERY_MINUTE
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -58,7 +59,11 @@ export function Notifications(): React.JSX.Element {
           const data: { cronjobEnabled: boolean; scheduleFrequency: string } = await response.json();
           setIsCronEnabled(Boolean(data.cronjobEnabled));
           setScheduleFrequency(data.scheduleFrequency);
-          setInitialFrequency(data.scheduleFrequency); // Guarda la frecuencia inicial
+          setInitialFrequency(data.scheduleFrequency); 
+          // Deshabilitar EVERY_MINUTE si no es la frecuencia actual
+          if (data.scheduleFrequency !== 'EVERY_MINUTE') {
+            setIsFirstActivation(false);
+          }
         } else {
           showSnackbar('Error al obtener el estado del cronjob', 'error');
         }
@@ -104,17 +109,16 @@ export function Notifications(): React.JSX.Element {
   const handleSwitchChange = async (): Promise<void> => {
     const user: User = JSON.parse(localStorage.getItem('user') || '{}');
     const supermarketId = user?.supermarket?.id?.toString() || user?.ownedSupermarket?.id?.toString();
-  
+
     if (!supermarketId) {
       showSnackbar('ID del supermercado no encontrado', 'error');
       return;
     }
-  
+
     try {
       const token = localStorage.getItem('custom-auth-token');
-  
+
       if (isCronEnabled) {
-        // Desactivar el cronjob
         const response = await fetch(`${API_URL}/supermarket/${supermarketId}/disable-cron`, {
           method: 'PATCH',
           headers: {
@@ -122,7 +126,7 @@ export function Notifications(): React.JSX.Element {
             'Content-Type': 'application/json',
           },
         });
-  
+
         if (response.ok) {
           setIsCronEnabled(false);
           showSnackbar('Predicciones automáticas desactivadas', 'success');
@@ -130,18 +134,20 @@ export function Notifications(): React.JSX.Element {
           showSnackbar('Error al desactivar predicciones automáticas', 'error');
         }
       } else {
-        // Activar el cronjob
         const response = await fetch(`${API_URL}/supermarket/${supermarketId}/enable-cron`, {
           method: 'PATCH',
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ scheduleFrequency }), // Enviar la frecuencia seleccionada
+          body: JSON.stringify({ scheduleFrequency }), 
         });
-  
+
         if (response.ok) {
           setIsCronEnabled(true);
+          if (scheduleFrequency === 'EVERY_MINUTE') {
+            setIsFirstActivation(false); // Deshabilitar EVERY_MINUTE en activaciones futuras
+          }
           showSnackbar('Predicciones automáticas activadas', 'success');
         } else {
           showSnackbar('Error al activar predicciones automáticas', 'error');
@@ -150,7 +156,7 @@ export function Notifications(): React.JSX.Element {
     } catch (error) {
       showSnackbar('Error al cambiar el estado del cronjob', 'error');
     }
-  };  
+  };
 
   return (
     <form onSubmit={(event) => { event.preventDefault(); }}>
@@ -177,6 +183,7 @@ export function Notifications(): React.JSX.Element {
                         label="Frecuencia"
                         onChange={handleFrequencyChange}
                       >
+                        <MenuItem value="EVERY_MINUTE" disabled={!isFirstActivation}>Cada minuto</MenuItem>
                         <MenuItem value="DAILY">Diario</MenuItem>
                         <MenuItem value="TWICE_DAILY">Dos veces al día</MenuItem>
                         <MenuItem value="WEEKLY">Semanal</MenuItem>

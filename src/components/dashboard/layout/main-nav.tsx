@@ -9,19 +9,19 @@ import Popover from '@mui/material/Popover';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
+// import ListItemIcon from '@mui/material/ListItemIcon';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
-import Button from '@mui/material/Button';
+// import Button from '@mui/material/Button';
 import { Bell as BellIcon } from '@phosphor-icons/react/dist/ssr/Bell';
 import { List as ListIcon } from '@phosphor-icons/react/dist/ssr/List';
-import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
+// import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 import { usePopover } from '@/hooks/use-popover';
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
-import type { PredictionsParams } from '@/lib/auth/client';
+import type { NotificationsParams } from '@/lib/auth/client';
 import type { User } from '@/types/user';
 import { API_URL } from '@/config';
 import { useEffect, useState } from 'react';
@@ -29,12 +29,8 @@ import { Alert, Snackbar } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
 
-interface MainNavProps {
-  predictions: PredictionsParams[];
-}
-
-export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
-  const [, setPredictions] = React.useState<PredictionsParams[]>([]);
+export function MainNav(): React.JSX.Element {
+  const [notifications, setNotifications] = React.useState<NotificationsParams[]>([]);
   const [openNav, setOpenNav] = React.useState<boolean>(false);
   const userPopover = usePopover<HTMLDivElement>();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -49,21 +45,47 @@ export function MainNav({ predictions }: MainNavProps): React.JSX.Element {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [userRole, setUserRole] = useState<string | null>(null);
   const router = useRouter();
+  const [unreadCount, setUnreadCount] = React.useState<number>(0);
+  const [seenNotifications, setSeenNotifications] = React.useState<Set<number>>(new Set());
 
-// Verificar si el usuario tiene uno de los roles permitidos
-useEffect(() => {
-  const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
-  const role = storedUser.role;
-  
-  // Redirige si el rol no está en la lista permitida
-  if (!['owner', 'admin', 'cashier', 'viewer'].includes(role || '')) {
-    router.replace('errors/not-found'); // Reemplaza con la página de acceso restringido
-  } else {
-    setUserRole(role ?? null); // Asigna directamente sin una variable extra
-  }
-}, [router]);
+  useEffect(() => {
+    const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+    const role = storedUser.role;
+    if (!['owner', 'admin', 'cashier', 'viewer'].includes(role || '')) {
+      router.replace('errors/not-found');
+    } else {
+      setUserRole(role ?? null);
+    }
+  }, [router]);
 
+  // useEffect(() => {
+  //   const intervalId = setInterval(async () => {
+  //     try {
+  //       const userInterval: User = JSON.parse(localStorage.getItem('user') || '{}');
+  //       const supermarketId = userInterval.supermarket?.id || userInterval.ownedSupermarket?.id;
+  //       const token = localStorage.getItem('custom-auth-token');
+  //       const response = await fetch(`${API_URL}/notifications/supermarket/${supermarketId}`, {
+  //         method: 'GET',
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       });
   
+  //       if (response.ok) {
+  //         const data: NotificationsParams[] = await response.json();
+  //         setNotifications(data);
+  //         setUnreadCount(data.length); // Recalcula el número de notificaciones no vistas.
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching notifications:', error);
+  //     }
+  //   }, 15000); // Cada 15 segundos.
+  
+  //   return () => clearInterval(intervalId);
+  // }, []);
+  
+
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
@@ -75,24 +97,24 @@ useEffect(() => {
     setSnackbarOpen(false);
   };
 
-
   React.useEffect(() => {
     const fetchNotifications = async (): Promise<void> => {
       try {
-        const token = localStorage.getItem('custom-auth-token'); // Obtén el token
         const userMain: User = JSON.parse(localStorage.getItem('user') || '{}');
-        const supermarketId = userMain?.supermarket?.id?.toString() || userMain?.ownedSupermarket?.id?.toString();
-
+        const supermarketId = userMain.supermarket?.id || userMain.ownedSupermarket?.id;
+        const token = localStorage.getItem('custom-auth-token');
         const response = await fetch(`${API_URL}/notifications/supermarket/${supermarketId}`, {
-          method: 'GET', // Método de la solicitud
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`, // Agrega el token en el header
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
-
+  
         if (response.ok) {
-          const data: PredictionsParams[] = await response.json();
-          setPredictions(data); // Actualiza el estado con las notificaciones obtenidas
+          const data: NotificationsParams[] = await response.json();
+          setNotifications(data);
+          setUnreadCount(data.length); // Inicializa el contador con el número de notificaciones.
         } else {
           showSnackbar('Error al obtener notificaciones', 'error');
         }
@@ -100,12 +122,53 @@ useEffect(() => {
         showSnackbar('Error al obtener notificaciones', 'error');
       }
     };
-
+  
     fetchNotifications();
-  }, []); // Dependencias vacías para ejecutar solo una vez al montar el componente
+  }, []);
 
-  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>): void => {
+  const handleNotificationClick = (predictionId: number): void => {
+    // Marcamos la notificación como vista
+    const updatedSeenNotifications = new Set([...Array.from(seenNotifications), predictionId]);
+    setSeenNotifications(updatedSeenNotifications);
+    
+    // Restamos 1 al contador de notificaciones no vistas
+    const newUnreadCount = unreadCount > 0 ? unreadCount - 1 : 0;
+    setUnreadCount(newUnreadCount);
+  
+    // Guardamos en localStorage
+    localStorage.setItem('seenNotifications', JSON.stringify(Array.from(updatedSeenNotifications)));
+    localStorage.setItem('unreadCount', String(newUnreadCount));
+  
+    // Redirigimos al detalle de la predicción
+    router.replace(`/dashboard/predictions?predictionId=${predictionId}`);
+  };
+  
+  useEffect(() => {
+    const storedSeenNotifications = localStorage.getItem('seenNotifications');
+    if (storedSeenNotifications) {
+      const parsedNotifications = JSON.parse(storedSeenNotifications);
+      // Validamos que el valor sea un array de números
+      if (Array.isArray(parsedNotifications) && parsedNotifications.every(item => typeof item === 'number')) {
+        setSeenNotifications(new Set(parsedNotifications));
+      } else {
+        setSeenNotifications(new Set()); // Si no es un array de números, inicializamos como un Set vacío
+      }
+    }
+  }, []);
+
+  const handleNotificationOpen = (event: React.MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
+  
+    // Marcar todas las notificaciones como vistas al abrir el panel
+    const updatedSeenNotifications = new Set([...seenNotifications, ...notifications.map((n) => n.predictionId)]);
+    setSeenNotifications(updatedSeenNotifications);
+  
+    // Al abrir, el contador de no vistas debe ser 0
+    setUnreadCount(0);
+  
+    // Guardamos el estado actualizado en localStorage
+    localStorage.setItem('seenNotifications', JSON.stringify(Array.from(updatedSeenNotifications)));
+    localStorage.setItem('unreadCount', '0'); // Asegúrate de que esto se ejecute
   };
 
   const handleNotificationClose = (): void => {
@@ -140,22 +203,25 @@ useEffect(() => {
             >
               <ListIcon />
             </IconButton>
-            <Tooltip title="Buscar">
+            {/* <Tooltip title="Buscar">
               <IconButton>
                 <MagnifyingGlassIcon />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
           <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-            <Tooltip title="Notificaciones">
-              <Badge badgeContent={predictions.length} color="success">
+          <Tooltip title="Notificaciones">
+            <Badge
+              badgeContent={unreadCount} // Cambia aquí
+              color="success"
+            >
               {(userRole !== 'cashier' && userRole !== 'viewer') && (
-                <IconButton onClick={handleNotificationClick}>
+                <IconButton onClick={handleNotificationOpen}>
                   <BellIcon />
                 </IconButton>
-                )}
-              </Badge>
-            </Tooltip>
+              )}
+            </Badge>
+          </Tooltip>
             <Avatar
               onClick={userPopover.handleOpen}
               ref={userPopover.anchorRef}
@@ -185,34 +251,58 @@ useEffect(() => {
             Notificaciones
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Últimas actualizaciones de tus predicciones
+            Últimas actualizaciones
           </Typography>
         </Box>
 
         <Box sx={{ width: 350, maxHeight: 400, overflow: 'auto' }}>
-          <List>
-            {predictions.map((prediction) => (
-              <React.Fragment key={prediction.id}>
-                <ListItem button>
-                  <ListItemIcon>
-                    <BellIcon size={20} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={prediction.result}
-                    secondary={typeof prediction.image === 'string' ? prediction.image : 'Sin imagen'}
-                  />
-                </ListItem>
-                <Divider />
-              </React.Fragment>
-            ))}
-          </List>
+          {notifications.length > 0 ? (
+            <List>
+              {notifications
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .map((notification) => {
+                  const isSeen = seenNotifications.has(notification.predictionId); // Cambia a predictionId
+                  return (
+                    <React.Fragment key={notification.predictionId}>
+                      <ListItem
+                        button
+                        onClick={() => {handleNotificationClick(notification.predictionId)}} // Cambia a predictionId
+                        sx={{
+                          backgroundColor: isSeen ? 'grey.200' : 'background.paper', // Cambiar color si fue vista
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle1" fontWeight="bold">
+                              {notification.title}
+                            </Typography>
+                          }
+                          secondary={
+                            <Typography variant="body2" color="text.secondary">
+                              {notification.message}
+                              <br />
+                              <Typography variant="caption" color="text.disabled">
+                                {new Date(notification.createdAt).toLocaleString()}
+                              </Typography>
+                            </Typography>
+                          }
+                        />
+                      </ListItem>
+                      <Divider />
+                    </React.Fragment>
+                  );
+                })}
+            </List>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                No hay notificaciones disponibles
+              </Typography>
+            </Box>
+          )}
         </Box>
 
-        <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button fullWidth variant="text" onClick={handleNotificationClose}>
-            Ver todas las notificaciones
-          </Button>
-        </Box>
+        <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }} />
       </Popover>
 
       <UserPopover anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open} />
@@ -229,4 +319,4 @@ useEffect(() => {
       </Snackbar>
     </React.Fragment>
   );
-}
+} 
