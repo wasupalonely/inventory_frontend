@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
-import Badge from '@mui/material/Badge';
+// import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Popover from '@mui/material/Popover';
@@ -45,8 +45,19 @@ export function MainNav(): React.JSX.Element {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [userRole, setUserRole] = useState<string | null>(null);
   const router = useRouter();
-  const [unreadCount, setUnreadCount] = React.useState<number>(0);
-  const [seenNotifications, setSeenNotifications] = React.useState<Set<number>>(new Set());
+  const [seenNotifications, setSeenNotifications] = React.useState<Set<number>>(() => {
+    const storedSeen = localStorage.getItem('seenNotifications');
+    try {
+      const parsed = storedSeen ? JSON.parse(storedSeen) : [];
+      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'number')) {
+        return new Set(parsed);
+      }
+    } catch {
+      // Si hay un error al parsear, devuelve un Set vacío.
+    }
+    return new Set<number>();
+  });
+  
 
   useEffect(() => {
     const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -57,34 +68,6 @@ export function MainNav(): React.JSX.Element {
       setUserRole(role ?? null);
     }
   }, [router]);
-
-  // useEffect(() => {
-  //   const intervalId = setInterval(async () => {
-  //     try {
-  //       const userInterval: User = JSON.parse(localStorage.getItem('user') || '{}');
-  //       const supermarketId = userInterval.supermarket?.id || userInterval.ownedSupermarket?.id;
-  //       const token = localStorage.getItem('custom-auth-token');
-  //       const response = await fetch(`${API_URL}/notifications/supermarket/${supermarketId}`, {
-  //         method: 'GET',
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           'Content-Type': 'application/json',
-  //         },
-  //       });
-  
-  //       if (response.ok) {
-  //         const data: NotificationsParams[] = await response.json();
-  //         setNotifications(data);
-  //         setUnreadCount(data.length); // Recalcula el número de notificaciones no vistas.
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching notifications:', error);
-  //     }
-  //   }, 15000); // Cada 15 segundos.
-  
-  //   return () => clearInterval(intervalId);
-  // }, []);
-  
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -110,11 +93,13 @@ export function MainNav(): React.JSX.Element {
             'Content-Type': 'application/json',
           },
         });
-  
+    
         if (response.ok) {
           const data: NotificationsParams[] = await response.json();
+
+          
+          // Actualiza el estado de notifications
           setNotifications(data);
-          setUnreadCount(data.length); // Inicializa el contador con el número de notificaciones.
         } else {
           showSnackbar('Error al obtener notificaciones', 'error');
         }
@@ -124,51 +109,28 @@ export function MainNav(): React.JSX.Element {
     };
   
     fetchNotifications();
+
+    const intervalId = setInterval(() => {
+      fetchNotifications(); // Llama a la función para obtener nuevas notificaciones
+    }, 15000); // Cada 15 segundos.
+  
+    return () => {clearInterval(intervalId)};
   }, []);
 
   const handleNotificationClick = (predictionId: number): void => {
-    // Marcamos la notificación como vista
     const updatedSeenNotifications = new Set([...Array.from(seenNotifications), predictionId]);
     setSeenNotifications(updatedSeenNotifications);
-    
-    // Restamos 1 al contador de notificaciones no vistas
-    const newUnreadCount = unreadCount > 0 ? unreadCount - 1 : 0;
-    setUnreadCount(newUnreadCount);
   
-    // Guardamos en localStorage
+    // Guarda las notificaciones vistas en localStorage
     localStorage.setItem('seenNotifications', JSON.stringify(Array.from(updatedSeenNotifications)));
-    localStorage.setItem('unreadCount', String(newUnreadCount));
   
-    // Redirigimos al detalle de la predicción
+    // Redirige al detalle de la predicción
     router.replace(`/dashboard/predictions?predictionId=${predictionId}`);
   };
   
-  useEffect(() => {
-    const storedSeenNotifications = localStorage.getItem('seenNotifications');
-    if (storedSeenNotifications) {
-      const parsedNotifications = JSON.parse(storedSeenNotifications);
-      // Validamos que el valor sea un array de números
-      if (Array.isArray(parsedNotifications) && parsedNotifications.every(item => typeof item === 'number')) {
-        setSeenNotifications(new Set(parsedNotifications));
-      } else {
-        setSeenNotifications(new Set()); // Si no es un array de números, inicializamos como un Set vacío
-      }
-    }
-  }, []);
 
   const handleNotificationOpen = (event: React.MouseEvent<HTMLElement>): void => {
     setAnchorEl(event.currentTarget);
-  
-    // Marcar todas las notificaciones como vistas al abrir el panel
-    const updatedSeenNotifications = new Set([...seenNotifications, ...notifications.map((n) => n.predictionId)]);
-    setSeenNotifications(updatedSeenNotifications);
-  
-    // Al abrir, el contador de no vistas debe ser 0
-    setUnreadCount(0);
-  
-    // Guardamos el estado actualizado en localStorage
-    localStorage.setItem('seenNotifications', JSON.stringify(Array.from(updatedSeenNotifications)));
-    localStorage.setItem('unreadCount', '0'); // Asegúrate de que esto se ejecute
   };
 
   const handleNotificationClose = (): void => {
@@ -211,16 +173,13 @@ export function MainNav(): React.JSX.Element {
           </Stack>
           <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
           <Tooltip title="Notificaciones">
-            <Badge
-              badgeContent={unreadCount} // Cambia aquí
-              color="success"
-            >
-              {(userRole !== 'cashier' && userRole !== 'viewer') && (
-                <IconButton onClick={handleNotificationOpen}>
-                  <BellIcon />
-                </IconButton>
-              )}
-            </Badge>
+            {(userRole !== 'cashier' && userRole !== 'viewer') ? (
+              <IconButton onClick={handleNotificationOpen}>
+                <BellIcon />
+              </IconButton>
+            ) : (
+              <></> // Usar un fragmento vacío en lugar de false
+            )}
           </Tooltip>
             <Avatar
               onClick={userPopover.handleOpen}
@@ -258,41 +217,41 @@ export function MainNav(): React.JSX.Element {
         <Box sx={{ width: 350, maxHeight: 400, overflow: 'auto' }}>
           {notifications.length > 0 ? (
             <List>
-              {notifications
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .map((notification) => {
-                  const isSeen = seenNotifications.has(notification.predictionId); // Cambia a predictionId
-                  return (
-                    <React.Fragment key={notification.predictionId}>
-                      <ListItem
-                        button
-                        onClick={() => {handleNotificationClick(notification.predictionId)}} // Cambia a predictionId
-                        sx={{
-                          backgroundColor: isSeen ? 'grey.200' : 'background.paper', // Cambiar color si fue vista
-                        }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography variant="subtitle1" fontWeight="bold">
-                              {notification.title}
+            {notifications
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .map((notification) => {
+                const isSeen = seenNotifications.has(notification.predictionId); // Cambia a predictionId
+                return (
+                  <React.Fragment key={notification.predictionId}>
+                    <ListItem
+                      button
+                      onClick={() => {handleNotificationClick(notification.predictionId)}} // Marca como vista al hacer clic
+                      sx={{
+                        backgroundColor: isSeen ? 'grey.200' : 'background.paper', // Cambiar color si fue vista
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            {notification.title}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" color="text.secondary">
+                            {notification.message}
+                            <br />
+                            <Typography variant="caption" color="text.disabled">
+                              {new Date(notification.createdAt).toLocaleString()}
                             </Typography>
-                          }
-                          secondary={
-                            <Typography variant="body2" color="text.secondary">
-                              {notification.message}
-                              <br />
-                              <Typography variant="caption" color="text.disabled">
-                                {new Date(notification.createdAt).toLocaleString()}
-                              </Typography>
-                            </Typography>
-                          }
-                        />
-                      </ListItem>
-                      <Divider />
-                    </React.Fragment>
-                  );
-                })}
-            </List>
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                    <Divider />
+                  </React.Fragment>
+                );
+              })}
+          </List>          
           ) : (
             <Box sx={{ textAlign: 'center', py: 2 }}>
               <Typography variant="body2" color="text.secondary">

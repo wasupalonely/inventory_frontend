@@ -478,24 +478,26 @@ const translateLocationType = (locationType: string | undefined): string => {
                                         fullWidth
                                         InputProps={{
                                             onInput: (event) => {
-                                            const input = event.target as HTMLInputElement;
-                                            // Eliminar emojis
-                                            input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-                                            
-                                            // Limitar caracteres (ejemplo: 200 caracteres)
-                                            const maxLength = 200;
-                                            if (input.value.length > maxLength) {
-                                                input.value = input.value.substring(0, maxLength);
-                                            }
-                                            // Crear un objeto de evento compatible con el tipo ChangeEvent<HTMLInputElement>
-                                            const syntheticEvent = {
-                                                target: {
-                                                name: 'additionalInfo',
-                                                value: input.value,
-                                                },
-                                            } as React.ChangeEvent<HTMLInputElement>;
-                                            // Llamar a handleInputChange con el evento compatible
-                                            handleInputChange(syntheticEvent);
+                                                const input = event.target as HTMLInputElement;
+                                                // Eliminar emojis
+                                                input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+
+                                                // Limitar caracteres (ejemplo: 200 caracteres)
+                                                const maxLength = 200;
+                                                if (input.value.length > maxLength) {
+                                                    input.value = input.value.substring(0, maxLength);
+                                                }
+
+                                                // Crear un objeto de evento de cambio compatible
+                                                const syntheticEvent = {
+                                                    target: {
+                                                        name: 'additionalInfo',
+                                                        value: input.value,
+                                                    },
+                                                } as React.ChangeEvent<HTMLInputElement>;
+
+                                                // Llamar a handleInputChange con el evento compatible
+                                                handleInputChange(syntheticEvent);
                                             },
                                             startAdornment: <IconButton><InfoIcon /></IconButton>,
                                         }}
