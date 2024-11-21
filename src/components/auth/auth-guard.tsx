@@ -8,6 +8,7 @@ import CircularProgress from '@mui/material/CircularProgress'; // Importar el sp
 import { paths } from '@/paths';
 import { logger } from '@/lib/default-logger';
 import { useUser } from '@/hooks/use-user';
+import { useCallback } from 'react';
 
 export interface AuthGuardProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
   const [isChecking, setIsChecking] = React.useState<boolean>(true);
 
   
-  const checkPermissions = async (): Promise<void> => {
+  const checkPermissions = useCallback(async (): Promise<void> => {
     if (isLoading) {
       return;
     }
@@ -47,14 +48,14 @@ export function AuthGuard({ children }: AuthGuardProps): React.JSX.Element | nul
       return; 
     }   
     setIsChecking(false);
-  };
+  }, [error, isLoading, router, user]);
 
   React.useEffect(() => {
     
     checkPermissions().catch(() => {
       // noop
     });
-  }, [user, error, isLoading]);
+  }, [user, error, isLoading, checkPermissions]);
 
   const centeredContainerStyle = {
     display: 'flex',

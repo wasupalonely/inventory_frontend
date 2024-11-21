@@ -9,8 +9,6 @@ function generateToken(): string {
   return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
 }
 
-
-
 export interface SignUpParams {
   firstName: string;
   middleName?: string;
@@ -48,6 +46,40 @@ export interface SupermarketSignUpParams {
     buildingNumber: string;
     additionalInfo: string;
   }
+}
+
+export interface AuditsParams {
+  id: number;
+  user: {
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    secondLastName?: string;
+    role: string;
+    email: string;
+  };
+  table_name: string;
+  action: string;
+  timestamp: string;
+}
+
+export interface NotificationsParams{
+  isRead: string;
+  id: number;
+  title: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  predictionId: number;
+}
+
+export interface PredictionsParams {
+  id: number;
+  image: File | undefined;
+  result: string;
+  createdAt: string;
+  updatedAt: string;
+  scheduleFrequency: string;
 }
 
 export interface SignInWithOAuthParams {
@@ -138,7 +170,7 @@ class AuthClient {
         const errorResponse: DefaultErrorResponse = await response.json();
         return { error: errorResponse.message || 'Error al registrar el supermercado' };
       }
-      const data = await response.json();
+      // const data = await response.json();
     
 
       // Si el registro es exitoso, puedes manejar la respuesta aquí
@@ -401,6 +433,29 @@ class AuthClient {
       return { error: null, message: data };
     } catch (err) {
       return { error: 'Error al confirmar la cuenta' };
+    }
+  }
+
+  async getPredictionById(id: number): Promise<{ data?: PredictionsParams | null; error?: string }> {
+    const token = localStorage.getItem('custom-auth-token');
+  
+    try {
+      const response = await fetch(`${API_URL}/predictions/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        return { data: null, error: 'Failed to fetch prediction data from server' };
+      }
+  
+      const prediction = await response.json();
+      return { data: prediction };
+    } catch (error) {
+      return { data: null, error: 'Error fetching prediction data' };
     }
   }
 

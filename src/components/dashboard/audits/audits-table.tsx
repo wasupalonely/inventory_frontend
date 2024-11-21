@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Button, Snackbar, Alert } from '@mui/material';
+import {Snackbar, Alert } from '@mui/material';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Divider from '@mui/material/Divider';
@@ -11,26 +11,12 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { Pencil as PencilIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
-import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
+import type { AuditsParams } from '@/lib/auth/client';
+import { translateModule, translateAction, formatDate, formatTime, translateRole } from '@/components/dashboard/audits/translate'
+
 
 import { useSelection } from '@/hooks/use-selection';
 import { useUser } from '@/hooks/use-user';
-
-export interface Customer {
-  name: any;
-  id: number;
-  supermarketId: number;
-  ownedSupermarket: object;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  secondLastName?: string;
-  email: string;
-  phoneNumber: string;
-  password?: string;
-  role: 'admin' | 'viewer' | 'cashier';
-}
 
 interface SuccessMessageProps {
   open: boolean;
@@ -38,14 +24,14 @@ interface SuccessMessageProps {
   onClose: () => void;
 }
 
-interface CustomersTableProps {
+interface AuditsTableProps {
   count?: number;
   page?: number;
-  rows?: Customer[];
+  rows?: AuditsParams[];
   rowsPerPage?: number;
   onPageChange?: (event: unknown, newPage: number) => void;
   onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onEdit?: (user?: Customer) => void;
+  onEdit?: (user?: AuditsParams) => void;
   onDelete?: (userId: number) => Promise<void>;
 }
 
@@ -59,7 +45,7 @@ export function SuccessMessage({ open, message, onClose }: SuccessMessageProps):
   );
 }
 
-export function CustomersTable({
+export function AuditsTable({
   count = 0,
   rows = [],
   page = 0,
@@ -70,15 +56,9 @@ export function CustomersTable({
   onRowsPerPageChange = () => {
     /* No implementation needed */
   },
-  onEdit = async () => {
-    /* No implementation needed */
-  },
-  onDelete = async () => {
-    /* No implementation needed */
-  },
-}: CustomersTableProps): React.JSX.Element {
+}: AuditsTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
-    return rows.map((customer) => customer.id);
+    return rows.map((audit) => audit.id);
   }, [rows]);
 
   const { user } = useUser();
@@ -91,20 +71,6 @@ export function CustomersTable({
     setSuccessMessage(null);
   };
 
-  const handleEdit = async (row: Customer): Promise<void> => {
-    onEdit(row);
-  };
-
-  const handleDelete = async (userId: number): Promise<void> => {
-    await onDelete(userId);
-  };
-
-  const roleTranslations: Record<string, string> = {
-    admin: 'Administrador',
-    viewer: 'Observador',
-    cashier: 'Cajero',
-  };
-
   return (
   <>
     <Card>
@@ -112,21 +78,20 @@ export function CustomersTable({
         <Table sx={{ minWidth: '800px' }}>
           <TableHead>
             <TableRow>
-              <TableCell>Primer Nombre</TableCell>
-              <TableCell>Segundo Nombre</TableCell>
-              <TableCell>Primer Apellido</TableCell>
-              <TableCell>Segundo Apellido</TableCell>
-              <TableCell>Correo electrónico</TableCell>
-              <TableCell>Número de celular</TableCell>
+              <TableCell>Usuario</TableCell>
               <TableCell>Rol</TableCell>
-              {user?.role !== 'viewer' && <TableCell>Acciones</TableCell>}
+              <TableCell>Correo electrónico</TableCell>
+              <TableCell>Módulo</TableCell>
+              <TableCell>Acción</TableCell>
+              <TableCell>Fecha del cambio</TableCell>
+              <TableCell>Hora del cambio</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={user?.role !== 'viewer' ? 8 : 7} align="center">
-                  No hay usuarios disponibles
+                <TableCell colSpan={user?.role !== 'viewer' ? 7 : 6} align="center">
+                  No hay auditorías disponibles
                 </TableCell>
               </TableRow>
             ) : (
@@ -134,23 +99,17 @@ export function CustomersTable({
                 const isSelected = selected?.has(row.id);
                 return (
                   <TableRow hover key={row.id} selected={isSelected}>
-                    <TableCell>{row.firstName}</TableCell>
-                    <TableCell>{row.middleName}</TableCell>
-                    <TableCell>{row.lastName}</TableCell>
-                    <TableCell>{row.secondLastName}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                    <TableCell>{row.phoneNumber}</TableCell>
-                    <TableCell>{roleTranslations[row.role]}</TableCell>
-                    {user?.role !== 'viewer' && (
-                      <TableCell>
-                        <Button startIcon={<PencilIcon />} onClick={() => handleEdit(row)}>
-                          Editar
-                        </Button>
-                        <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
-                          Eliminar
-                        </Button>
-                      </TableCell>
-                    )}
+                    <TableCell>
+                      {row.user
+                        ? `${row.user.firstName} ${row.user.middleName || ''} ${row.user.lastName} ${row.user.secondLastName || ''}`.trim()
+                        : ''}
+                    </TableCell>
+                    <TableCell>{translateRole(row.user.role) || ''}</TableCell>
+                    <TableCell>{row.user.email || ''}</TableCell>
+                    <TableCell>{translateModule(row.table_name)}</TableCell>
+                    <TableCell>{translateAction(row.action)}</TableCell>
+                    <TableCell>{formatDate(new Date(row.timestamp).toString())}</TableCell>
+                    <TableCell>{formatTime(new Date(row.timestamp).toString())}</TableCell>
                   </TableRow>
                 );
               })
@@ -161,7 +120,7 @@ export function CustomersTable({
       <Divider />
       <TablePagination
         component="div"
-        count={count} // Total de usuarios
+        count={count} // Total de auditorías
         page={page} // Página actual
         onPageChange={onPageChange} // Maneja el cambio de página
         rowsPerPage={rowsPerPage} // Filas por página

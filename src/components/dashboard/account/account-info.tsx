@@ -27,7 +27,7 @@ export function AccountInfo(): React.JSX.Element {
       : localStorage.getItem('avatarUrl') || '/assets/default-avatar.png'
   );
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0] || null;
     setprofileImage(file);
 
@@ -38,16 +38,16 @@ export function AccountInfo(): React.JSX.Element {
     }
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = (): void => {
     fileInputRef.current?.click();
   };
 
-  const handleImageUpload = async () => {
+  const handleImageUpload = async (): Promise<boolean> => {
     if (!profileImage) {
       setAlertMessage('Por favor, selecciona una imagen.');
       setAlertType('error');
       setIsAlertOpen(true);
-      return;
+      return false;
     }
   
     const token = localStorage.getItem('custom-auth-token') as string;
@@ -56,7 +56,7 @@ export function AccountInfo(): React.JSX.Element {
       setAlertMessage('No se pudo obtener el ID del usuario.');
       setAlertType('error');
       setIsAlertOpen(true);
-      return;
+      return false;
     }
   
     const { error } = await authClient.uploadImage({ profileImage, token, userId: String(user.id) });
@@ -64,19 +64,19 @@ export function AccountInfo(): React.JSX.Element {
     if (error) {
       setAlertMessage(error);
       setAlertType('error');
-    } else {
-      setAlertMessage('Imagen subida exitosamente');
-      setAlertType('success');
-      setprofileImage(null); // Limpiar la imagen seleccionada
-  
-      // Guardar la imagen subida en localStorage
-      localStorage.setItem('avatarUrl', avatarUrl);
+      return false;
     }
-  
-    setIsAlertOpen(true);
+    
+    setAlertMessage('Imagen subida exitosamente');
+    setAlertType('success');
+    setprofileImage(null); // Limpiar la imagen seleccionada
+    
+    // Guardar la imagen subida en localStorage
+    localStorage.setItem('avatarUrl', avatarUrl);
+    return true;
   };  
 
-  const handleCloseAlert = () => {
+  const handleCloseAlert = (): void => {
     setIsAlertOpen(false);
     setAlertMessage(null);
   };
@@ -115,7 +115,16 @@ export function AccountInfo(): React.JSX.Element {
         <Button fullWidth variant="text" onClick={handleButtonClick}>
           Seleccionar imagen
         </Button>
-        <Button fullWidth variant="text" onClick={handleImageUpload}>
+        <Button
+          fullWidth
+          variant="text"
+          onClick={async () => {
+            const isUploaded = await handleImageUpload();
+            if (isUploaded) {
+              window.location.reload(); // Recargar la página después de subir la imagen
+            }
+          }}
+        >
           Subir imagen
         </Button>
       </CardActions>

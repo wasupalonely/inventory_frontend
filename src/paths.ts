@@ -19,6 +19,10 @@ export const paths = {
     settings: '/dashboard/settings',
     supermarket: '/dashboard/supermarket',
     categories: '/dashboard/categories',
+    predictions: '/dashboard/predictions',
+    predictionDetails: '/dashboard/predictions-details/1',
+    reports: '/dashboard/reports',
+    audits: '/dashboard/audits',
   },
   errors: { notFound: '/errors/not-found' },
 } as const;

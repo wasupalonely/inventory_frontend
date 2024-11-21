@@ -15,12 +15,13 @@ import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
+import type { SelectChangeEvent } from '@mui/material/';
 import MenuItem from '@mui/material/MenuItem';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
 import { Plus, DownloadSimple } from '@phosphor-icons/react';
-import { User } from '@/types/user';
+import type { User } from '@/types/user';
 import { useRouter } from 'next/navigation';
 
 interface Product {
@@ -68,9 +69,8 @@ export function SalesForm(): React.JSX.Element {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const router = useRouter();
 
-  const allowedRoles = ['admin', 'owner', 'cashier'];
-
   useEffect(() => {
+    const allowedRoles = ['admin', 'owner', 'cashier'];
     // Verifica el rol del usuario y redirige si no es uno de los permitidos
     const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
     if (!allowedRoles.includes(storedUser.role)) {
@@ -79,7 +79,7 @@ export function SalesForm(): React.JSX.Element {
   }, [router]);
 
   // Cargar productos desde el backend
-  const fetchProducts = async () => {
+  const fetchProducts = async (): Promise<void> => {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const user: User = JSON.parse(localStorage.getItem('user') || '{}');
@@ -115,7 +115,7 @@ export function SalesForm(): React.JSX.Element {
   };
 
   // Manejar selección del producto
-  const handleProductChange = (event: SelectChangeEvent) => {
+  const handleProductChange = (event: SelectChangeEvent): void => {
     const productId = Number(event.target.value);
     const selectedInventory = products.find(item => item.product.id === productId);
     if (selectedInventory) {
@@ -125,7 +125,7 @@ export function SalesForm(): React.JSX.Element {
   };
 
   // Manejar cambio de cantidad
-  const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
     // Permite solo números positivos y evita valores negativos o símbolos
     if (/^\d+$/.test(value) || value === "") {
@@ -134,7 +134,7 @@ export function SalesForm(): React.JSX.Element {
   };
 
 // Añadir producto a la venta
-const handleAddProduct = () => {
+const handleAddProduct = (): void => {
   if (!selectedProduct || !quantity || parseInt(quantity, 10) <= 0) {
     setSnackbarMessage('Seleccione un producto y una cantidad válida');
     setSnackbarSeverity('error');
@@ -204,7 +204,7 @@ const handleAddProduct = () => {
 
 
   // Eliminar producto
-const handleRemoveProduct = (index: number) => {
+const handleRemoveProduct = (index: number): void => {
   const productToRemove = productQuantities[index];
   setProductQuantities(prevQuantities => prevQuantities.filter((_, i) => i !== index));
 
@@ -237,7 +237,7 @@ const handleRemoveProduct = (index: number) => {
   
 
   // Enviar venta al backend
-  const handleSubmitSale = async () => {
+  const handleSubmitSale = async (): Promise<void> => {
     if (productQuantities.length === 0) {
     setSnackbarMessage('Agregue al menos un producto con cantidad válida antes de finalizar la venta');
     setSnackbarSeverity('error');
@@ -507,8 +507,7 @@ const handleRemoveProduct = (index: number) => {
           <IconButton
             aria-label="close"
             sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-          </IconButton>
+          />
         </DialogTitle>
         <DialogContent>
           {pdfUrl && (

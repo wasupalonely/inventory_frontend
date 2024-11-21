@@ -47,12 +47,10 @@ export default function Page(): React.JSX.Element {
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [isPending] = React.useState<boolean>(false);
 
-  const allowedRoles = ['admin', 'owner', 'viewer'];
-
   useEffect(() => {
-    // Verifica el rol del usuario y redirige si no es uno de los permitidos
+    const allowedRoles = ['admin', 'owner', 'viewer'];
     if (currentUser && !allowedRoles.includes(currentUser.role)) {
-      router.replace('errors/not-found'); // Redirige a una página de acceso no autorizado
+      router.replace('errors/not-found');
     }
   }, [currentUser, router]);
 
@@ -75,6 +73,16 @@ export default function Page(): React.JSX.Element {
     },
     mode: 'onChange'
   });
+
+ const translatedRole = (result: string): string => {
+    const translations: Record<string, string> = {
+      "admin": 'Administrador',
+      "viewer": 'Observador',
+      "cashier": 'Cajero',
+    };
+  
+    return translations[result] || result;
+  };
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -302,7 +310,7 @@ export default function Page(): React.JSX.Element {
         'Segundo Apellido': userXLSXL.secondLastName || '',
         'Correo Electrónico': userXLSXL.email || '',
         'Número de Celular': userXLSXL.phoneNumber || '',
-        Rol: userXLSXL.role || '',
+        'Rol': translatedRole(userXLSXL.role || ''),
       }))
     );
 
@@ -327,7 +335,7 @@ export default function Page(): React.JSX.Element {
       userPdf.lastName,
       userPdf.email,
       userPdf.phoneNumber,
-      userPdf.role,
+      translatedRole(userPdf.role),
     ]);
 
     doc.autoTable({
@@ -667,7 +675,7 @@ export default function Page(): React.JSX.Element {
                   <MenuItem value="viewer">Observador</MenuItem>
                   <MenuItem value="cashier">Cajero</MenuItem>
                 </Select>
-                {errors.role?.message && (<FormHelperText error>{errors.role.message}</FormHelperText>)}
+                {typeof errors.role?.message === 'string' ? (<FormHelperText error>{errors.role.message}</FormHelperText>) : null}
               </FormControl>
             )}
           />
@@ -676,8 +684,8 @@ export default function Page(): React.JSX.Element {
           </Button>
         </Stack>
       </Modal>
-      {successMessage && <Typography sx={{ color: 'green' }}>{successMessage}</Typography>}
-      {errorMessage && <Typography sx={{ color: 'red' }}>{errorMessage}</Typography>}
+      {typeof successMessage === 'string' && (<Typography sx={{ color: 'green' }}>{successMessage}</Typography>)}
+      {typeof errorMessage === 'string' && (<Typography sx={{ color: 'red' }}>{errorMessage}</Typography>)}
       <Dialog
         open={Boolean (dialogOpen)}
         onClose={() => {

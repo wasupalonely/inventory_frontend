@@ -23,39 +23,49 @@ export interface LatestProductsProps {
 }
 
 export function LatestProducts({ products = [], sx }: LatestProductsProps): React.JSX.Element {
+  const handleViewAllClick = (): void => {
+    window.location.href = '/dashboard/inventory';
+  };
+
   return (
     <Card sx={sx}>
       <CardHeader title="Últimos productos" />
       <Divider />
-      <List>
-        {products.map((product, index) => (
-          <ListItem divider={index < products.length - 1} key={product.id}>
-            <ListItemAvatar>
-              {product.image ? (
-                <Box component="img" src={product.image} sx={{ borderRadius: 1, height: '48px', width: '48px' }} />
-              ) : (
-                <Box
-                  sx={{
-                    borderRadius: 1,
-                    backgroundColor: 'var(--mui-palette-neutral-200)',
-                    height: '48px',
-                    width: '48px',
-                  }}
-                />
-              )}
-            </ListItemAvatar>
-            <ListItemText
-              primary={product.name}
-              primaryTypographyProps={{ variant: 'subtitle1' }}
-              secondary={`Updated ${dayjs(product.updatedAt).format('MMM D, YYYY')}`}
-              secondaryTypographyProps={{ variant: 'body2' }}
-            />
-            <IconButton edge="end">
-              <DotsThreeVerticalIcon weight="bold" />
-            </IconButton>
-          </ListItem>
-        ))}
-      </List>
+      {products.length === 0 ? (
+        <Box sx={{ padding: 2, textAlign: 'center' }}>
+          <ListItemText primary="No hay productos disponibles" />
+        </Box>
+      ) : (
+        <List>
+          {products.slice(-5).map((product, index) => (
+            <ListItem divider={index < Math.min(products.length, 5) - 1} key={product.id}>
+              <ListItemAvatar>
+                {product.image ? (
+                  <Box component="img" src={product.image} sx={{ borderRadius: 1, height: '48px', width: '48px' }} />
+                ) : (
+                  <Box
+                    sx={{
+                      borderRadius: 1,
+                      backgroundColor: 'var(--mui-palette-neutral-200)',
+                      height: '48px',
+                      width: '48px',
+                    }}
+                  />
+                )}
+              </ListItemAvatar>
+              <ListItemText
+                primary={product.name}
+                primaryTypographyProps={{ variant: 'subtitle1' }}
+                secondary={`Updated ${dayjs(product.updatedAt).format('MMM D, YYYY')}`}
+                secondaryTypographyProps={{ variant: 'body2' }}
+              />
+              <IconButton edge="end">
+                <DotsThreeVerticalIcon weight="bold" />
+              </IconButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
       <Divider />
       <CardActions sx={{ justifyContent: 'flex-end' }}>
         <Button
@@ -63,6 +73,7 @@ export function LatestProducts({ products = [], sx }: LatestProductsProps): Reac
           endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />}
           size="small"
           variant="text"
+          onClick={handleViewAllClick}
         >
           Ver todo
         </Button>
@@ -70,3 +81,4 @@ export function LatestProducts({ products = [], sx }: LatestProductsProps): Reac
     </Card>
   );
 }
+
