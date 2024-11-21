@@ -4,7 +4,6 @@ import * as React from 'react';
 import { Button, Snackbar, Alert } from '@mui/material';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -42,7 +41,7 @@ interface CategoriesTableProps {
   onDelete?: (userId: number) => Promise<void>;
 }
 
-export function SuccessMessage({ open, message, onClose }: SuccessMessageProps) {
+export function SuccessMessage({ open, message, onClose }: SuccessMessageProps): React.JSX.Element {
   return (
     <Snackbar open={open} autoHideDuration={4000} onClose={onClose}>
       <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>
@@ -75,9 +74,7 @@ export function CategoriesTable({
   }, [rows]);
 
   const { user } = useUser();
-  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
-  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
-  const selectedAll = rows.length > 0 && selected?.size === rows.length;
+  const { selected } = useSelection(rowIds);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const [alertOpen, setAlertOpen] = React.useState(false);
 
@@ -101,61 +98,41 @@ export function CategoriesTable({
         <Table sx={{ minWidth: '800px' }}>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  checked={selectedAll}
-                  indeterminate={selectedSome}
-                  onChange={(event) => {
-                    if (event.target.checked) {
-                      selectAll();
-                    } else {
-                      deselectAll();
-                    }
-                  }}
-                />
-              </TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell style={{ width: '70%' }}>Descripción</TableCell>
               {user?.role !== 'viewer' && <TableCell>Acciones</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => {
-              const isSelected = selected?.has(row.id);
-
-              return (
-                <TableRow hover key={row.id} selected={isSelected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={(event) => {
-                        if (event.target.checked) {
-                          selectOne(row.id);
-                        } else {
-                          deselectOne(row.id);
-                        }
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell>{row.description}</TableCell>
-                  {user?.role !== 'viewer' && (
-                    <TableCell>
-                      {' '}
-                      <Button
-                        startIcon={<PencilIcon />}onClick={() => handleEdit(row)}>
-                        Editar
-                      </Button>
-                      {user?.role !== 'cashier' && (
-                      <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
-                        Eliminar
-                      </Button>
-                      )}
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })}
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={user?.role !== 'viewer' ? 4 : 3} align="center">
+                  No hay categorías disponibles
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((row) => {
+                const isSelected = selected?.has(row.id);
+                return (
+                  <TableRow hover key={row.id} selected={isSelected}>
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell>{row.description}</TableCell>
+                    {user?.role !== 'viewer' && (
+                      <TableCell>
+                        <Button startIcon={<PencilIcon />} onClick={() => handleEdit(row)}>
+                          Editar
+                        </Button>
+                        {user?.role !== 'cashier' && (
+                          <Button startIcon={<TrashIcon />} color="error" onClick={() => handleDelete(row.id)}>
+                            Eliminar
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Box>

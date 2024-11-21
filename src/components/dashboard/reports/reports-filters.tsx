@@ -5,18 +5,18 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 
 type OnSearchFunction = (searchValue: string) => void;
-  
-interface CategoriesFiltersProps {
+
+interface PredictionFiltersProps {
   onSearch: OnSearchFunction;
 }
 
-export function CategoriesFilters({ onSearch }: CategoriesFiltersProps): React.JSX.Element {
+export function PredictionsFilters({ onSearch }: PredictionFiltersProps): React.JSX.Element {
   return (
     <Card sx={{ p: 2 }}>
       <OutlinedInput
         defaultValue=""
         fullWidth
-        placeholder="Buscar categoría"
+        placeholder="Buscar predicción"
         onChange={(e) => { 
           onSearch(e.target.value);
         }}
@@ -30,3 +30,4 @@ export function CategoriesFilters({ onSearch }: CategoriesFiltersProps): React.J
     </Card>
   );
 }
+

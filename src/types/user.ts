@@ -1,4 +1,4 @@
-import { type SupermarketSignUpParams, UploadImageParams } from '@/lib/auth/client';
+import type { SupermarketSignUpParams, UploadImageParams, PredictionsParams } from '@/lib/auth/client';
 
 
 export interface User {
@@ -17,5 +17,6 @@ export interface User {
   updatedAt: Date;
   role: 'owner' | 'cashier' | 'admin' | 'viewer';
   supermarket?: SupermarketSignUpParams;
+  prediction?: PredictionsParams;
   [key: string]: unknown;
 }

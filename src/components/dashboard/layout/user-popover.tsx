@@ -8,14 +8,16 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
-// import { GearSix as GearSixIcon } from '@phosphor-icons/react/dist/ssr/GearSix';
+import { GearSix as GearSixIcon } from '@phosphor-icons/react/dist/ssr/GearSix';
 import { SignOut as SignOutIcon } from '@phosphor-icons/react/dist/ssr/SignOut';
 import { User as UserIcon } from '@phosphor-icons/react/dist/ssr/User';
+import type { User } from '@/types/user';
 
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { logger } from '@/lib/default-logger';
 import { useUser } from '@/hooks/use-user';
+import { useEffect, useState } from 'react';
 
 export interface UserPopoverProps {
   anchorEl: Element | null;
@@ -24,9 +26,24 @@ export interface UserPopoverProps {
 }
 
 export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): React.JSX.Element {
-  const { checkSession, user } = useUser();
-
+  const { checkSession } = useUser();
   const router = useRouter();
+  const user: User = JSON.parse(localStorage.getItem('user') || '{}');
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+// Verificar si el usuario tiene uno de los roles permitidos
+useEffect(() => {
+  const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = storedUser.role;
+  
+  // Redirige si el rol no está en la lista permitida
+  if (!['owner', 'admin', 'cashier', 'viewer'].includes(role || '')) {
+    router.replace('errors/not-found'); // Reemplaza con la página de acceso restringido
+  } else {
+    setUserRole(role ?? null); // Asigna directamente sin una variable extra
+  }
+}, [router]);
+
 
   const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
@@ -66,17 +83,19 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       </Box>
       <Divider />
       <MenuList disablePadding sx={{ p: '8px', '& .MuiMenuItem-root': { borderRadius: 1 } }}>
-        {/* <MenuItem component={RouterLink} href={paths.dashboard.settings} onClick={onClose}>
+      {(userRole !== 'cashier' && userRole !== 'viewer') && (
+        <MenuItem component={RouterLink} href={paths.dashboard.settings} onClick={onClose}>
           <ListItemIcon>
             <GearSixIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
           Configuración
-        </MenuItem> */}
+        </MenuItem>
+        )}
         <MenuItem component={RouterLink} href={paths.dashboard.account} onClick={onClose}>
           <ListItemIcon>
             <UserIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
-          Perfil
+          Cuenta
         </MenuItem>
         <MenuItem onClick={handleSignOut}>
           <ListItemIcon>
