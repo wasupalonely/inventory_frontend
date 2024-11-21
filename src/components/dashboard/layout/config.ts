@@ -1,7 +1,6 @@
 import type { NavItemConfig } from '@/types/nav';
 import { paths } from '@/paths';
 
-
 export const navItems: NavItemConfig[] = [
   { 
     key: 'home', 
@@ -48,21 +47,19 @@ export const navItems: NavItemConfig[] = [
     title: 'Historial de Ventas', 
     href: paths.dashboard.sales_history, 
     icon: 'history',
-    roles: ['admin', 'owner'],
   },
   { 
     key: 'predictions', 
     title: 'Predicciones', 
     href: paths.dashboard.predictions, 
     icon: 'line-segments',
-    roles: ['admin', 'owner'],
   }, 
   { 
     key: 'reports', 
     title: 'Reportes', 
     href: paths.dashboard.reports, 
     icon: 'article',
-    roles: ['admin', 'owner']
+    roles: ['admin', 'owner', 'viewer']
   },
   { 
     key: 'audits', 
@@ -74,7 +71,7 @@ export const navItems: NavItemConfig[] = [
   { 
     key: 'account', 
     title: 'Cuenta', 
-    href: paths.dashboard.account,
+    href: paths.dashboard.account, 
     icon: 'user',
   },
   { 
