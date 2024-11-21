@@ -14,7 +14,7 @@ import { AuditsFilters } from '@/components/dashboard/audits/audits-filters';
 import { AuditsTable } from '@/components/dashboard/audits/audits-table';
 import type { AuditsParams } from '@/lib/auth/client';
 import type  { User } from '@/types/user';
-import { translateModule, translateAction, formatDate, formatTime } from '@/components/dashboard/audits/translate'
+import { translateModule, translateAction, formatDate, formatTime, translateRole } from '@/components/dashboard/audits/translate'
 
 export default function Page(): React.JSX.Element {
   const [audits, setAudits] = useState<AuditsParams[]>([]);
@@ -39,8 +39,18 @@ export default function Page(): React.JSX.Element {
   };
 
   const filteredAudits = audits.filter((audit) => {
-    const translatedName = translateModule(audit.table_name || '');
-    return translatedName.toLowerCase().includes(searchTerm.toLowerCase());
+    const translatedName = translateModule(audit.table_name || '').toLowerCase();
+    const translatedAction = translateAction(audit.action || '').toLowerCase();
+    const translatedRole = translateRole(audit.user.role || '').toLowerCase();
+    const fullName = `${audit.user.firstName} ${audit.user.middleName || ''} ${audit.user.lastName} ${audit.user.secondLastName || ''}`.toLowerCase();
+    const fullEmail = audit.user.email.toLowerCase();
+    return (
+      translatedName.includes(searchTerm.toLowerCase()) ||
+      translatedAction.includes(searchTerm.toLowerCase()) ||
+      translatedRole.includes(searchTerm.toLowerCase()) ||
+      fullName.includes(searchTerm.toLowerCase()) ||
+      fullEmail.includes(searchTerm.toLowerCase())
+    );
   });
 
   const fetchAudits = useCallback(async (): Promise<void> => {
@@ -51,7 +61,7 @@ export default function Page(): React.JSX.Element {
     setLoading(true);
     try {
       const token = localStorage.getItem('custom-auth-token');
-      const response = await fetch(`${API_URL}/audit/by-table`, {
+      const response = await fetch(`${API_URL}/audits/supermarket/${supermarketId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,6 +95,9 @@ export default function Page(): React.JSX.Element {
 
   // Transformar los datos con traducciones
   const translatedData = audits.map((audit) => ({
+    'Usuario': audit.user ? `${audit.user.firstName} ${audit.user.middleName || ''} ${audit.user.lastName} ${audit.user.secondLastName || ''}`.trim() : '',
+    'Rol': translateRole(audit.user.role || ''),
+    'Correo electrónico': (audit.user.email || ''),
     'Módulo': translateModule(audit.table_name || ''),
     'Acción': translateAction(audit.action || ''),
     'Fecha del cambio': formatDate(audit.timestamp || ''),
@@ -106,8 +119,11 @@ export default function Page(): React.JSX.Element {
     doc.text('Lista de Auditorías', 10, 10);
 
   // Transformar los datos con traducciones
-  const columns = ['Módulo', 'Acción', 'Fecha del cambio', 'Hora del cambio'];
+  const columns = ['Usuario', 'Rol', 'Correo electrónico', 'Módulo', 'Acción', 'Fecha del cambio', 'Hora del cambio'];
   const rows = audits.map((audit) => [
+    audit.user ? `${audit.user.firstName} ${audit.user.middleName || ''} ${audit.user .lastName} ${audit.user.secondLastName || ''}`.trim() : '',
+    translateRole(audit.user.role || ''),
+    audit.user.email || '',
     translateModule(audit.table_name || ''),
     translateAction(audit.action || ''),
     formatDate(audit.timestamp || ''),

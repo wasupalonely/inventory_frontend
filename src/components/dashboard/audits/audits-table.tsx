@@ -12,7 +12,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import type { AuditsParams } from '@/lib/auth/client';
-import { translateModule, translateAction, formatDate, formatTime } from '@/components/dashboard/audits/translate'
+import { translateModule, translateAction, formatDate, formatTime, translateRole } from '@/components/dashboard/audits/translate'
 
 
 import { useSelection } from '@/hooks/use-selection';
@@ -78,6 +78,9 @@ export function AuditsTable({
         <Table sx={{ minWidth: '800px' }}>
           <TableHead>
             <TableRow>
+              <TableCell>Usuario</TableCell>
+              <TableCell>Rol</TableCell>
+              <TableCell>Correo electrónico</TableCell>
               <TableCell>Módulo</TableCell>
               <TableCell>Acción</TableCell>
               <TableCell>Fecha del cambio</TableCell>
@@ -87,7 +90,7 @@ export function AuditsTable({
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={user?.role !== 'viewer' ? 5 : 4} align="center">
+                <TableCell colSpan={user?.role !== 'viewer' ? 7 : 6} align="center">
                   No hay auditorías disponibles
                 </TableCell>
               </TableRow>
@@ -96,6 +99,13 @@ export function AuditsTable({
                 const isSelected = selected?.has(row.id);
                 return (
                   <TableRow hover key={row.id} selected={isSelected}>
+                    <TableCell>
+                      {row.user
+                        ? `${row.user.firstName} ${row.user.middleName || ''} ${row.user.lastName} ${row.user.secondLastName || ''}`.trim()
+                        : ''}
+                    </TableCell>
+                    <TableCell>{translateRole(row.user.role) || ''}</TableCell>
+                    <TableCell>{row.user.email || ''}</TableCell>
                     <TableCell>{translateModule(row.table_name)}</TableCell>
                     <TableCell>{translateAction(row.action)}</TableCell>
                     <TableCell>{formatDate(new Date(row.timestamp).toString())}</TableCell>

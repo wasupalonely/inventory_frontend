@@ -48,11 +48,29 @@ export interface SupermarketSignUpParams {
   }
 }
 
-export interface AuditsParams{
+export interface AuditsParams {
   id: number;
+  user: {
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    secondLastName?: string;
+    role: string;
+    email: string;
+  };
   table_name: string;
   action: string;
   timestamp: string;
+}
+
+export interface NotificationsParams{
+  isRead: string;
+  id: number;
+  title: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  predictionId: number;
 }
 
 export interface PredictionsParams {

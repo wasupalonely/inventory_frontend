@@ -8,13 +8,24 @@ export const translateModule = (tableName: string): string => {
 
   // Diccionario de traducciones
   const translations: Record<string, string> = {
-    Product: "Productos",
-    Inventory: "Inventario",
-    User: "Usuarios",
+    products: "Gestión de Productos",
+    inventory: "Gestión de Inventario",
+    user: "Gestión de Usuarios",
   };
 
   // Buscar traducción
   return translations[camelCaseName] || camelCaseName; // Devuelve el valor original si no hay traducción
+};
+
+export const translateRole = (role: string): string => {
+  const translations: Record<string, string> = {
+    admin: 'Administrador',
+    viewer: 'Observador',
+    cashier: 'Cajero',
+    owner: 'Propietario',
+  };
+
+  return translations[role] || role; // Devuelve el valor original si no hay traducción
 };
   
   export const translateAction = (action: string): string => {

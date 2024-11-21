@@ -25,6 +25,7 @@ import { Controller, useForm } from 'react-hook-form';
 import * as XLSX from 'xlsx';
 
 import { useUser } from '@/hooks/use-user';
+import type { User} from '@/types/user'
 
 export default function Page(): React.JSX.Element {
   const { user: currentUser } = useUser();
@@ -95,10 +96,6 @@ export default function Page(): React.JSX.Element {
   
     while (retryCount < maxRetries) {
       try {
-        interface User {
-          ownedSupermarket?: { id: string };
-          supermarket?: { id: string };
-        }
         const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
         const supermarketId = storedUser.ownedSupermarket?.id || storedUser.supermarket?.id;
         const token = localStorage.getItem('custom-auth-token');
@@ -176,33 +173,28 @@ export default function Page(): React.JSX.Element {
   };
 
   const handleFormSubmit = async (data: any): Promise<void> => {
-    const submitUser = localStorage.getItem('user');
+    const submitUser  = localStorage.getItem('user');
   
-    interface User {
-      id: string;
-      ownedSupermarket?: { id: string };
-      password?: string;
-      supermarketId?: number;
-    }
-  
-    if (!submitUser) {
+    if (!submitUser ) {
       return;
     }
   
-    const userObject: User = JSON.parse(submitUser);
+    const userObject: User = JSON.parse(submitUser );
+    const supermarketId = userObject.ownedSupermarket?.id; // Obtén el supermarketId como antes
   
     const updatedFormData: Partial<User> = {
       ...data,
-      supermarketId: userObject.ownedSupermarket?.id,
     };
   
+    // Si estás editando una categoría, no incluyas supermarketId
     if (editingCategory) {
       if ('password' in updatedFormData) {
         delete updatedFormData.password;
       }
-      if ('supermarketId' in updatedFormData) {
-        delete updatedFormData.supermarketId;
-      }
+      // No incluyas supermarketId en la solicitud de edición
+    } else {
+      // Si no estás editando, añade supermarketId
+      updatedFormData.supermarketId = supermarketId;
     }
   
     try {
@@ -216,34 +208,32 @@ export default function Page(): React.JSX.Element {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...updatedFormData }),
+        body: JSON.stringify(updatedFormData), // Envía solo updatedFormData
       });
   
       if (!response.ok) {
-        showSnackbar('La categoría ya está registrada. Por favor, use otra', 'error');
+        showSnackbar('Error al crear o actualizar la categoría', 'error');
         return;
       }
   
-      const savedUser: Categories = await response.json();
-      
+      const savedCategory: Categories = await response.json();
+  
       if (!editingCategory) {
-        setCategories((prevUsers) => [savedUser, ...prevUsers]);
+        setCategories((prevCategories) => [savedCategory, ...prevCategories]);
       } else {
-        setCategories((prevUsers) => 
-          prevUsers.map((editUser) => (editUser.id === savedUser.id ? savedUser : editUser))
+        setCategories((prevCategories) => 
+          prevCategories.map((category) => (category.id === savedCategory.id ? savedCategory : category))
         );
       }
   
-      // Mostrar el mensaje después de que se haya completado la operación
       showSnackbar(editingCategory ? 'Categoría actualizada con éxito' : 'Categoría creada con éxito', 'success');
-      
-      fetchCategories();  // Actualiza la lista de usuarios
-      handleCloseModal();  // Cierra el modal después de completar la acción
-      reset();  // Limpia el formulario
+      fetchCategories(); // Actualiza la lista de categorías
+      handleCloseModal(); // Cierra el modal después de completar la acción
+      reset(); // Limpia el formulario
     } catch (error) {
-      showSnackbar('La categoría ya está registrada. Por favor, usa otro', 'error');
+      showSnackbar('Error al crear o actualizar la categoría', 'error');
     }
-  };  
+  };
 
   const handleDeleteUser = async (userId: number): Promise<void> => {
     setCategoryToDelete(userId);
