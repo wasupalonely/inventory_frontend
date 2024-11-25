@@ -326,11 +326,6 @@ const translateLocationType = (locationType: string | undefined): string => {
         <Container>
                 <StyledCard>
                     <CardHeader title={supermarket?.name} />
-                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2, maxWidth: '94%', ml: '3%' }}>
-                    <Typography variant="body2">
-                        <strong>NIT:</strong> {supermarket?.nit}
-                    </Typography>
-                    </Box>
                     <Divider />
                     <CardContent>
                         {error && <Alert severity="error">{error}</Alert>}
@@ -340,7 +335,7 @@ const translateLocationType = (locationType: string | undefined): string => {
                                     <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
                                         <Typography variant="body2"><strong>NIT:</strong> {supermarket.nit}</Typography>
                                     </Box>
-                                    <Box></Box>
+                                    <Box />
                                 </Stack>
                                 <Typography variant="h6" sx={{ mb: 2 }}>
                                     <strong>Dirección:</strong>
