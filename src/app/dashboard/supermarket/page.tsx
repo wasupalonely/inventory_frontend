@@ -59,11 +59,11 @@ interface Address {
 }
 
 interface Supermarket {
-  id: number;
-  name: string;
-  nit: number;
-  owner: { id: number };
-  address: Address;
+id: number;
+name: string;
+nit: string;
+owner: { id: number };
+address: Address;
 }
 
 interface StoredUser {
@@ -195,7 +195,6 @@ const updateSupermarketDetails = async (): Promise<void> => {
                 throw new Error(`Error al eliminar el supermercado: ${errorDetail}`);
             }
         
-            // Mostrar Snackbar de éxito
             setDeleteSuccess(true);
             setSnackbarMessage('Supermercado eliminado exitosamente');
             setSnackbarSeverity('success');
@@ -210,7 +209,7 @@ const updateSupermarketDetails = async (): Promise<void> => {
             setSnackbarSeverity('error');
             setSnackbarOpen(true);
         } finally {
-            setDialogOpen(false); // Cerrar el diálogo después de eliminar
+            setDialogOpen(false); 
         }
     };    
     
@@ -264,7 +263,6 @@ const handleCancelClick = (): void => {
     setFormData(supermarket);
 };
 
-    // Definir las claves válidas de Address
     const addressKeys: (keyof Address)[] = [
         'neighborhood',
         'locationType',
@@ -328,6 +326,11 @@ const translateLocationType = (locationType: string | undefined): string => {
         <Container>
                 <StyledCard>
                     <CardHeader title={supermarket?.name} />
+                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2, maxWidth: '94%', ml: '3%' }}>
+                    <Typography variant="body2">
+                        <strong>NIT:</strong> {supermarket?.nit}
+                    </Typography>
+                    </Box>
                     <Divider />
                     <CardContent>
                         {error && <Alert severity="error">{error}</Alert>}
@@ -412,6 +415,18 @@ const translateLocationType = (locationType: string | undefined): string => {
                                     },
                                     startAdornment: <IconButton><UserFocusIcon /></IconButton>}}
                                 />
+                                <CustomTextField
+                                        label="NIT"
+                                        name="nit"
+                                        value={formData.nit}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><BuildingIcon /></IconButton>}}
+                                 />
                                 <SectionTitle variant="h6">Dirección</SectionTitle>
                                 <Stack spacing={2}>
                                     <CustomTextField

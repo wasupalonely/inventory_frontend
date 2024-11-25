@@ -18,6 +18,9 @@ import { z as zod } from 'zod';
 import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
 import { paths } from '@/paths';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
 
 
 const schema = zod.object({
@@ -48,7 +51,14 @@ const schema = zod.object({
       .min(1, { message: 'La información adicional es requerida' })
       .max(255, { message: 'La información adicional no debe tener más de 255 caracteres' }),
   }),
+  nit: zod
+  .string()
+  .regex(/^\d{8,9}-\d$/, {
+    message: 'El NIT debe tener 8 o 9 dígitos principales seguidos de un guion y un dígito verificador',
+  })
+  .min(1, { message: 'El NIT es requerido' }),
 });
+
 
 type Values = zod.infer<typeof schema>;
 
@@ -64,6 +74,7 @@ const defaultValues = {
     additionalInfo: '',
   },
 } satisfies Values;
+
 
 export function SupermarketSignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -247,6 +258,34 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                 </FormControl>
               )}
             />
+            <Stack spacing={2}>
+              <Controller
+                control={control}
+                name="nit"
+                render={({ field }) => (
+                  <FormControl error={Boolean(errors.nit)}>
+                    <InputLabel>NIT</InputLabel>
+                    <OutlinedInput
+                      {...field}
+                      label="nit"
+                      inputProps={{
+                        maxLength: 11, 
+                        onInput: (event) => {
+                          const input = event.target as HTMLInputElement;
+                          const rawValue = input.value.replace(/[^0-9]/g, ''); 
+                          if (rawValue.length <= 9) {
+                            input.value = rawValue.replace(/^(?<firstGroup>\d{8,9})(?<secondGroup>\d?)$/, '$<firstGroup>-$<secondGroup>');
+                          }
+                          field.onChange(input.value); 
+                        },
+                      }}
+                    />
+                    {errors.nit ? <FormHelperText>{errors.nit.message}</FormHelperText> : null}
+                  </FormControl>
+                )}
+              />
+            </Stack>
+            
             <Typography variant="h6">Dirección</Typography>
             <Controller
               control={control}
