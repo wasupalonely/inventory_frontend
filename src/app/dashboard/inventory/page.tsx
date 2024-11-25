@@ -22,6 +22,8 @@ interface Product {
   name: string;
   description: string;
   price: number;
+  pricePerPound: number;
+  weight: number;
   unitCost: number;
   category?: {
     id: number;
@@ -65,6 +67,8 @@ export default function Page(): React.JSX.Element {
       name: '',
       description: '',
       price: '',
+      pricePerPound: '',
+      weight: '',
       unitCost: '',
       categoryId: '',
       stock: '',
@@ -97,6 +101,8 @@ const handleOpenProduct = (): void => {
       name: '',
       description: '',
       price: '',
+      pricePerPound: '',
+      weight: '',
       unitCost: '',
       categoryId: '',
       stock: '',
@@ -114,7 +120,8 @@ const handleOpenEditProduct = (product: Product, inventory: Inventory): void => 
   reset({
     name: product.name || '', // Asegúrate de manejar el caso donde product.name pueda ser undefined
     description: product.description || '',
-    price: product.price !== undefined ? product.price.toString() : '', // Convertir a string
+    pricePerPound: product.pricePerPound !== undefined ? product.pricePerPound.toString() : '', // Convertir a string
+    weight: product.weight !== undefined ? product.weight.toString() : '', // Convertir a string
     unitCost: product.unitCost !== undefined ? product.unitCost.toString() : '', // Convertir a string
     stock: inventory.stock !== undefined ? inventory.stock.toString() : '', // Convertir a string
     categoryId: product.category?.id ? product.category.id.toString() : '', // Convertir a string
@@ -265,7 +272,8 @@ React.useEffect(() => {
  const onSubmitProduct = async (data: {
   name: string;
   description: string;
-  price: string;
+  pricePerPound: string;
+  weight: string;
   unitCost: string;
   categoryId?: string;
   stock: string;
@@ -285,7 +293,8 @@ React.useEffect(() => {
   const productData = new FormData();
   productData.append('name', data.name);
   productData.append('description', data.description);
-  productData.append('price', data.price);
+  productData.append('pricePerPound', data.pricePerPound);
+  productData.append('weight', data.weight);
   productData.append('unitCost', data.unitCost);
   productData.append('supermarketId', supermarketId.toString());
 
@@ -408,7 +417,8 @@ React.useEffect(() => {
   const onSubmitEditProduct = async (data: {
     name: string;
     description: string;
-    price: string;
+    pricePerPound: string;
+    weight: string;
     unitCost: string;
     categoryId?: string;
     stock: string;
@@ -419,7 +429,8 @@ React.useEffect(() => {
     const productData = {
       name: data.name,
       description: data.description,
-      price: Number(data.price),
+      pricePerPound: Number(data.pricePerPound),
+      weight: Number(data.weight),
       unitCost: Number(data.unitCost),
       categoryId: Number(data.categoryId),
     };
@@ -494,11 +505,11 @@ const handleSnackbarClose = (): void => {
         {/* Botones en columna */}
         {user?.role !== 'viewer' &&(
         <Stack spacing={2}>
-          <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenCategory}>
+         {/* <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenCategory}>
             Añadir Categoria
-          </Button>
+          </Button>*/}
           <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenProduct}>
-            Añadir Producto
+            Añadir Carne
           </Button>
         </Stack>
         )}
@@ -509,7 +520,7 @@ const handleSnackbarClose = (): void => {
 
     {/* Listado de productos */}
     <Stack spacing={2}>
-      <Typography variant="h5">Listado de Productos</Typography>
+      <Typography variant="h5">Listado de Carnes</Typography>
       {products.length === 0 ? (
       <Typography align="center">No hay productos disponibles.</Typography>
     ) : (
@@ -577,7 +588,7 @@ const handleSnackbarClose = (): void => {
         whiteSpace: 'nowrap',
       }}
     >
-      {inventory.product.name}
+      {inventory.product.name} {inventory.product.weight} gramos
     </Typography>
 
     <Typography
@@ -591,10 +602,11 @@ const handleSnackbarClose = (): void => {
       {inventory.product.description}
     </Typography>
 
-    <Typography variant="body2">Precio: ${inventory.product.price}</Typography>
-    <Typography variant="body2">Precio por Unidad: ${inventory.product.unitCost}</Typography>
+    <Typography variant="body2">Precio total: ${inventory.product.price}</Typography>
+    <Typography variant="body2">Peso: {inventory.product.weight} gramos</Typography>
+    <Typography variant="body2">Precio por gramo: ${inventory.product.pricePerPound}</Typography>
     <Typography variant="body2">Stock: {inventory.stock}</Typography>
-    <Typography
+   {/* <Typography
       variant="body2"
       sx={{
         overflow: 'hidden',
@@ -602,8 +614,8 @@ const handleSnackbarClose = (): void => {
         whiteSpace: 'nowrap',
       }}
     >
-      Categoría: {inventory.product.category?.name || 'Sin Categoría'}
-    </Typography>
+     Categoría: {inventory.product.category?.name || 'Sin Categoría'} 
+    </Typography> */}
 
     {/* Reserva el espacio de los botones si el rol es viewer */}
     {user?.role === 'viewer' ? (
@@ -657,7 +669,7 @@ const handleSnackbarClose = (): void => {
     fullWidth // Esto permite que el modal use el ancho máximo definido
     sx={{ '& .MuiDialog-paper': { width: '400px', maxWidth: '100%' } }} // Personaliza el ancho
     >
-      <DialogTitle>Añadir Producto</DialogTitle>
+      <DialogTitle>Añadir Carne</DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
           <Controller
@@ -701,16 +713,16 @@ const handleSnackbarClose = (): void => {
             )}
           />
           <Controller
-            name="price"
+            name="pricePerPound"
             control={control}
             rules={{
-              required: 'El precio es obligatorio',
+              required: 'El precio por gramo es obligatorio',
               validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
             }}
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Precio"
+                label="Precio por gramo"
                 fullWidth
                 type="text"
                 error={Boolean(fieldState.error)}
@@ -768,6 +780,40 @@ const handleSnackbarClose = (): void => {
             )}
           /> 
 
+<Controller
+            name="weight"
+            control={control}
+            rules={{
+              required: 'El peso es obligatorio',
+              validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
+            }}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                label="Peso en gramos"
+                fullWidth
+                type="text"
+                error={Boolean(fieldState.error)}
+                helperText={fieldState.error ? fieldState.error.message : ''}
+                inputProps={{
+                  maxLength: 10,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                }}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Permite solo números y hasta dos decimales
+                  if (/^[0-9]*\.?[0-9]{0,2}$/.test(value) || value === "") {
+                    field.onChange(value); // Solo actualiza el valor si cumple la condición
+                  }
+                }}
+                required
+              />
+            )}
+          /> 
+
             <Controller
               name="stock"
               control={control}
@@ -802,7 +848,7 @@ const handleSnackbarClose = (): void => {
               )}
             />
 
-<Controller
+{/* <Controller
   name="categoryId"
   control={control}
   render={({ field, fieldState }) => (
@@ -816,7 +862,7 @@ const handleSnackbarClose = (): void => {
 
       >
         <MenuItem value="">
-          <em>Sin Categoría</em> {/* Permite seleccionar "Sin Categoría" manualmente */}
+          <em>Sin Categoría</em>
         </MenuItem>
         {categories.map((category) => (
           <MenuItem key={category.id} value={category.id}>
@@ -828,6 +874,7 @@ const handleSnackbarClose = (): void => {
     </FormControl>
   )}
 />
+*/}
 
           {/* Controlador de subida de imagen */}
           <Controller
@@ -995,16 +1042,16 @@ const handleSnackbarClose = (): void => {
           )}
         />
         <Controller
-          name="price"
+          name="pricePerPound"
           control={control}
           rules={{
-            required: 'El precio es obligatorio',
+            required: 'El precio por gramo es obligatorio',
             validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
           }}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
-              label="Precio"
+              label="Precio por gramo"
               fullWidth
               type="text"
               error={Boolean(fieldState.error)}
@@ -1028,16 +1075,16 @@ const handleSnackbarClose = (): void => {
         /> 
 
 <Controller
-          name="unitCost"
+          name="weight"
           control={control}
           rules={{
-            required: 'El precio por unidad es obligatorio',
+            required: 'El peso es obligatorio',
             validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
           }}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
-              label="Precio por unidad"
+              label="Peso en gramos"
               fullWidth
               type="text"
               error={Boolean(fieldState.error)}
@@ -1093,7 +1140,7 @@ const handleSnackbarClose = (): void => {
               )}
             /> 
 
-        <Controller
+       {/* <Controller
           name="categoryId"
           control={control}
           render={({ field, fieldState }) => (
@@ -1109,7 +1156,7 @@ const handleSnackbarClose = (): void => {
               {typeof fieldState.error?.message === 'string' && <Typography color="error">{fieldState.error.message}</Typography>}
             </FormControl>
           )}
-        />
+        /> */}
       </Stack>
     </DialogContent>
     <DialogActions>
@@ -1138,56 +1185,6 @@ const handleSnackbarClose = (): void => {
           </Button>
         </DialogActions>
       </Dialog>
-
-  {/* Modal para añadir categoría */}
-  <Dialog open={openCategory}
-   onClose={handleCloseCategory}
-   maxWidth="md" // Cambia el ancho máximo, puedes probar con "lg" también
-  fullWidth // Esto permite que el modal use el ancho máximo definido
-  sx={{ '& .MuiDialog-paper': { width: '400px', maxWidth: '100%' } }} // Personaliza el ancho
-   >
-    <DialogTitle>Añadir Categoria</DialogTitle>
-    <DialogContent>
-      <Stack spacing={2}>
-        <Controller
-          name="name"
-          control={control}
-          rules={{ required: 'El nombre es obligatorio' }}
-          render={({ field, fieldState }) => (
-            <TextField
-              {...field}
-              label="Nombre"
-              fullWidth
-              error={Boolean(fieldState.error)}
-              helperText={fieldState.error ? fieldState.error.message : ''}
-              inputProps={{ maxLength: 50 }}
-              sx={{ marginTop: '5px' }}
-            />
-          )}
-        />
-        <Controller
-          name="description"
-          control={control}
-          render={({ field }) => (
-            <TextField {...field} label="Descripción"
-            fullWidth
-            multiline
-            rows={3}
-            inputProps={{ maxLength: 200 }}
-             />
-          )}
-        />
-      </Stack>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={handleCloseCategory} color="inherit">
-        Cancelar
-      </Button>
-      <Button onClick={handleSubmit(onSubmitCategory)} variant="contained">
-        Guardar
-      </Button>
-    </DialogActions>
-  </Dialog>
 
 <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
