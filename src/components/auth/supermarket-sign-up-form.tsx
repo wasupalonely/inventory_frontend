@@ -18,10 +18,6 @@ import { z as zod } from 'zod';
 import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
 import { paths } from '@/paths';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-
-
 
 const schema = zod.object({
   name: zod

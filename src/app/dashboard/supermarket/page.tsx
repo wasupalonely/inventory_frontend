@@ -18,44 +18,44 @@ import { useRouter } from 'next/navigation';
 
 
 const Container = styled('div')(({ theme }) => ({
-display: 'flex',
-justifyContent: 'center',
-padding: theme.spacing(4),
-backgroundColor: 'transparent',
+  display: 'flex',
+  justifyContent: 'center',
+  padding: theme.spacing(4),
+  backgroundColor: 'transparent',
 }));
 
 const CustomTextField = styled(TextField)(({ theme }) => ({
-marginBottom: theme.spacing(3),
-'& .MuiOutlinedInput-root': {
-  borderRadius: theme.shape.borderRadius * 2,
-},
+  marginBottom: theme.spacing(3),
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius * 2,
+  },
 }));
 
 const StyledCard = styled(Card)(({ theme }) => ({
-maxWidth: 800,
-width: '100%',
-boxShadow: theme.shadows[5],
-padding: theme.spacing(3),
-marginTop: theme.spacing(-2),
-borderRadius: theme.shape.borderRadius * 2,
-backgroundColor: '#f9f9f9',
+  maxWidth: 800,
+  width: '100%',
+  boxShadow: theme.shadows[5],
+  padding: theme.spacing(3),
+  marginTop: theme.spacing(-2),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor: '#f9f9f9',
 }));
 
 const SectionTitle = styled(Typography)(({ theme }) => ({
-fontWeight: '600',
-color: 'black',
-marginBottom: theme.spacing(1),
-fontSize: '1.5rem',
-paddingBottom: theme.spacing(1),
+  fontWeight: '600',
+  color: 'black',
+  marginBottom: theme.spacing(1),
+  fontSize: '1.5rem',
+  paddingBottom: theme.spacing(1),
 }));
 
 interface Address {
-neighborhood?: string;
-locationType?: string;
-streetNumber?: string;
-buildingNumber?: string;
-additionalInfo?: string;
-intersectionNumber?: string;
+  neighborhood?: string;
+  locationType?: string;
+  streetNumber?: string;
+  buildingNumber?: string;
+  additionalInfo?: string;
+  intersectionNumber?: string;
 }
 
 interface Supermarket {
@@ -336,6 +336,12 @@ const translateLocationType = (locationType: string | undefined): string => {
                         {error && <Alert severity="error">{error}</Alert>}
                         {supermarket && (
                             <>
+                                <Stack spacing={2}>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>NIT:</strong> {supermarket.nit}</Typography>
+                                    </Box>
+                                    <Box></Box>
+                                </Stack>
                                 <Typography variant="h6" sx={{ mb: 2 }}>
                                     <strong>Dirección:</strong>
                                 </Typography>
@@ -495,24 +501,17 @@ const translateLocationType = (locationType: string | undefined): string => {
                                         InputProps={{
                                             onInput: (event) => {
                                                 const input = event.target as HTMLInputElement;
-                                                // Eliminar emojis
                                                 input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-
-                                                // Limitar caracteres (ejemplo: 200 caracteres)
                                                 const maxLength = 200;
                                                 if (input.value.length > maxLength) {
                                                     input.value = input.value.substring(0, maxLength);
                                                 }
-
-                                                // Crear un objeto de evento de cambio compatible
                                                 const syntheticEvent = {
                                                     target: {
                                                         name: 'additionalInfo',
                                                         value: input.value,
                                                     },
                                                 } as React.ChangeEvent<HTMLInputElement>;
-
-                                                // Llamar a handleInputChange con el evento compatible
                                                 handleInputChange(syntheticEvent);
                                             },
                                             startAdornment: <IconButton><InfoIcon /></IconButton>,
