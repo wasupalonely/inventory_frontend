@@ -29,6 +29,8 @@ interface Product {
   name: string;
   description: string;
   price: number;
+  pricePerPound: number;
+  weight: number;
   category?: {
     id: number;
     name: string;
@@ -45,6 +47,7 @@ interface Inventory {
 interface SaleProduct {
   productId: number;
   quantity: number;
+  weight: number;
   productName: string;
   totalPrice: number;
 }
@@ -162,9 +165,11 @@ const handleAddProduct = (): void => {
       
       // Sumar la nueva cantidad a la cantidad existente
       const newQuantity = existingProduct.quantity + quantityValue;
+      const newWeight = existingProduct.weight + selectedProduct.weight;
       updatedQuantities[existingProductIndex] = {
         ...existingProduct,
         quantity: newQuantity,
+        weight: newWeight,
         totalPrice: newQuantity * selectedProduct.price // Calcular el precio total basado en la cantidad total
       };
       return updatedQuantities;
@@ -176,6 +181,7 @@ const handleAddProduct = (): void => {
       {
         productId: selectedProduct.id,
         quantity: quantityValue,
+        weight: selectedProduct.weight,
         productName: selectedProduct.name,
         totalPrice: quantityValue * selectedProduct.price,
       },
@@ -396,9 +402,9 @@ const handleRemoveProduct = (index: number): void => {
         )}
       </Box>
       <Box sx={{ flexGrow: 1 }}>
-        <Typography variant="h6">{selectedProduct.name}</Typography>
+        <Typography variant="h6">{selectedProduct.name} {selectedProduct.weight} gramos</Typography>
         <Typography>Descripción: {selectedProduct.description}</Typography>
-        <Typography>Precio Unitario: ${selectedProduct.price}</Typography>
+        <Typography>Precio por gramo: ${selectedProduct.pricePerPound}</Typography>
         <Typography>Stock Disponible: {availableStock}</Typography>
       </Box>
     </Card>
@@ -444,7 +450,7 @@ const handleRemoveProduct = (index: number): void => {
 
       {/* Detalles del producto */}
       <div style={{ flexGrow: 1 }}>
-        <Typography variant="h6">{item.productName}</Typography>
+        <Typography variant="h6">{item.productName} de {item.weight} gramos</Typography>
         <Typography>Cantidad: {item.quantity}</Typography>
         <Typography>Precio Total: ${item.totalPrice.toFixed()}</Typography>
       </div>
