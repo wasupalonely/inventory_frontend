@@ -115,6 +115,7 @@ const handleCloseModal = (): void => {
           <Table sx={{ minWidth: '800px' }}>
             <TableHead>
               <TableRow>
+                <TableCell style={{ width: '20%' }}>Cámara</TableCell>
                 <TableCell>Imagen</TableCell>
                 <TableCell>Resultado</TableCell>
                 <TableCell>Fecha</TableCell>
@@ -132,6 +133,13 @@ const handleCloseModal = (): void => {
               ) : (
                 rows.map((row) => (
                   <TableRow hover key={row.id} selected={selected?.has(row.id)}>
+                    <TableCell>
+                      <Button
+                        variant="contained" color="primary" onClick={() => {router.replace(`/dashboard/cameras`);}}
+                      >
+                        Ver Cámara
+                      </Button>
+                    </TableCell>
                     <TableCell>
                       <img src={row.image instanceof File ? URL.createObjectURL(row.image) : row.image} width={50} height={50} alt="" />
                     </TableCell>

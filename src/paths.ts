@@ -23,6 +23,7 @@ export const paths = {
     predictionDetails: '/dashboard/predictions-details/1',
     reports: '/dashboard/reports',
     audits: '/dashboard/audits',
+    cameras: '/dashboard/cameras'
   },
   errors: { notFound: '/errors/not-found' },
 } as const;

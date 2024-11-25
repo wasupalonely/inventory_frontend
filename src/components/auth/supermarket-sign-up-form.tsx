@@ -25,6 +25,10 @@ const schema = zod.object({
     .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
+  nit: zod
+    .string()
+    .min(1, { message: 'El NIT del supermercado es requerido' })
+    .max(9, { message: 'El NIT del supermercado no debe tener más de 9 caracteres' }),
   address: zod.object({
     neighborhood: zod.string()
       .min(1, { message: 'El barrio es requerido' })
@@ -50,6 +54,7 @@ type Values = zod.infer<typeof schema>;
 
 const defaultValues = {
   name: '',
+  nit: '',
   address: {
     neighborhood: '',
     locationType: '',

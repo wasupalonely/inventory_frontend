@@ -150,7 +150,7 @@ export function Notifications(): React.JSX.Element {
           }
           showSnackbar('Predicciones automáticas activadas', 'success');
         } else {
-          showSnackbar('Error al activar predicciones automáticas', 'error');
+          showSnackbar('Error al activar predicciones automáticas, debes crear primero una cámara', 'error');
         }
       }
     } catch (error) {

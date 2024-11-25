@@ -49,6 +49,13 @@ export const navItems: NavItemConfig[] = [
     icon: 'history',
   },
   { 
+    key: 'cameras', 
+    title: 'Cámaras', 
+    href: paths.dashboard.cameras, 
+    icon: 'camera',
+    roles: ['admin', 'owner', 'viewer']
+  },
+  { 
     key: 'predictions', 
     title: 'Predicciones', 
     href: paths.dashboard.predictions, 

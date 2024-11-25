@@ -73,8 +73,17 @@ export interface NotificationsParams{
   predictionId: number;
 }
 
+export interface CamerasParams {
+  id: number;
+  supermarketId: number;
+  name: string;
+  description: string;
+  isActive: boolean;
+  }
+
 export interface PredictionsParams {
   id: number;
+  cameraId: number;
   image: File | undefined;
   result: string;
   createdAt: string;
