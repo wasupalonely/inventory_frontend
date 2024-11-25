@@ -18,20 +18,12 @@ import { z as zod } from 'zod';
 import { authClient } from '@/lib/auth/client';
 import { API_URL } from '@/config';
 import { paths } from '@/paths';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-
-
 
 const schema = zod.object({
   name: zod
     .string()
     .min(1, { message: 'El nombre del supermercado es requerido' })
     .max(255, { message: 'El nombre del supermercado no debe tener más de 255 caracteres' }),
-  nit: zod
-    .string()
-    .min(1, { message: 'El NIT del supermercado es requerido' })
-    .max(9, { message: 'El NIT del supermercado no debe tener más de 9 caracteres' }),
   address: zod.object({
     neighborhood: zod.string()
       .min(1, { message: 'El barrio es requerido' })
