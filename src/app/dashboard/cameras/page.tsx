@@ -446,12 +446,12 @@ export default function Page(): React.JSX.Element {
             <Controller
               name="categoryId"
               control={control}
-              rules={{ required: 'La categoría es obligatoria' }}
+              rules={{ required: 'El corte es obligatorio' }}
               render={({ field }) => (
                 <TextField
                   {...field}
                   select
-                  label="Categoría"
+                  label="Corte"
                   fullWidth
                   error= {Boolean(errors.categoryId)}
                   value={field.value} // Asegúrate de que este valor sea el correcto

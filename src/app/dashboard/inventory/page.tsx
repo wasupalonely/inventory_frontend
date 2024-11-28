@@ -145,7 +145,7 @@ const fetchCategories = useCallback(async (): Promise<void> => {
       return;
     }
 
-    const response = await fetch(`${API_URL}/categories/supermarket/${supermarketId}`, {
+    const response = await fetch(`${API_URL}/categories/supermarket/${supermarketId}/default`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -506,7 +506,7 @@ const handleSnackbarClose = (): void => {
         {user?.role !== 'viewer' &&(
         <Stack spacing={2}>
           <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenCategory}>
-            Añadir Cortes
+            Añadir Corte
           </Button>
           <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenProduct}>
             Añadir Carne
@@ -937,7 +937,7 @@ const handleSnackbarClose = (): void => {
     fullWidth // Esto permite que el modal use el ancho máximo definido
     sx={{ '& .MuiDialog-paper': { width: '400px', maxWidth: '100%' } }} // Personaliza el ancho
     >
-      <DialogTitle>Añadir Categoria</DialogTitle>
+      <DialogTitle>Añadir Corte</DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
           <Controller
