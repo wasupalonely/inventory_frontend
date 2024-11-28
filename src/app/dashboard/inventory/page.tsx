@@ -505,9 +505,9 @@ const handleSnackbarClose = (): void => {
         {/* Botones en columna */}
         {user?.role !== 'viewer' &&(
         <Stack spacing={2}>
-         {/* <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenCategory}>
-            Añadir Categoria
-          </Button>*/}
+          <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenCategory}>
+            Añadir Cortes
+          </Button>
           <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained" onClick={handleOpenProduct}>
             Añadir Carne
           </Button>
@@ -606,7 +606,7 @@ const handleSnackbarClose = (): void => {
     <Typography variant="body2">Peso: {inventory.product.weight} gramos</Typography>
     <Typography variant="body2">Precio por gramo: ${inventory.product.pricePerPound}</Typography>
     <Typography variant="body2">Stock: {inventory.stock}</Typography>
-   {/* <Typography
+   <Typography
       variant="body2"
       sx={{
         overflow: 'hidden',
@@ -614,8 +614,8 @@ const handleSnackbarClose = (): void => {
         whiteSpace: 'nowrap',
       }}
     >
-     Categoría: {inventory.product.category?.name || 'Sin Categoría'} 
-    </Typography> */}
+     Corte: {inventory.product.category?.name || 'Sin Corte'} 
+    </Typography>
 
     {/* Reserva el espacio de los botones si el rol es viewer */}
     {user?.role === 'viewer' ? (
@@ -848,21 +848,21 @@ const handleSnackbarClose = (): void => {
               )}
             />
 
-{/* <Controller
+ <Controller
   name="categoryId"
   control={control}
   render={({ field, fieldState }) => (
     <FormControl fullWidth error={Boolean(fieldState.error)}>
-      <InputLabel id="category-select-label">Categoría</InputLabel>
+      <InputLabel id="category-select-label">Cortes</InputLabel>
       <Select
         {...field}
-        label="Categoría"
+        label="Corte"
         id="category-select"
         value={field.value || ""} // Mantiene el valor como una cadena vacía si no se selecciona ninguna categoría
 
       >
         <MenuItem value="">
-          <em>Sin Categoría</em>
+          <em>Sin Corte</em>
         </MenuItem>
         {categories.map((category) => (
           <MenuItem key={category.id} value={category.id}>
@@ -874,7 +874,6 @@ const handleSnackbarClose = (): void => {
     </FormControl>
   )}
 />
-*/}
 
           {/* Controlador de subida de imagen */}
           <Controller
@@ -1107,6 +1106,40 @@ const handleSnackbarClose = (): void => {
           )}
         /> 
 
+<Controller
+            name="unitCost"
+            control={control}
+            rules={{
+              required: 'El costo por unidad es obligatorio',
+              validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
+            }}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                label="Costo por unidad"
+                fullWidth
+                type="text"
+                error={Boolean(fieldState.error)}
+                helperText={fieldState.error ? fieldState.error.message : ''}
+                inputProps={{
+                  maxLength: 10,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                }}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Permite solo números y hasta dos decimales
+                  if (/^[0-9]*\.?[0-9]{0,2}$/.test(value) || value === "") {
+                    field.onChange(value); // Solo actualiza el valor si cumple la condición
+                  }
+                }}
+                required
+              />
+            )}
+          /> 
+
             <Controller
               name="stock"
               control={control}
@@ -1140,13 +1173,13 @@ const handleSnackbarClose = (): void => {
               )}
             /> 
 
-       {/* <Controller
+       <Controller
           name="categoryId"
           control={control}
           render={({ field, fieldState }) => (
             <FormControl fullWidth error={Boolean(fieldState.error)}>
-              <InputLabel id="category-select-label">Categoría</InputLabel>
-              <Select {...field} label="Categoría" id="category-select">
+              <InputLabel id="category-select-label">Cortes</InputLabel>
+              <Select {...field} label="Cortes" id="category-select">
                 {categories.map((category) => (
                   <MenuItem key={category.id} value={category.id}>
                     {category.name}
@@ -1156,7 +1189,8 @@ const handleSnackbarClose = (): void => {
               {typeof fieldState.error?.message === 'string' && <Typography color="error">{fieldState.error.message}</Typography>}
             </FormControl>
           )}
-        /> */}
+        />
+        
       </Stack>
     </DialogContent>
     <DialogActions>
