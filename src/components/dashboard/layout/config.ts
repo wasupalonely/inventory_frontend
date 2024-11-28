@@ -24,9 +24,9 @@ export const navItems: NavItemConfig[] = [
   },
   {
     key: 'categories', 
-    title: 'Categorías', 
+    title: 'Cortes', 
     href: paths.dashboard.categories, 
-    icon: 'scroll',
+    icon: 'knife',
     
   },
   { 

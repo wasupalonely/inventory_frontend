@@ -16,7 +16,7 @@ export function CategoriesFilters({ onSearch }: CategoriesFiltersProps): React.J
       <OutlinedInput
         defaultValue=""
         fullWidth
-        placeholder="Buscar categoría"
+        placeholder="Buscar corte"
         onChange={(e) => { 
           onSearch(e.target.value);
         }}

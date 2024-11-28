@@ -19,6 +19,7 @@ import { useUser } from '@/hooks/use-user';
 
 export interface Categories {
   id: number;
+  categoryId: string;
   name: string;
   description: string;
   supermarketId: number;
@@ -107,7 +108,7 @@ export function CategoriesTable({
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={user?.role !== 'viewer' ? 4 : 3} align="center">
-                  No hay categorías disponibles
+                  No hay cortes disponibles
                 </TableCell>
               </TableRow>
             ) : (

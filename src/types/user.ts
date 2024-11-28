@@ -1,4 +1,5 @@
-import type { SupermarketSignUpParams, UploadImageParams, PredictionsParams } from '@/lib/auth/client';
+import type { Categories } from '@/components/dashboard/categories/categories-table';
+import type { SupermarketSignUpParams, UploadImageParams, PredictionsParams} from '@/lib/auth/client';
 
 
 export interface User {
@@ -18,5 +19,6 @@ export interface User {
   role: 'owner' | 'cashier' | 'admin' | 'viewer';
   supermarket?: SupermarketSignUpParams;
   prediction?: PredictionsParams;
+  category?: Categories;
   [key: string]: unknown;
 }
