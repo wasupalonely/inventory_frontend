@@ -750,13 +750,13 @@ const handleSnackbarClose = (): void => {
             name="unitCost"
             control={control}
             rules={{
-              required: 'El precio por unidad es obligatorio',
+              required: 'El costo por unidad es obligatorio',
               validate: (value) => /^[0-9]*\.?[0-9]{0,2}$/.test(value) || 'Solo se permiten números y hasta dos decimales'
             }}
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Precio por unidad"
+                label="Costo por unidad"
                 fullWidth
                 type="text"
                 error={Boolean(fieldState.error)}
