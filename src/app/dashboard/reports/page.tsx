@@ -54,15 +54,15 @@ interface ProfitsData {
 
 
 const reportOptions: ReportOption[] = [
-  { label: 'Productos más vendidos', value: 'most-sold' },
+  { label: 'Carnes más vendidos', value: 'most-sold' },
   { label: 'Ganancias Totales', value: 'profits' },
-  { label: 'Productos por Usuario', value: 'products-by-user' },
-  { label: 'Productos Menos Vendidos', value: 'least-sold' },
-  { label: 'Productos por Categoría', value: 'products-by-category' },
-  { label: 'Rotación de Inventario', value: 'inventory-rotation' },
+  { label: 'Carnes por Usuario', value: 'products-by-user' },
+  { label: 'Carnes Menos Vendidos', value: 'least-sold' },
+  { label: 'Carnes por Cortes', value: 'products-by-category' },
+  //{ label: 'Rotación de Inventario', value: 'inventory-rotation' },
   { label: 'Productos con nivel de stock crítico', value: 'critical-stock' },
   { label: 'Gestión de Calidad de la Carne', value: 'quality-management-title', isTitle: true }, 
-  { label: 'Frescura de Carnes', value: 'meat-freshness' },
+  //{ label: 'Frescura de Carnes', value: 'meat-freshness' },
   { label: 'Reporte de predicciones de la calidad de la carne', value: 'status-summary' },
   { label: 'Análisis completo de la calidad de la carne', value: 'analysis' },
   { label: 'Tendencia de la calidad de la carne a lo largo del tiempo', value: 'trend' },
@@ -73,7 +73,7 @@ const reportOptions: ReportOption[] = [
 
 const chartConfigurations = {
   'most-sold': {
-    title: 'Productos Más Vendidos',
+    title: 'Carnes más vendidos',
     xKey: 'nombre_producto',
     yKey: 'cantidad',
     barColor: '#82ca9d',
@@ -89,19 +89,19 @@ const chartConfigurations = {
     barColor: '#ffc658',
   },
   'products-by-user': {
-    title: 'Productos',
+    title: 'Carnes',
     xKey: 'nombre_producto',
     yKey: 'total_vendido',
     barColor: '#ffc658',
   },
   'least-sold': {
-    title: 'Productos Menos Vendidos',
+    title: 'Carnes Menos Vendidos',
     xKey: 'nombre',
     yKey: 'cantidad',
     barColor: '#8884d8',
   },
   'products-by-category': {
-    title: 'Productos por Categoría',
+    title: 'Carnes por Cortes',
     xKey: 'categoria',
     yKey: 'cantidad_productos',
     barColor: '#ffc658',
@@ -113,7 +113,7 @@ const chartConfigurations = {
     barColor: '#ff7300',
   },
   'status-summary': {
-    title: 'Cantidad de carne',
+    title: 'Calidad de la carne',
     xKey: 'status',
     yKey: 'cantidad',
     barColor: '#ff7300',
@@ -200,11 +200,6 @@ export default function ReportPage(): React.JSX.Element {
   };
 
   const fetchReports = async (): Promise<void> => {
-    if (!startDate || !endDate) {
-      showSnackbar('Por favor, selecciona las fechas de inicio y fin.');
-      return;
-    }
-
     if (!supermarketId) {
       showSnackbar("No se encontró el ID del supermercado.");
       return;
@@ -767,9 +762,7 @@ export default function ReportPage(): React.JSX.Element {
           onClick={fetchReports}
           disabled={
             loading || 
-            selectedReports.length === 0 || 
-            !startDate || 
-            !endDate // Desactiva si faltan fechas
+            selectedReports.length === 0
           }
         >
           {loading ? <CircularProgress size={24} /> : 'Generar Reportes'}

@@ -317,13 +317,13 @@ const handleRemoveProduct = (index: number): void => {
 
   return (
     <Card>
-      <CardHeader title="Registro de Venta" subheader="Añade productos a la venta" />
+      <CardHeader title="Registro de Venta" subheader="Añade carnes a la venta" />
       <Divider />
       <CardContent>
         <Grid container spacing={2} alignItems="center">
           <Grid item md={6} xs={12}>
             <FormControl fullWidth>
-              <InputLabel>Producto</InputLabel>
+              <InputLabel>Carnes</InputLabel>
               <Select
                 label="Producto"
                 value={selectedProduct?.id.toString() || ''}
