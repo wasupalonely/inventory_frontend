@@ -64,7 +64,7 @@ export function CamerasTable({
   },
 }: CamerasTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
-    return rows.map((camera) => camera.id);
+    return rows.map((camera) => camera.category.id);
   }, [rows]);
 
   const { user } = useUser();
@@ -92,7 +92,8 @@ export function CamerasTable({
         <Table sx={{ minWidth: '800px' }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: '15%' }}>Nombre</TableCell>
+              <TableCell>Corte</TableCell>
+              <TableCell>Nombre</TableCell>
               <TableCell style={{ width: '65%' }}>Descripción</TableCell>
               {user?.role !== 'viewer' && <TableCell>Acciones</TableCell>}
             </TableRow>
@@ -109,6 +110,7 @@ export function CamerasTable({
                 const isSelected = selected?.has(row.id);
                 return (
                   <TableRow hover key={row.id} selected={isSelected}>
+                    <TableCell>{row.category.name}</TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.description}</TableCell>
                     {user?.role !== 'viewer' && (

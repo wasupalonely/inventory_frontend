@@ -6,6 +6,7 @@ import type { PredictionsParams } from '@/lib/auth/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSelection } from '@/hooks/use-selection';
 import PredictionDetailsModal from '@/components/dashboard/predictions/prediction-details-modal';
+import CameraDetailsModal from '@/components/dashboard/cameras/camera-details-modal';
 
 const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) {
@@ -73,28 +74,31 @@ export function PredictionsTable({
   const router = useRouter();
   const searchParams = useSearchParams();
   const predictionIdFromUrl = searchParams.get('predictionId');
+  const cameraIdFromUrl = searchParams.get('cameraId');
   const rowIds = React.useMemo(() => rows.map((predictions) => predictions.id), [rows]);
   const { selected } = useSelection(rowIds);
   
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalCameraOpen, setModalCameraOpen] = React.useState(false);
   const [selectedPrediction, setSelectedPrediction] = React.useState<number | null>(null);
+  const [selectedCamera, setSelectedCamera] = React.useState<number | null>(null);
+
 
   const handleCloseAlert = (): void => {
     setAlertOpen(false);
     setSuccessMessage(null);
   };
 
-  // Detecta el parámetro predictionId en la URL y abre el modal si está presente
-  React.useEffect(() => {
-    if (predictionIdFromUrl) {
-      setSelectedPrediction(parseInt(predictionIdFromUrl, 10));
-      setModalOpen(true);
-    }
-  }, [predictionIdFromUrl]);
+React.useEffect(() => {
+  if (predictionIdFromUrl) {
+    setSelectedPrediction(parseInt(predictionIdFromUrl, 10));
+    setModalOpen(true);
+  }
+}, [predictionIdFromUrl]);
 
-  const handleViewDetails = (id: number): void => {
+const handleViewDetails = (id: number): void => {
   // Actualiza la URL sin recargar la página
   router.replace(`/dashboard/predictions?predictionId=${id}`);
   setSelectedPrediction(id);
@@ -106,6 +110,23 @@ const handleCloseModal = (): void => {
   setSelectedPrediction(null);
   // Vuelve a la URL anterior sin recargar la página
   router.replace('/dashboard/predictions');
+};
+
+React.useEffect(() => {
+  if (cameraIdFromUrl) {
+    setSelectedPrediction(parseInt(cameraIdFromUrl, 10));
+    setModalCameraOpen(true);
+  }
+}, [cameraIdFromUrl]);
+
+const handleViewCameraDetails = (id: number): void => {
+  setSelectedCamera(id);
+  setModalCameraOpen(true);
+};
+
+const handleCameraCloseModal = (): void => {
+  setModalCameraOpen(false);
+  setSelectedCamera(null);
 };
 
   return (
@@ -134,9 +155,7 @@ const handleCloseModal = (): void => {
                 rows.map((row) => (
                   <TableRow hover key={row.id} selected={selected?.has(row.id)}>
                     <TableCell>
-                      <Button
-                        variant="contained" color="primary" onClick={() => {router.replace(`/dashboard/cameras`);}}
-                      >
+                    <Button variant="contained" color="primary" onClick={() => {handleViewCameraDetails(row.camera.id)}}>
                         Ver Cámara
                       </Button>
                     </TableCell>
@@ -171,6 +190,7 @@ const handleCloseModal = (): void => {
       </Card>
       <SuccessMessage open={alertOpen} message={successMessage || ''} onClose={handleCloseAlert} />
       {selectedPrediction && (<PredictionDetailsModal open={modalOpen} predictionId={selectedPrediction} onClose={handleCloseModal} />)}
+      {selectedCamera && (<CameraDetailsModal open={modalCameraOpen} cameraId={selectedCamera} onClose={handleCameraCloseModal} />)}
     </>
   );
 }

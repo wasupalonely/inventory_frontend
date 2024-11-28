@@ -130,7 +130,7 @@ export default function Page(): React.JSX.Element {
         retryCount += 1;  
         if (retryCount >= maxRetries) {
           setCategories([]);
-          showErrorMessage('Error al cargar las categorías después de varios intentos');
+          showErrorMessage('Error al cargar los cortes después de varios intentos');
           break; // Para evitar un loop infinito si no puede completar los llamados
         }
       } finally {
@@ -140,7 +140,7 @@ export default function Page(): React.JSX.Element {
   }, []);  
   
   useEffect(() => {
-    fetchCategories(); // Cargar datos de categorías
+    fetchCategories(); // Cargar datos de cortes
   }, [fetchCategories]); // El efecto solo se ejecutará si `fetchCategories` cambia
   
 
@@ -186,7 +186,7 @@ export default function Page(): React.JSX.Element {
       ...data,
     };
   
-    // Si estás editando una categoría, no incluyas supermarketId
+    // Si estás editando un corte, no incluyas supermarketId
     if (editingCategory) {
       if ('password' in updatedFormData) {
         delete updatedFormData.password;
@@ -212,7 +212,7 @@ export default function Page(): React.JSX.Element {
       });
   
       if (!response.ok) {
-        showSnackbar('Error al crear o actualizar la categoría', 'error');
+        showSnackbar('Error al crear o actualizar el corte', 'error');
         return;
       }
   
@@ -226,12 +226,12 @@ export default function Page(): React.JSX.Element {
         );
       }
   
-      showSnackbar(editingCategory ? 'Categoría actualizada con éxito' : 'Categoría creada con éxito', 'success');
-      fetchCategories(); // Actualiza la lista de categorías
+      showSnackbar(editingCategory ? 'Corte actualizada con éxito' : 'Corte creada con éxito', 'success');
+      fetchCategories(); // Actualiza la lista de cortes
       handleCloseModal(); // Cierra el modal después de completar la acción
       reset(); // Limpia el formulario
     } catch (error) {
-      showSnackbar('Error al crear o actualizar la categoría', 'error');
+      showSnackbar('Error al crear o actualizar el corte', 'error');
     }
   };
 
@@ -248,7 +248,7 @@ export default function Page(): React.JSX.Element {
 
     const worksheet = XLSX.utils.json_to_sheet(
       categories.map((categoriesXLSXL) => ({
-        'Categoría': categoriesXLSXL.name || '',
+        'Corte': categoriesXLSXL.name || '',
         'Descripción': categoriesXLSXL.description || '',
       }))
     );
@@ -257,7 +257,7 @@ export default function Page(): React.JSX.Element {
     headerCell[0] = { hpt: 18, hpx: 18 };
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Categorías');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cortes');
 
     XLSX.writeFile(workbook, 'categorias.xlsx');
     handleCloseMenu();
@@ -266,9 +266,9 @@ export default function Page(): React.JSX.Element {
   const handleExportPDF = (): void => {
     // eslint-disable-next-line new-cap -- Utilizamos `new jsPDF()` como una excepción ya que el nombre viene de una biblioteca externa que no sigue esta convención.
     const doc = new jsPDF();
-    doc.text('Lista de Categorías', 10, 10);
+    doc.text('Lista de Cortes', 10, 10);
 
-    const columns = ['Categoría', 'Descripción'];
+    const columns = ['Corte', 'Descripción'];
     const rows = categories.map((categoriesPdf) => [
       categoriesPdf.name,
       categoriesPdf.description,
@@ -312,7 +312,7 @@ export default function Page(): React.JSX.Element {
     <Stack spacing={3}>
       <Stack direction="row" spacing={3}>
         <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
-          <Typography variant="h4">Categorías</Typography>
+          <Typography variant="h4">Cortes</Typography>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             {/* <Button color="inherit" startIcon={<UploadIcon fontSize="var(--icon-fontSize-md)" />}>
               Importar
@@ -375,7 +375,7 @@ export default function Page(): React.JSX.Element {
             borderRadius: 1,
           }}
         >
-          <Typography variant="h6">{editingCategory ? 'Editar Categoría' : 'Agregar Categoría'}</Typography>
+          <Typography variant="h6">{editingCategory ? 'Editar Corte' : 'Agregar Corte'}</Typography>
           <Controller
           name="name"
           control={control}
@@ -435,7 +435,7 @@ export default function Page(): React.JSX.Element {
       >
         <DialogTitle>Confirmar eliminación</DialogTitle>
         <DialogContent>
-          <Typography>¿Estás seguro de que deseas eliminar esta categoría?</Typography>
+          <Typography>¿Estás seguro de que deseas eliminar este corte?</Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -460,14 +460,14 @@ export default function Page(): React.JSX.Element {
                   });
             
                   if (!response.ok) {
-                    showSnackbar('Esta categoría está asignada a un producto, elimina primero el producto', 'error');
+                    showSnackbar('Este corte está asignada a un producto, elimina primero el producto', 'error');
                     return;
                   }
             
                   fetchCategories();  // Actualiza la lista de usuarios
-                  showSnackbar('Categoría eliminada con éxito', 'success');
+                  showSnackbar('Corte eliminada con éxito', 'success');
                 } catch (error) {
-                  showSnackbar('Error al eliminar la categoría', 'error');
+                  showSnackbar('Error al eliminar el corte', 'error');
                 } finally {
                   setDialogOpen(false);  // Cierra el diálogo
                   setCategoryToDelete(null);  // Limpia el estado

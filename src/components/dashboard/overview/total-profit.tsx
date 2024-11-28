@@ -49,7 +49,7 @@ export function TotalProfit({ sx }: TotalProfitProps): React.JSX.Element {
     }
   }, []);
 
-  const formattedValue = totalEarnings !== null ? totalEarnings.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) : '-';
+  const formattedValue = totalEarnings !== null ? `$ ${totalEarnings.toLocaleString('es-CO')}` : '-';
 
   return (
     <Card sx={{ width: '200%', ...sx }}>

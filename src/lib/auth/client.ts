@@ -76,14 +76,23 @@ export interface NotificationsParams{
 export interface CamerasParams {
   id: number;
   supermarketId: number;
+  category: {
+    id: number;
+    name: string;
+    description: string;
+  }
   name: string;
   description: string;
   isActive: boolean;
-  }
+}
 
 export interface PredictionsParams {
   id: number;
-  cameraId: number;
+  camera: {
+    id: number;
+    name: string;
+    description: string;
+  }
   image: File | undefined;
   result: string;
   createdAt: string;
@@ -458,16 +467,38 @@ class AuthClient {
       });
   
       if (!response.ok) {
-        return { data: null, error: 'Failed to fetch prediction data from server' };
+        return { data: null, error: 'No se pudieron obtener los datos de predicción del servidor' };
       }
   
       const prediction = await response.json();
       return { data: prediction };
     } catch (error) {
-      return { data: null, error: 'Error fetching prediction data' };
+      return { data: null, error: 'Error al obtener los datos de predicción' };
     }
   }
 
+  async getCameraById(id: number): Promise<{ data?: CamerasParams | null; error?: string }> {
+    const token = localStorage.getItem('custom-auth-token');
+  
+    try {
+      const response = await fetch(`${API_URL}/cameras/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        return { data: null, error: 'No se pudieron obtener los datos de la camara del servidor' };
+      }
+  
+      const camera = await response.json();
+      return { data: camera };
+    } catch (error) {
+      return { data: null, error: 'Error al obtener los datos de la cámara' };
+    }
+  }
 }
 
 export const authClient = new AuthClient();

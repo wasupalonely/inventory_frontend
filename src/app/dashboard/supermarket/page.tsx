@@ -15,6 +15,7 @@ import { Info as InfoIcon } from '@phosphor-icons/react/dist/ssr/Info';
 import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import { API_URL } from '@/config';
 import { useRouter } from 'next/navigation';
+import { ChatsCircle } from '@phosphor-icons/react';
 
 
 const Container = styled('div')(({ theme }) => ({
@@ -59,9 +60,10 @@ interface Address {
 }
 
 interface Supermarket {
-id: number;
+id?: number;
 name: string;
 nit: string;
+socialReason: string;
 owner: { id: number };
 address: Address;
 }
@@ -335,6 +337,9 @@ const translateLocationType = (locationType: string | undefined): string => {
                                     <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
                                         <Typography variant="body2"><strong>NIT:</strong> {supermarket.nit}</Typography>
                                     </Box>
+                                    <Box sx={{ border: '1px solid', borderRadius: 1, p: 2 }}>
+                                        <Typography variant="body2"><strong>Razón social:</strong> {supermarket.socialReason}</Typography>
+                                    </Box>
                                     <Box />
                                 </Stack>
                                 <Typography variant="h6" sx={{ mb: 2 }}>
@@ -422,6 +427,18 @@ const translateLocationType = (locationType: string | undefined): string => {
                                         },
                                         startAdornment: <IconButton><BuildingIcon /></IconButton>}}
                                  />
+                                 <CustomTextField
+                                        label="Razón Social"
+                                        name="socialReason"
+                                        value={formData.socialReason}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        InputProps={{onInput: (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                                        },
+                                        startAdornment: <IconButton><ChatsCircle /></IconButton>}}
+                                 />
                                 <SectionTitle variant="h6">Dirección</SectionTitle>
                                 <Stack spacing={2}>
                                     <CustomTextField
@@ -451,6 +468,7 @@ const translateLocationType = (locationType: string | undefined): string => {
                                         ))}
                                     </Select>
                                     </FormControl>
+                                    <Stack/>
                                     <CustomTextField
                                         label="Número de calle"
                                         name="streetNumber"

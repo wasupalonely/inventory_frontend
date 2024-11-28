@@ -21,9 +21,11 @@ import { Controller, useForm } from 'react-hook-form';
 import * as XLSX from 'xlsx';
 import { useUser } from '@/hooks/use-user';
 import type { User} from '@/types/user'
+import type { Categories } from '@/components/dashboard/categories/categories-table';
 
 export default function Page(): React.JSX.Element {
   const { user: currentUser } = useUser();
+  const [categories, setCategories] = useState<Categories[]>([]);
   const [cameras, setCameras] = useState<CamerasParams[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function Page(): React.JSX.Element {
     defaultValues: {
       name: '',
       description: '',
+      categoryId: '',
     },
     mode: 'onChange'
   });
@@ -133,10 +136,36 @@ export default function Page(): React.JSX.Element {
       }
     }
   }, []);  
+
+  const fetchCategories = useCallback(async (): Promise<void> => {
+    try {
+      const storedUser: User = JSON.parse(localStorage.getItem('user') || '{}');
+      const supermarketId = storedUser.ownedSupermarket?.id || storedUser.supermarket?.id;
+      const token = localStorage.getItem('custom-auth-token');
+  
+      const response = await fetch(`${API_URL}/categories/supermarket/${supermarketId}/default`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Error al obtener las categorías');
+      }
+  
+      const data: Categories[] = await response.json();
+      setCategories(data);
+    } catch (error) {
+      showSnackbar('Error al cargar las categorías', 'error');
+    }
+  }, []);
   
   useEffect(() => {
-    fetchCameras(); // Cargar datos de cámaras
-  }, [fetchCameras]); // El efecto solo se ejecutará si `fetchCameras` cambia
+    fetchCameras();
+    fetchCategories(); 
+  }, [fetchCameras, fetchCategories]); // El efecto solo se ejecutará si `fetchCameras` cambia
   
 
   const handleOpenModal = (selectedUser?: CamerasParams): void => {
@@ -144,11 +173,11 @@ export default function Page(): React.JSX.Element {
 
     if (selectedUser) {
       (Object.keys(selectedUser) as (keyof CamerasParams)[]).forEach((key) => {
-        if (['name', 'description'].includes(key as string)) {
+        if (['name', 'description', 'categoryId'].includes(key as string)) {
           const value = selectedUser[key];
     
           setValue(
-            key as 'name' | 'description',
+            key as 'name' | 'description' | 'categoryId',
             value ? String(value) : ''
           );
         }
@@ -174,10 +203,12 @@ export default function Page(): React.JSX.Element {
     }
   
     const userObject: User = JSON.parse(submitUser );
-    const supermarketId = userObject.ownedSupermarket?.id; // Obtén el supermarketId como antes
+    const supermarketId = userObject.ownedSupermarket?.id;
   
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- data viene sin tipar, requiere revisión futura
     const updatedFormData: Partial<User> = {
       ...data,
+      categoryId: (data as { categoryId: number }).categoryId,
     };
   
     // Si estás editando una cámara, no incluyas supermarketId
@@ -185,9 +216,7 @@ export default function Page(): React.JSX.Element {
       if ('password' in updatedFormData) {
         delete updatedFormData.password;
       }
-      // No incluyas supermarketId en la solicitud de edición
     } else {
-      // Si no estás editando, añade supermarketId
       updatedFormData.supermarketId = supermarketId;
     }
   
@@ -202,11 +231,11 @@ export default function Page(): React.JSX.Element {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedFormData), // Envía solo updatedFormData
+        body: JSON.stringify(updatedFormData),
       });
   
       if (!response.ok) {
-        showSnackbar('Error al crear cámara, ya has alcanzado el máximo de cámaras registradas', 'error');
+        showSnackbar('Error al crear cámara', 'error');
         return;
       }
   
@@ -395,23 +424,46 @@ export default function Page(): React.JSX.Element {
                 />
             )}
             />
-        <Controller
-          name="description"
-          control={control}
-          render={({ field }) => (
-            <TextField {...field} label="Descripción"
-            fullWidth
-            multiline
-            rows={3}
-            inputProps={{ maxLength: 200,
-              onInput: (event) => {
-                const input = event.target as HTMLInputElement;
-                input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
-              }
-             }}
-             />
-          )}
-        />
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <TextField {...field} label="Descripción"
+                fullWidth
+                multiline
+                rows={3}
+                inputProps={{ maxLength: 200,
+                  onInput: (event) => {
+                    const input = event.target as HTMLInputElement;
+                    input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                  }
+                }}
+                />
+              )}
+            />
+            <Controller
+              name="categoryId"
+              control={control}
+              rules={{ required: 'La categoría es obligatoria' }}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  select
+                  label="Categoría"
+                  fullWidth
+                  error= {Boolean(errors.categoryId)}
+                  value={field.value} // Asegúrate de que este valor sea el correcto
+                  onChange={(event) => {field.onChange(event.target.value)}} // Actualiza el estado al cambiar
+                  required
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
           <Button variant="contained" onClick={handleSubmit(handleFormSubmit)} disabled={!isValid || isPending}>
             {editingCamera ? 'Actualizar' : 'Agregar'}
           </Button>

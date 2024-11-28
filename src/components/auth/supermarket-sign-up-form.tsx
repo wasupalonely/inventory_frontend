@@ -49,6 +49,10 @@ const schema = zod.object({
     message: 'El NIT debe tener 8 o 9 dígitos principales seguidos de un guion y un dígito verificador',
   })
   .min(1, { message: 'El NIT es requerido' }),
+  socialReason: zod
+    .string()
+    .min(1, { message: 'La razón social es requerida' })
+    .max(255, { message: 'La razón social no debe tener más de 255 caracteres' }),
 });
 
 
@@ -57,6 +61,7 @@ type Values = zod.infer<typeof schema>;
 const defaultValues = {
   name: '',
   nit: '',
+  socialReason: '',
   address: {
     neighborhood: '',
     locationType: '',
@@ -225,8 +230,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
   [router, reset, setError, checkSession]
 );
   
-
-
     return (
       <Stack spacing={3}>
         <Stack spacing={1}>
@@ -250,7 +253,6 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                 </FormControl>
               )}
             />
-            <Stack spacing={2}>
               <Controller
                 control={control}
                 name="nit"
@@ -276,7 +278,22 @@ export function SupermarketSignUpForm(): React.JSX.Element {
                   </FormControl>
                 )}
               />
-            </Stack>
+            <Controller
+              control={control}
+              name="socialReason"
+              render={({ field }) => (
+                <FormControl error={Boolean(errors.socialReason)}>
+                  <InputLabel>Razón social</InputLabel>
+                  <OutlinedInput {...field} label="Razón social" inputProps={{ maxLength: 50,
+                    onInput: (event) => {
+                      const input = event.target as HTMLInputElement;
+                      input.value = input.value.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+                    }
+                   }} />
+                  {errors.socialReason ? <FormHelperText>{errors.socialReason.message}</FormHelperText> : null}
+                </FormControl>
+              )}
+            />
             
             <Typography variant="h6">Dirección</Typography>
             <Controller
