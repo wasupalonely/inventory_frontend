@@ -15,6 +15,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import type { User } from '@/types/user';
 import { API_URL } from '@/config';
 import { useEffect, useState } from 'react';
+import { CamerasParams } from '@/lib/auth/client';
 
 export function Notifications(): React.JSX.Element {
   const [isCronEnabled, setIsCronEnabled] = React.useState(false);
@@ -24,6 +25,7 @@ export function Notifications(): React.JSX.Element {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [isFirstActivation, setIsFirstActivation] = useState(true); // Controla si se permite seleccionar EVERY_MINUTE
+  const [isCameraAvailable, setIsCameraAvailable] = useState(false);
 
   const showSnackbar = (message: string, severity: 'success' | 'error'): void => {
     setSnackbarMessage(message);
@@ -56,10 +58,11 @@ export function Notifications(): React.JSX.Element {
         });
 
         if (response.ok) {
-          const data: { cronjobEnabled: boolean; scheduleFrequency: string } = await response.json();
+          const data: { cronjobEnabled: boolean; scheduleFrequency: string, cameras: CamerasParams[] } = await response.json();
           setIsCronEnabled(Boolean(data.cronjobEnabled));
           setScheduleFrequency(data.scheduleFrequency);
-          setInitialFrequency(data.scheduleFrequency); 
+          setInitialFrequency(data.scheduleFrequency);
+          setIsCameraAvailable(data.cameras.length > 0);
           // Deshabilitar EVERY_MINUTE si no es la frecuencia actual
           if (data.scheduleFrequency !== 'EVERY_MINUTE') {
             setIsFirstActivation(false);
@@ -169,7 +172,7 @@ export function Notifications(): React.JSX.Element {
               <Stack spacing={1}>
                 <Typography variant="h6">Activar predicciones</Typography>
                 <FormControlLabel
-                  control={<Switch checked={isCronEnabled} onChange={handleSwitchChange} />}
+                  control={<Switch checked={isCronEnabled} onChange={handleSwitchChange} disabled={!isCameraAvailable} />}
                   label="Predicciones automáticas"
                 />
                 {isCronEnabled && (
