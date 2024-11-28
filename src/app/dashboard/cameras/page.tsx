@@ -271,6 +271,7 @@ export default function Page(): React.JSX.Element {
 
     const worksheet = XLSX.utils.json_to_sheet(
       cameras.map((camerasXLSXL) => ({
+        'Corte': camerasXLSXL.category.name || '',
         'Nombre de Cámara': camerasXLSXL.name || '',
         'Descripción': camerasXLSXL.description || '',
       }))
@@ -291,8 +292,9 @@ export default function Page(): React.JSX.Element {
     const doc = new jsPDF();
     doc.text('Lista de Cámaras', 10, 10);
 
-    const columns = ['Nombre de Cámara', 'Descripción'];
+    const columns = ['Corte', 'Nombre de Cámara', 'Descripción'];
     const rows = cameras.map((camerasPdf) => [
+      camerasPdf.category.name,
       camerasPdf.name,
       camerasPdf.description,
     ]);
