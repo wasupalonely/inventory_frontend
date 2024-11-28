@@ -72,7 +72,7 @@ export default function Page(): React.JSX.Element {
       if (!response.ok) throw new Error('Error al cargar las auditorías');
       const auditsData: AuditsParams[] = await response.json() as AuditsParams[];
       const sortedAudits = auditsData.sort((a, b) => {
-        return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       });      
       setAudits(sortedAudits);
     } catch (error) {
