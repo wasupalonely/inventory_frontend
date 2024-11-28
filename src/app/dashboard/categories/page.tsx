@@ -259,7 +259,7 @@ export default function Page(): React.JSX.Element {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Cortes');
 
-    XLSX.writeFile(workbook, 'categorias.xlsx');
+    XLSX.writeFile(workbook, 'cortes.xlsx');
     handleCloseMenu();
     showSuccessMessage('Exportado a Excel con éxito');
   };
@@ -279,7 +279,7 @@ export default function Page(): React.JSX.Element {
       body: rows,
     });
 
-    doc.save('categorias.pdf');
+    doc.save('cortes.pdf');
     handleCloseMenu();
     showSuccessMessage('Exportado a PDF con éxito');
   };
